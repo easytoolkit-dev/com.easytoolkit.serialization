@@ -24,11 +24,6 @@ namespace EasyToolKit.Serialization
         public MemberFilter MemberFilter => _memberFilterConfiguration.CreateFilter();
 
         /// <summary>
-        /// Gets the serialized member info accessor (internal use).
-        /// </summary>
-        internal ISerializedMemberInfoAccessor SerializedMemberInfoAccessor => _sharedContext.GetService<ISerializedMemberInfoAccessor>();
-
-        /// <summary>
         /// Gets the shared serialization context for accessing services.
         /// </summary>
         public SerializationSharedContext SharedContext => _sharedContext;
@@ -48,7 +43,7 @@ namespace EasyToolKit.Serialization
         {
             _memberFilterConfiguration = memberFilterConfiguration ?? throw new ArgumentNullException(nameof(memberFilterConfiguration));
             _memberFilterConfiguration.ValidateOrThrow();
-            _sharedContext = SerializationSharedContext.Create(MemberFilter);
+            _sharedContext = SerializationSharedContext.CreateDefault();
         }
 
         /// <summary>
@@ -62,7 +57,7 @@ namespace EasyToolKit.Serialization
             }
 
             _memberFilterConfiguration = config;
-            _sharedContext = SerializationSharedContext.Create(MemberFilter);
+            _sharedContext = SerializationSharedContext.CreateDefault();
         }
 
         /// <summary>

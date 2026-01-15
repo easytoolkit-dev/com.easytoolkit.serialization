@@ -6,7 +6,6 @@ namespace EasyToolKit.Serialization
     [SerializerConfiguration(SerializerPriorityLevel.Generic)]
     public class GenericSerializer<T> : EasySerializer<T>
     {
-        private SerializedMemberInfo[] _serializedMemberInfos;
         private static readonly bool IsNode = IsNodeImpl(typeof(T));
         private static readonly Func<T> Constructor = CreateConstructor();
 
@@ -17,8 +16,6 @@ namespace EasyToolKit.Serialization
 
         public override void Process(string name, ref T value, IDataFormatter formatter)
         {
-            _serializedMemberInfos ??= Settings.SerializedMemberInfoAccessor.Get(typeof(T));
-
             if (value == null)
             {
                 if (Constructor == null)
@@ -38,37 +35,40 @@ namespace EasyToolKit.Serialization
                 }
             }
 
-            var direction = formatter.Direction;
-            foreach (var serializedMemberInfo in _serializedMemberInfos)
-            {
-                var memberType = serializedMemberInfo.MemberType;
-                var member = serializedMemberInfo.Member;
-                var memberName = serializedMemberInfo.MemberName;
-                var serializer = serializedMemberInfo.Serializer;
+            // Use Node.Members (triggers lazy initialization)
+            var members = ((IStructSerializationNode)Node).Members;
 
-                object obj = null;
+            var direction = formatter.Direction;
+            foreach (var memberNode in members)
+            {
+                var memberSerializer = memberNode.Serializer;
+                object memberValue = null;
+
                 if (direction == FormatterDirection.Output)
                 {
-                    var getter = serializedMemberInfo.ValueGetter;
+                    var getter = memberNode.ValueGetter;
                     if (getter == null)
                     {
-                        throw new ArgumentException($"Member '{member}' is not readable!");
+                        throw new ArgumentException($"Member '{memberNode.Definition.Name}' is not readable!");
                     }
 
-                    obj = getter(value);
+                    var boxedValue = (object)value;
+                    memberValue = getter(ref boxedValue);
                 }
 
-                serializer.Process(memberName, ref obj, formatter);
+                memberSerializer.Process(memberNode.Definition.Name, ref memberValue, formatter);
 
                 if (direction == FormatterDirection.Input)
                 {
-                    var setter = serializedMemberInfo.ValueSetter;
+                    var setter = memberNode.ValueSetter;
                     if (setter == null)
                     {
-                        throw new ArgumentException($"Member '{member}' is not writable!");
+                        throw new ArgumentException($"Member '{memberNode.Definition.Name}' is not writable!");
                     }
 
-                    setter(value, obj);
+                    var boxedValue = (object)value;
+                    setter(ref boxedValue, memberValue);
+                    value = (T)boxedValue;
                 }
             }
 
