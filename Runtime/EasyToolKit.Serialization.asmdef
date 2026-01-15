@@ -1,0 +1,16 @@
+{
+    "name": "EasyToolKit.Serialization",
+    "rootNamespace": "",
+    "references": [
+        "EasyToolKit.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
