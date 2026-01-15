@@ -54,11 +54,16 @@ namespace EasyToolKit.Serialization
 
             ChangeSettings(settings);
 
+            // Build node tree first
+            var nodeBuilder = CurrentSettings.SharedContext.GetService<ISerializationNodeBuilder>();
+            var rootNode = nodeBuilder.BuildNode(valueType, CurrentSettings);
+
             using (var stream = new MemoryStream())
             {
                 var formatter = FormatterFactory.CreateWriter(serializationData.FormatterType, stream);
 
-                var serializer = GetSerializerWithThrow(valueType);
+                // Get serializer from root node
+                var serializer = rootNode.Serializer;
                 serializer.IsRoot = true;
 
                 serializer.Process(ref value, formatter);
@@ -79,6 +84,10 @@ namespace EasyToolKit.Serialization
         {
             ChangeSettings(settings);
 
+            // Build node tree first
+            var nodeBuilder = CurrentSettings.SharedContext.GetService<ISerializationNodeBuilder>();
+            var rootNode = nodeBuilder.BuildNode(type, CurrentSettings);
+
             object res = null;
             var buf = serializationData.GetData();
             if (buf.Length == 0)
@@ -89,7 +98,8 @@ namespace EasyToolKit.Serialization
                 var formatter = FormatterFactory.CreateReader(serializationData.FormatterType, stream);
                 formatter.SetObjectTable(serializationData.ReferencedUnityObjects);
 
-                var serializer = GetSerializerWithThrow(type);
+                // Get serializer from root node
+                var serializer = rootNode.Serializer;
                 serializer.IsRoot = true;
 
                 serializer.Process(ref res, formatter);

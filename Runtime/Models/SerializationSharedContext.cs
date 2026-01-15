@@ -29,33 +29,16 @@ namespace EasyToolKit.Serialization
         {
             return new ServiceDescriptor[]
             {
-                ServiceDescriptor.Singleton<ISerializedMemberInfoAccessor, SerializedMemberInfoAccessor>()
+                // Existing services (to be removed)
+                // ServiceDescriptor.Singleton<ISerializedMemberInfoAccessor, SerializedMemberInfoAccessor>(),
+
+                // New: Node builder
+                ServiceDescriptor.Transient<ISerializationNodeBuilder, Implementations.SerializationNodeBuilder>(),
+
+                // New: Structure resolver factory
+                ServiceDescriptor.Singleton<ISerializationStructureResolverFactory,
+                                           Implementations.DefaultSerializationStructureResolverFactory>(),
             };
-        }
-
-        /// <summary>
-        /// Creates a default service container with the specified member filter.
-        /// </summary>
-        /// <param name="memberFilter">The member filter to use for serialization.</param>
-        /// <returns>A configured service container.</returns>
-        public static IServiceContainer CreateDefaultServiceContainer(MemberFilter memberFilter)
-        {
-            var descriptors = GetDefaultServiceDescriptors();
-            var customDescriptor = ServiceDescriptor.Singleton<ISerializedMemberInfoAccessor>(
-                provider => new SerializedMemberInfoAccessor(memberFilter));
-
-            return ServiceContainerBuilder.Build(customDescriptor);
-        }
-
-        /// <summary>
-        /// Creates a shared context with the specified member filter.
-        /// </summary>
-        /// <param name="memberFilter">The member filter to use.</param>
-        /// <returns>A new shared context instance.</returns>
-        public static SerializationSharedContext Create(MemberFilter memberFilter)
-        {
-            var container = CreateDefaultServiceContainer(memberFilter);
-            return new SerializationSharedContext(container);
         }
 
         /// <summary>
@@ -66,6 +49,17 @@ namespace EasyToolKit.Serialization
         public static SerializationSharedContext Create(IServiceContainer serviceContainer)
         {
             return new SerializationSharedContext(serviceContainer);
+        }
+
+        /// <summary>
+        /// Creates a shared context with default service container.
+        /// </summary>
+        /// <returns>A new shared context instance.</returns>
+        public static SerializationSharedContext CreateDefault()
+        {
+            var descriptors = GetDefaultServiceDescriptors();
+            var container = ServiceContainerBuilder.Build(descriptors);
+            return new SerializationSharedContext(container);
         }
 
         /// <summary>

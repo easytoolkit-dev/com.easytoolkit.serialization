@@ -4,6 +4,11 @@ namespace EasyToolKit.Serialization
 {
     public interface IEasySerializer
     {
+        /// <summary>
+        /// Gets or sets the serialization node associated with this serializer.
+        /// </summary>
+        ISerializationNode Node { get; set; }
+
         bool CanSerialize(Type valueType);
         bool IsRoot { get; set; }
         Type ValueType { get; }
@@ -14,6 +19,11 @@ namespace EasyToolKit.Serialization
 
     public abstract class EasySerializer<T> : IEasySerializer
     {
+        /// <summary>
+        /// Gets or sets the serialization node associated with this serializer.
+        /// </summary>
+        public ISerializationNode Node { get; set; }
+
         bool IEasySerializer.CanSerialize(Type valueType)
         {
             return CanSerialize(valueType);
@@ -62,7 +72,7 @@ namespace EasyToolKit.Serialization
         /// <summary>
         /// Gets the shared serialization context for accessing services.
         /// </summary>
-        protected SerializationSharedContext Context => Settings.SharedContext;
+        protected SerializationSharedContext SharedContext => Settings.SharedContext;
 
         public virtual bool CanSerialize(Type valueType) => true;
 
