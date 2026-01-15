@@ -1,0 +1,20 @@
+{
+  "name": "com.easytoolkit.serialization",
+  "version": "1.0.0",
+  "displayName": "EasyToolKit Serialization",
+  "description": "",
+  "unity": "2022.3",
+  "unityRelease": "55f1",
+  "license": "MIT",
+  "author": {
+    "name": "easytoolkit-dev",
+    "email": "2907142541@qq.com",
+    "url": "https://github.com/easytoolkit-dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/easytoolkit-dev/com.easytoolkit.serialization"
+  },
+  "dependencies": {
+  }
+}
