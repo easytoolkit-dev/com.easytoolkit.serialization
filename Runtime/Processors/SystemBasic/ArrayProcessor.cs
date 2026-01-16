@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace EasyToolKit.Serialization
+namespace EasyToolKit.Serialization.Processors
 {
-    [SerializerConfiguration(SerializerPriorityLevel.SystemBasic)]
+    [ProcessorConfiguration(ProcessorPriorityLevel.SystemBasic)]
     public class ArrayProcessor<T> : SerializationProcessor<T[]>
     {
         private static readonly ISerializationProcessor<T> Serializer;

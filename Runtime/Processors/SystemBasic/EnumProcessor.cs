@@ -1,8 +1,8 @@
 using System;
 
-namespace EasyToolKit.Serialization
+namespace EasyToolKit.Serialization.Processors
 {
-    [SerializerConfiguration(SerializerPriorityLevel.SystemBasic)]
+    [ProcessorConfiguration(ProcessorPriorityLevel.SystemBasic)]
     public class EnumProcessor<T> : SerializationProcessor<T>
         where T : struct, Enum
     {

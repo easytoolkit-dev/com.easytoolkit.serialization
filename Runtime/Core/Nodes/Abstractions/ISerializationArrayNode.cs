@@ -1,9 +1,6 @@
 namespace EasyToolKit.Serialization
 {
-    /// <summary>
-    /// Represents an array or collection node.
-    /// </summary>
-    public interface IArraySerializationNode : ISerializationNode
+    public interface ISerializationArrayNode : ISerializationNode
     {
         /// <summary>
         /// Gets the array rank (dimension count).

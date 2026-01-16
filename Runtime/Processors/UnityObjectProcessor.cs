@@ -1,8 +1,8 @@
 using System;
 
-namespace EasyToolKit.Serialization
+namespace EasyToolKit.Serialization.Processors
 {
-    [SerializerConfiguration(SerializerPriorityLevel.UnityObject)]
+    [ProcessorConfiguration(ProcessorPriorityLevel.UnityObject)]
     public class UnityObjectProcessor<T> : SerializationProcessor<T>
         where T : UnityEngine.Object
     {

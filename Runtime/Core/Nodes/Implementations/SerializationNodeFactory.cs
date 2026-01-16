@@ -70,7 +70,7 @@ namespace EasyToolKit.Serialization.Implementations
             var resolver = _resolverFactory.CreateResolver(typeof(T));
             if (resolver != null)
             {
-                return new StructSerializationNode<T>(
+                return new SerializationStructuralNode<T>(
                     nodeFactory: this,
                     memberDefinition: memberDefinition,
                     parent: parent,
@@ -81,7 +81,7 @@ namespace EasyToolKit.Serialization.Implementations
             // Array type
             if (typeof(T).IsArray)
             {
-                return new ArraySerializationNode<T>(
+                return new SerializationArrayNode<T>(
                     rank: typeof(T).GetArrayRank(),
                     memberDefinition: memberDefinition,
                     parent: parent,
@@ -90,7 +90,7 @@ namespace EasyToolKit.Serialization.Implementations
             }
 
             // Atomic type
-            return new AtomicSerializationNode<T>(
+            return new SerializationAtomicNode<T>(
                 memberDefinition: memberDefinition,
                 parent: parent,
                 index: index,

@@ -5,7 +5,7 @@ namespace EasyToolKit.Serialization
     /// <summary>
     /// Represents a structure node with members.
     /// </summary>
-    public interface IStructSerializationNode : ISerializationNode
+    public interface ISerializationStructuralNode : ISerializationNode
     {
         /// <summary>
         /// Gets the members of this structure node. Lazy-initialized on first access.

@@ -1,8 +1,8 @@
 using UnityEngine;
 
-namespace EasyToolKit.Serialization
+namespace EasyToolKit.Serialization.Processors
 {
-    [SerializerConfiguration(SerializerPriorityLevel.UnityBasic)]
+    [ProcessorConfiguration(ProcessorPriorityLevel.UnityBasic)]
     public class ColorProcessor : SerializationProcessor<Color>
     {
         private static readonly ISerializationProcessor<float> FloatSerializer;

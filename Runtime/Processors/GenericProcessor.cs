@@ -1,9 +1,9 @@
 using System;
 using EasyToolKit.Core.Reflection;
 
-namespace EasyToolKit.Serialization
+namespace EasyToolKit.Serialization.Processors
 {
-    [SerializerConfiguration(SerializerPriorityLevel.Generic)]
+    [ProcessorConfiguration(ProcessorPriorityLevel.Generic)]
     public class GenericProcessor<T> : SerializationProcessor<T>
     {
         private static readonly Func<T> Constructor = CreateConstructor();
@@ -25,7 +25,7 @@ namespace EasyToolKit.Serialization
                 value = Constructor();
             }
 
-            var node = (IStructSerializationNode)Environment.GetFactory<ISerializationNodeFactory>().BuildNode<T>();
+            var node = (ISerializationStructuralNode)Environment.GetFactory<ISerializationNodeFactory>().BuildNode<T>();
             // Use Node.Members (triggers lazy initialization)
             var members = node.Members;
 

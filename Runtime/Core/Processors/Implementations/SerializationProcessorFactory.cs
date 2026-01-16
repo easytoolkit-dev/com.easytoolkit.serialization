@@ -21,8 +21,8 @@ namespace EasyToolKit.Serialization.Implementations
         {
             _serializerTypeMatcher.SetTypeMatchIndices(SerializationProcessorUtility.ProcessorTypes.Select(type =>
             {
-                var config = type.GetCustomAttribute<SerializerConfigurationAttribute>();
-                config ??= SerializerConfigurationAttribute.Default;
+                var config = type.GetCustomAttribute<ProcessorConfigurationAttribute>();
+                config ??= ProcessorConfigurationAttribute.Default;
 
                 var argType = type.GetArgumentsOfInheritedOpenGenericType(typeof(ISerializationProcessor<>));
                 return new TypeMatchIndex(type, config.Priority, argType);

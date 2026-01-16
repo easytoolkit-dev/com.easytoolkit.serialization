@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 
-namespace EasyToolKit.Serialization
+namespace EasyToolKit.Serialization.Processors
 {
-    [SerializerConfiguration(priority: (int)SerializerPriorityLevel.SystemBasic)]
+    [ProcessorConfiguration(priority: (int)ProcessorPriorityLevel.SystemBasic)]
     public class IListProcessor<T> : SerializationProcessor<IList<T>>
     {
         private static readonly ISerializationProcessor<T> Serializer;

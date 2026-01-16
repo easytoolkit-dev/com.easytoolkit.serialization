@@ -47,18 +47,11 @@ namespace EasyToolKit.Serialization
         {
             if (s_resolverTypes == null)
             {
-                var resolverTypes = new List<Type>();
-
-                foreach (var type in AppDomain.CurrentDomain.GetAssemblies()
-                             .SelectMany(asm => asm.GetTypes())
-                             .Where(t => t.IsClass && !t.IsInterface && !t.IsAbstract))
-                {
-                    if (type.IsInheritsFrom<ISerializationResolver>())
-                    {
-                        resolverTypes.Add(type);
-                    }
-                }
-                s_resolverTypes = resolverTypes.ToArray();
+                s_resolverTypes = AppDomain.CurrentDomain.GetAssemblies()
+                    .SelectMany(assembly => assembly.GetTypes())
+                    .Where(type => type.IsClass && !type.IsInterface && !type.IsAbstract &&
+                                   type.IsInheritsFrom<ISerializationResolver>())
+                    .ToArray();
             }
 
             s_typeMatcher = TypeMatcherFactory.CreateDefault();

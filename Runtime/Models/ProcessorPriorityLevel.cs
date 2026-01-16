@@ -1,10 +1,6 @@
 namespace EasyToolKit.Serialization
 {
-    /// <summary>
-    /// Defines priority levels for serializer registration.
-    /// Higher values indicate higher priority (earlier evaluation during serializer selection).
-    /// </summary>
-    public enum SerializerPriorityLevel
+    public enum ProcessorPriorityLevel
     {
         /// <summary>
         /// Generic serializer with lowest priority (fallback option).

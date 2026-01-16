@@ -1,6 +1,6 @@
-namespace EasyToolKit.Serialization
+namespace EasyToolKit.Serialization.Processors
 {
-    [SerializerConfiguration(SerializerPriorityLevel.Primitive)]
+    [ProcessorConfiguration(ProcessorPriorityLevel.Primitive)]
     public class DoubleProcessor : SerializationProcessor<double>
     {
         protected override void Process(string name, ref double value, IDataFormatter formatter)
