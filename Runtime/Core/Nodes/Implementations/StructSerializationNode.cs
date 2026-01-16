@@ -7,22 +7,22 @@ namespace EasyToolKit.Serialization.Implementations
 {
     internal sealed class StructSerializationNode<T> : SerializationNodeBase<T>, IStructSerializationNode
     {
-        private readonly ISerializationNodeBuilder _nodeBuilder;
+        private readonly ISerializationNodeFactory _nodeFactory;
         private readonly ISerializationStructureResolverFactory _resolverFactory;
         private IReadOnlyList<ISerializationNode> _members;
         private bool _isResolved;
 
         public StructSerializationNode(
-            ISerializationNodeBuilder nodeBuilder,
+            ISerializationNodeFactory nodeFactory,
             SerializationMemberDefinition memberDefinition,
-            IEasySerializer<T> serializer,
+            ISerializationProcessor<T> serializer,
             ISerializationNode parent = null,
             int index = -1)
             : base(memberDefinition, serializer, parent, index)
         {
-            _nodeBuilder = nodeBuilder ?? throw new ArgumentNullException(nameof(nodeBuilder));
+            _nodeFactory = nodeFactory ?? throw new ArgumentNullException(nameof(nodeFactory));
             _resolverFactory = SerializationEnvironment.Instance
-                                   .GetService<ISerializationStructureResolverFactory>()
+                                   .GetFactory<ISerializationStructureResolverFactory>()
                                ?? throw new InvalidOperationException(
                                    "ISerializationStructureResolverFactory is not registered in SerializationSharedContext.");
 
@@ -71,10 +71,10 @@ namespace EasyToolKit.Serialization.Implementations
                 var definition = memberDefinitions[i];
                 if (definition == null) continue;
 
-                var buildNode = typeof(ISerializationNodeBuilder)
-                    .ResolveOverloadMethod(nameof(ISerializationNodeBuilder.BuildNode), BindingFlagsHelper.All, 3)
+                var buildNode = typeof(ISerializationNodeFactory)
+                    .ResolveOverloadMethod(nameof(ISerializationNodeFactory.BuildNode), BindingFlagsHelper.All, 3)
                     .MakeGenericMethod(definition.MemberType);
-                var childNode = (ISerializationNode)buildNode.Invoke(_nodeBuilder, new object[] { definition.MemberInfo, i, this });
+                var childNode = (ISerializationNode)buildNode.Invoke(_nodeFactory, new object[] { definition.MemberInfo, i, this });
                 children.Add(childNode);
             }
 

@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text;
+using EasyToolKit.Core.Textual;
 
 namespace EasyToolKit.Serialization.Implementations
 {
@@ -26,9 +27,7 @@ namespace EasyToolKit.Serialization.Implementations
         /// <inheritdoc />
         public override void BeginMember(string name)
         {
-            var bytes = Encoding.UTF8.GetBytes(name);
-            WriteVarint32((uint)bytes.Length);
-            _writer.Write(bytes);
+            // No-op for binary format
         }
 
         /// <inheritdoc />

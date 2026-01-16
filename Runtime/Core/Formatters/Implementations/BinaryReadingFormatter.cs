@@ -24,8 +24,7 @@ namespace EasyToolKit.Serialization.Implementations
         /// <inheritdoc />
         public override void BeginMember(string name)
         {
-            var length = ReadVarint32();
-            _ = Encoding.UTF8.GetString(_reader.ReadBytes((int)length));
+            // No-op for binary format
         }
 
         /// <inheritdoc />

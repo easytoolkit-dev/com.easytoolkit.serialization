@@ -5,7 +5,7 @@ using EasyToolKit.Core.Reflection;
 namespace EasyToolKit.Serialization
 {
     /// <summary>
-    /// Represents a node in the serialized structure hierarchy.
+    /// Represents a node in the serialization structure hierarchy.
     /// </summary>
     public interface ISerializationNode
     {
@@ -27,7 +27,7 @@ namespace EasyToolKit.Serialization
         /// <summary>
         /// Gets the serializer associated with this node.
         /// </summary>
-        IEasySerializer Serializer { get; }
+        ISerializationProcessor Processor { get; }
 
         /// <summary>
         /// Gets the value getter delegate.

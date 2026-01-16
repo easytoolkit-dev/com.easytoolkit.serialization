@@ -13,7 +13,7 @@ namespace EasyToolKit.Serialization.Implementations
             SerializationMemberDefinition memberDefinition,
             ISerializationNode parent = null,
             int index = -1,
-            IEasySerializer<T> serializer = null)
+            ISerializationProcessor<T> serializer = null)
             : base(memberDefinition, serializer, parent, index)
         {
         }
