@@ -8,17 +8,17 @@ namespace EasyToolKit.Serialization
     [Serializable]
     public struct EasySerializationData
     {
-        [SerializeField] public FormatterType FormatterType;
+        [SerializeField] public SerializationFormat Format;
         [SerializeField] public byte[] BinaryData;
         [SerializeField] public string StringData;
         [SerializeField] public List<UnityEngine.Object> ReferencedUnityObjects;
 
         public bool IsContainsData => BinaryData != null || StringData != null || ReferencedUnityObjects != null;
 
-        public EasySerializationData(FormatterType formatterType)
+        public EasySerializationData(SerializationFormat format)
         {
-            FormatterType = formatterType;
-            if (formatterType == FormatterType.Binary)
+            Format = format;
+            if (format == SerializationFormat.Binary)
             {
                 BinaryData = new byte[] { };
                 StringData = null;
@@ -32,20 +32,20 @@ namespace EasyToolKit.Serialization
             ReferencedUnityObjects = new List<UnityEngine.Object>();
         }
 
-        public EasySerializationData(byte[] binaryData, FormatterType formatterType)
-            : this(binaryData, new List<UnityEngine.Object>(), formatterType)
+        public EasySerializationData(byte[] binaryData, SerializationFormat format)
+            : this(binaryData, new List<UnityEngine.Object>(), format)
         {
         }
 
-        public EasySerializationData(string stringData, FormatterType formatterType)
-            : this(stringData, new List<UnityEngine.Object>(), formatterType)
+        public EasySerializationData(string stringData, SerializationFormat format)
+            : this(stringData, new List<UnityEngine.Object>(), format)
         {
         }
 
         public EasySerializationData(byte[] binaryData, List<UnityEngine.Object> referencedUnityObjects,
-            FormatterType formatterType)
+            SerializationFormat format)
         {
-            if (formatterType != FormatterType.Binary)
+            if (format != SerializationFormat.Binary)
             {
                 throw new ArgumentException("Binary data can only be serialized by the FormatterType.Binary mode");
             }
@@ -53,13 +53,13 @@ namespace EasyToolKit.Serialization
             BinaryData = binaryData;
             StringData = null;
             ReferencedUnityObjects = referencedUnityObjects;
-            FormatterType = formatterType;
+            Format = format;
         }
 
         public EasySerializationData(string stringData, List<UnityEngine.Object> referencedUnityObjects,
-            FormatterType formatterType)
+            SerializationFormat format)
         {
-            if (formatterType == FormatterType.Binary)
+            if (format == SerializationFormat.Binary)
             {
                 throw new ArgumentException("String data can not be serialized by the FormatterType.Binary mode");
             }
@@ -67,7 +67,7 @@ namespace EasyToolKit.Serialization
             StringData = stringData;
             BinaryData = null;
             ReferencedUnityObjects = referencedUnityObjects;
-            FormatterType = formatterType;
+            Format = format;
         }
 
         public byte[] GetData()
@@ -77,7 +77,7 @@ namespace EasyToolKit.Serialization
                 return new byte[] { };
             }
 
-            if (FormatterType == FormatterType.Binary)
+            if (Format == SerializationFormat.Binary)
             {
                 return BinaryData;
             }
@@ -92,7 +92,7 @@ namespace EasyToolKit.Serialization
 
         public void SetData(byte[] data)
         {
-            if (FormatterType == FormatterType.Binary)
+            if (Format == SerializationFormat.Binary)
             {
                 BinaryData = data;
             }

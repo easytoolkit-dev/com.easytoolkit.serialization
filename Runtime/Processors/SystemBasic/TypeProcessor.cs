@@ -10,14 +10,12 @@ namespace EasyToolKit.Serialization.Processors
             formatter.BeginMember(name);
 
             string typeName = null;
-            var direction = formatter.Direction;
-
-            if (direction == FormatterDirection.Output)
+            if (formatter.Operation == FormatterOperation.Write)
                 typeName = TypeToName(value);
 
             formatter.Format(ref typeName);
 
-            if (direction == FormatterDirection.Input)
+            if (formatter.Operation == FormatterOperation.Read)
                 value = NameToType(typeName);
 
             formatter.EndMember();

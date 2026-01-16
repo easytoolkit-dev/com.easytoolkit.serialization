@@ -14,7 +14,7 @@ namespace EasyToolKit.Serialization.Processors
             formatter.Format(ref unityObject);
             formatter.EndMember();
 
-            if (formatter.Direction == FormatterDirection.Input)
+            if (formatter.Operation == FormatterOperation.Read)
             {
                 value = unityObject as T;
             }

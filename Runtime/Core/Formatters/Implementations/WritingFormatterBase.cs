@@ -12,10 +12,10 @@ namespace EasyToolKit.Serialization.Implementations
         private readonly List<UnityEngine.Object> _objectTable = new();
 
         /// <inheritdoc />
-        public abstract FormatterType Type { get; }
+        public abstract SerializationFormat Type { get; }
 
         /// <inheritdoc />
-        public FormatterDirection Direction => FormatterDirection.Output;
+        public FormatterOperation Operation => FormatterOperation.Write;
 
         /// <inheritdoc />
         public IReadOnlyList<UnityEngine.Object> GetObjectTable() => _objectTable;

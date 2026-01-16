@@ -10,23 +10,23 @@ namespace EasyToolKit.Serialization.Implementations
     public sealed class FormatterFactory : IFormatterFactory
     {
         /// <inheritdoc />
-        public IReadingFormatter CreateReader(FormatterType type, Stream input)
+        public IReadingFormatter CreateReader(SerializationFormat type, Stream input)
         {
             return type switch
             {
-                FormatterType.Binary => new BinaryReadingFormatter(input),
-                FormatterType.Json => new JsonReadingFormatter(input),
+                SerializationFormat.Binary => new BinaryReadingFormatter(input),
+                SerializationFormat.Json => new JsonReadingFormatter(input),
                 _ => throw new ArgumentException($"Unsupported formatter type: {type}")
             };
         }
 
         /// <inheritdoc />
-        public IWritingFormatter CreateWriter(FormatterType type, Stream output)
+        public IWritingFormatter CreateWriter(SerializationFormat type, Stream output)
         {
             return type switch
             {
-                FormatterType.Binary => new BinaryWritingFormatter(output),
-                FormatterType.Json => new JsonWritingFormatter(output),
+                SerializationFormat.Binary => new BinaryWritingFormatter(output),
+                SerializationFormat.Json => new JsonWritingFormatter(output),
                 _ => throw new ArgumentException($"Unsupported formatter type: {type}")
             };
         }

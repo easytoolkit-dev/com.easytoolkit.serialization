@@ -1,9 +1,6 @@
 namespace EasyToolKit.Serialization
 {
-    /// <summary>
-    /// Defines the supported formatter format types.
-    /// </summary>
-    public enum FormatterType
+    public enum SerializationFormat
     {
         /// <summary>Binary format with varint encoding.</summary>
         Binary,

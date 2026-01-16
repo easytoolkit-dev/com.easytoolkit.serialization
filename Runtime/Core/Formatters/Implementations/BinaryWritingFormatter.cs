@@ -22,7 +22,7 @@ namespace EasyToolKit.Serialization.Implementations
         }
 
         /// <inheritdoc />
-        public override FormatterType Type => FormatterType.Binary;
+        public override SerializationFormat Type => SerializationFormat.Binary;
 
         /// <inheritdoc />
         public override void BeginMember(string name)

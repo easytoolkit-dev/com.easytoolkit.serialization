@@ -17,7 +17,7 @@ namespace EasyToolKit.Serialization.Implementations
         }
 
         /// <inheritdoc />
-        public override FormatterType Type => FormatterType.Json;
+        public override SerializationFormat Type => SerializationFormat.Json;
 
         /// <inheritdoc />
         public override void BeginMember(string name) => throw new NotImplementedException();
