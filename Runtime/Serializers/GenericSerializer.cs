@@ -26,7 +26,7 @@ namespace EasyToolKit.Serialization
                 value = Constructor();
             }
 
-            if (!IsRoot)
+            if (Node.Parent == null)
             {
                 if (IsNode)
                 {
@@ -72,7 +72,7 @@ namespace EasyToolKit.Serialization
                 }
             }
 
-            if (!IsRoot)
+            if (Node.Parent == null)
             {
                 if (IsNode)
                 {

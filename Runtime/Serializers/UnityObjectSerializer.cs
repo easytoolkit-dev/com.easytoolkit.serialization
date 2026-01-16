@@ -8,7 +8,7 @@ namespace EasyToolKit.Serialization
     {
         public override void Process(string name, ref T value, IDataFormatter formatter)
         {
-            if (IsRoot)
+            if (Node.Parent == null)
             {
                 throw new NotImplementedException();
             }

@@ -8,42 +8,29 @@ namespace EasyToolKit.Serialization
     /// </summary>
     public static class EasySerialize
     {
-        private static readonly IFormatterFactory FormatterFactory = new Implementations.FormatterFactory();
-
-        /// <summary>Gets or sets the default serialization settings.</summary>
-        public static EasySerializeSettings DefaultSettings { get; set; } = new EasySerializeSettings();
-
-        /// <summary>Gets the current serialization settings.</summary>
-        internal static EasySerializeSettings CurrentSettings { get; private set; }
-
         /// <summary>Serializes a value to the specified serialization data.</summary>
         /// <typeparam name="T">The type of value to serialize.</typeparam>
         /// <param name="value">The value to serialize.</param>
         /// <param name="serializationData">The serialization data to populate.</param>
-        /// <param name="settings">Optional serialization settings.</param>
-        public static void To<T>(T value, ref EasySerializationData serializationData,
-            EasySerializeSettings settings = null)
+        public static void To<T>(T value, ref EasySerializationData serializationData)
         {
-            To(value, typeof(T), ref serializationData, settings);
+            To(value, typeof(T), ref serializationData);
         }
 
         /// <summary>Deserializes a value from the specified serialization data.</summary>
         /// <typeparam name="T">The type of value to deserialize.</typeparam>
         /// <param name="serializationData">The serialization data to read from.</param>
-        /// <param name="settings">Optional serialization settings.</param>
         /// <returns>The deserialized value.</returns>
-        public static T From<T>(ref EasySerializationData serializationData, EasySerializeSettings settings = null)
+        public static T From<T>(ref EasySerializationData serializationData)
         {
-            return (T)From(typeof(T), ref serializationData, settings);
+            return (T)From(typeof(T), ref serializationData);
         }
 
         /// <summary>Serializes a value to the specified serialization data.</summary>
         /// <param name="value">The value to serialize.</param>
         /// <param name="valueType">The type of value to serialize.</param>
         /// <param name="serializationData">The serialization data to populate.</param>
-        /// <param name="settings">Optional serialization settings.</param>
-        public static void To(object value, Type valueType, ref EasySerializationData serializationData,
-            EasySerializeSettings settings = null)
+        public static void To(object value, Type valueType, ref EasySerializationData serializationData)
         {
             if (value == null)
             {
@@ -52,21 +39,16 @@ namespace EasyToolKit.Serialization
                 return;
             }
 
-            ChangeSettings(settings);
-
             // Build node tree first
-            var nodeBuilder = CurrentSettings.SharedContext.GetService<ISerializationNodeBuilder>();
-            var rootNode = nodeBuilder.BuildNode(valueType, CurrentSettings);
+            var nodeBuilder = SerializationGlobalContext.Instance.GetService<ISerializationNodeBuilder>();
+            var rootNode = nodeBuilder.BuildNode(valueType);
 
             using (var stream = new MemoryStream())
             {
-                var formatter = FormatterFactory.CreateWriter(serializationData.FormatterType, stream);
+                var formatter = SerializationGlobalContext.Instance.GetService<IFormatterFactory>()
+                    .CreateWriter(serializationData.FormatterType, stream);
 
-                // Get serializer from root node
-                var serializer = rootNode.Serializer;
-                serializer.IsRoot = true;
-
-                serializer.Process(ref value, formatter);
+                rootNode.Serializer.Process(ref value, formatter);
 
                 serializationData.ReferencedUnityObjects =
                     new System.Collections.Generic.List<UnityEngine.Object>(formatter.GetObjectTable());
@@ -77,16 +59,12 @@ namespace EasyToolKit.Serialization
         /// <summary>Deserializes a value from the specified serialization data.</summary>
         /// <param name="type">The type of value to deserialize.</param>
         /// <param name="serializationData">The serialization data to read from.</param>
-        /// <param name="settings">Optional serialization settings.</param>
         /// <returns>The deserialized value.</returns>
-        public static object From(Type type, ref EasySerializationData serializationData,
-            EasySerializeSettings settings = null)
+        public static object From(Type type, ref EasySerializationData serializationData)
         {
-            ChangeSettings(settings);
-
             // Build node tree first
-            var nodeBuilder = CurrentSettings.SharedContext.GetService<ISerializationNodeBuilder>();
-            var rootNode = nodeBuilder.BuildNode(type, CurrentSettings);
+            var nodeBuilder = SerializationGlobalContext.Instance.GetService<ISerializationNodeBuilder>();
+            var rootNode = nodeBuilder.BuildNode(type);
 
             object res = null;
             var buf = serializationData.GetData();
@@ -95,42 +73,13 @@ namespace EasyToolKit.Serialization
 
             using (var stream = new MemoryStream(buf))
             {
-                var formatter = FormatterFactory.CreateReader(serializationData.FormatterType, stream);
+                var formatter = SerializationGlobalContext.Instance.GetService<IFormatterFactory>()
+                    .CreateReader(serializationData.FormatterType, stream);
                 formatter.SetObjectTable(serializationData.ReferencedUnityObjects);
-
-                // Get serializer from root node
-                var serializer = rootNode.Serializer;
-                serializer.IsRoot = true;
-
-                serializer.Process(ref res, formatter);
+                rootNode.Serializer.Process(ref res, formatter);
             }
 
             return res;
-        }
-
-        /// <summary>Gets a serializer for the specified type or throws an exception.</summary>
-        private static IEasySerializer GetSerializerWithThrow(Type type)
-        {
-            var serializer = EasySerializerUtility.GetSerializer(type);
-            if (serializer == null)
-            {
-                throw new ArgumentException(
-                    $"There is no serializer for type '{type.FullName}'." +
-                    "You need to implement a 'IEasySerializer' for type.");
-            }
-
-            return serializer;
-        }
-
-        /// <summary>Changes the current settings if different from the specified settings.</summary>
-        private static void ChangeSettings(EasySerializeSettings settings)
-        {
-            settings ??= DefaultSettings;
-            if (settings != CurrentSettings)
-            {
-                CurrentSettings = settings;
-                EasySerializerUtility.ClearCache();
-            }
         }
     }
 }
