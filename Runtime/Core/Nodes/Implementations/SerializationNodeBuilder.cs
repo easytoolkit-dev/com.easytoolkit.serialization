@@ -12,15 +12,14 @@ namespace EasyToolKit.Serialization.Implementations
         /// <summary>
         /// Builds a root node for the specified type.
         /// </summary>
-        public IStructSerializationNode BuildNode(Type type, EasySerializeSettings settings)
+        public IStructSerializationNode BuildNode(Type type)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
-            settings ??= EasySerialize.DefaultSettings;
 
-            _resolverFactory ??= settings.SharedContext
-                .GetService<ISerializationStructureResolverFactory>()
-                ?? throw new InvalidOperationException(
-                    "ISerializationStructureResolverFactory is not registered.");
+            _resolverFactory ??= SerializationGlobalContext.Instance
+                                     .GetService<ISerializationStructureResolverFactory>()
+                                 ?? throw new InvalidOperationException(
+                                     "ISerializationStructureResolverFactory is not registered.");
 
             // Root node validation
             ValidateRootNode(type);
@@ -46,7 +45,6 @@ namespace EasyToolKit.Serialization.Implementations
             // Create root node (must have structure resolver)
             var rootNode = new StructSerializationNode(
                 valueType: type,
-                settings: settings,
                 nodeBuilder: this,
                 memberDefinition: memberDefinition,
                 parent: null,
@@ -64,7 +62,6 @@ namespace EasyToolKit.Serialization.Implementations
         /// </summary>
         public ISerializationNode BuildNode(
             Type type,
-            EasySerializeSettings settings,
             MemberInfo memberInfo,
             int index,
             ISerializationNode parent)
@@ -73,12 +70,10 @@ namespace EasyToolKit.Serialization.Implementations
             if (memberInfo == null) throw new ArgumentNullException(nameof(memberInfo));
             if (parent == null) throw new ArgumentNullException(nameof(parent));
 
-            settings ??= EasySerialize.DefaultSettings;
-
-            _resolverFactory ??= settings.SharedContext
-                .GetService<ISerializationStructureResolverFactory>()
-                ?? throw new InvalidOperationException(
-                    "ISerializationStructureResolverFactory is not registered.");
+            _resolverFactory ??= SerializationGlobalContext.Instance
+                                     .GetService<ISerializationStructureResolverFactory>()
+                                 ?? throw new InvalidOperationException(
+                                     "ISerializationStructureResolverFactory is not registered.");
 
             // Create child node member definition
             var memberDefinition = new SerializationMemberDefinition
@@ -104,7 +99,6 @@ namespace EasyToolKit.Serialization.Implementations
             {
                 return new StructSerializationNode(
                     valueType: type,
-                    settings: settings,
                     nodeBuilder: this,
                     memberDefinition: memberDefinition,
                     parent: parent,

@@ -10,8 +10,6 @@ namespace EasyToolKit.Serialization
         ISerializationNode Node { get; set; }
 
         bool CanSerialize(Type valueType);
-        bool IsRoot { get; set; }
-        Type ValueType { get; }
 
         void Process(ref object value, IDataFormatter formatter);
         void Process(string name, ref object value, IDataFormatter formatter);
@@ -27,12 +25,6 @@ namespace EasyToolKit.Serialization
         bool IEasySerializer.CanSerialize(Type valueType)
         {
             return CanSerialize(valueType);
-        }
-
-        bool IEasySerializer.IsRoot
-        {
-            get => IsRoot;
-            set => IsRoot = value;
         }
 
         public Type ValueType => typeof(T);
@@ -65,14 +57,10 @@ namespace EasyToolKit.Serialization
             }
         }
 
-        protected bool IsRoot { get; private set; }
-
-        protected EasySerializeSettings Settings => EasySerialize.CurrentSettings;
-
         /// <summary>
         /// Gets the shared serialization context for accessing services.
         /// </summary>
-        protected SerializationSharedContext SharedContext => Settings.SharedContext;
+        protected SerializationGlobalContext GlobalContext => SerializationGlobalContext.Instance;
 
         public virtual bool CanSerialize(Type valueType) => true;
 

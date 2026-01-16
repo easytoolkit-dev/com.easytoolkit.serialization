@@ -9,13 +9,11 @@ namespace EasyToolKit.Serialization.Implementations
     {
         private readonly ISerializationNodeBuilder _nodeBuilder;
         private readonly ISerializationStructureResolverFactory _resolverFactory;
-        private readonly EasySerializeSettings _settings;
         private IReadOnlyList<ISerializationNode> _members;
         private bool _isResolved;
 
         public StructSerializationNode(
             Type valueType,
-            EasySerializeSettings settings,
             ISerializationNodeBuilder nodeBuilder,
             SerializationMemberDefinition memberDefinition,
             IEasySerializer serializer,
@@ -23,12 +21,11 @@ namespace EasyToolKit.Serialization.Implementations
             int index = -1)
             : base(valueType, memberDefinition, serializer, parent, index)
         {
-            _settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _nodeBuilder = nodeBuilder ?? throw new ArgumentNullException(nameof(nodeBuilder));
-            _resolverFactory = settings.SharedContext
-                .GetService<ISerializationStructureResolverFactory>()
-                ?? throw new InvalidOperationException(
-                    "ISerializationStructureResolverFactory is not registered in SerializationSharedContext.");
+            _resolverFactory = SerializationGlobalContext.Instance
+                                   .GetService<ISerializationStructureResolverFactory>()
+                               ?? throw new InvalidOperationException(
+                                   "ISerializationStructureResolverFactory is not registered in SerializationSharedContext.");
 
             // Lazy initialization: Members will be resolved on first access
             _isResolved = false;
@@ -77,7 +74,6 @@ namespace EasyToolKit.Serialization.Implementations
 
                 var childNode = _nodeBuilder.BuildNode(
                     definition.MemberType,
-                    _settings,
                     definition.MemberInfo,
                     i,
                     this);
