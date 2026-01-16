@@ -1,8 +1,8 @@
 using System;
 
-namespace EasyToolKit.Serialization
+namespace EasyToolKit.Serialization.Processors
 {
-    [SerializerConfiguration(SerializerPriorityLevel.SystemBasic)]
+    [ProcessorConfiguration(ProcessorPriorityLevel.SystemBasic)]
     public class TypeProcessor : SerializationProcessor<Type>
     {
         protected override void Process(string name, ref Type value, IDataFormatter formatter)

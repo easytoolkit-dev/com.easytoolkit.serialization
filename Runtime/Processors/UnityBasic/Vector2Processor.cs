@@ -1,8 +1,8 @@
 using UnityEngine;
 
-namespace EasyToolKit.Serialization
+namespace EasyToolKit.Serialization.Processors
 {
-    [SerializerConfiguration(SerializerPriorityLevel.UnityBasic)]
+    [ProcessorConfiguration(ProcessorPriorityLevel.UnityBasic)]
     public class Vector2Processor : SerializationProcessor<Vector2>
     {
         private static readonly ISerializationProcessor<float> FloatSerializer;

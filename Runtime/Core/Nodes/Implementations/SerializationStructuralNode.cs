@@ -5,14 +5,14 @@ using EasyToolKit.Core.Reflection;
 
 namespace EasyToolKit.Serialization.Implementations
 {
-    internal sealed class StructSerializationNode<T> : SerializationNodeBase<T>, IStructSerializationNode
+    internal sealed class SerializationStructuralNode<T> : SerializationNodeBase<T>, ISerializationStructuralNode
     {
         private readonly ISerializationNodeFactory _nodeFactory;
         private readonly ISerializationStructureResolverFactory _resolverFactory;
         private IReadOnlyList<ISerializationNode> _members;
         private bool _isResolved;
 
-        public StructSerializationNode(
+        public SerializationStructuralNode(
             ISerializationNodeFactory nodeFactory,
             SerializationMemberDefinition memberDefinition,
             ISerializationProcessor<T> serializer,

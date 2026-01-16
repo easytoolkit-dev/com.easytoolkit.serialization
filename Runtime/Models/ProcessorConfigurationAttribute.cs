@@ -2,19 +2,15 @@ using System;
 
 namespace EasyToolKit.Serialization
 {
-    /// <summary>
-    /// Attribute for configuring serializer registration and priority.
-    /// Applied to serializer classes to control their registration behavior.
-    /// </summary>
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-    public sealed class SerializerConfigurationAttribute : Attribute
+    public sealed class ProcessorConfigurationAttribute : Attribute
     {
-        private static readonly SerializerConfigurationAttribute DefaultImpl = new SerializerConfigurationAttribute();
+        private static readonly ProcessorConfigurationAttribute DefaultImpl = new ProcessorConfigurationAttribute();
 
         /// <summary>
         /// Gets the default configuration instance.
         /// </summary>
-        public static SerializerConfigurationAttribute Default => DefaultImpl;
+        public static ProcessorConfigurationAttribute Default => DefaultImpl;
 
         /// <summary>
         /// Gets the priority level for this serializer.
@@ -25,15 +21,15 @@ namespace EasyToolKit.Serialization
         /// <summary>
         /// Initializes a new instance with Custom priority level.
         /// </summary>
-        public SerializerConfigurationAttribute()
-            : this(SerializerPriorityLevel.Custom)
+        public ProcessorConfigurationAttribute()
+            : this(ProcessorPriorityLevel.Custom)
         {
         }
 
         /// <summary>
         /// Initializes a new instance with the specified priority level.
         /// </summary>
-        public SerializerConfigurationAttribute(SerializerPriorityLevel priority)
+        public ProcessorConfigurationAttribute(ProcessorPriorityLevel priority)
             : this((int)priority)
         {
         }
@@ -41,7 +37,7 @@ namespace EasyToolKit.Serialization
         /// <summary>
         /// Initializes a new instance with the specified priority and inheritance behavior.
         /// </summary>
-        public SerializerConfigurationAttribute(int priority)
+        public ProcessorConfigurationAttribute(int priority)
         {
             Priority = priority;
         }

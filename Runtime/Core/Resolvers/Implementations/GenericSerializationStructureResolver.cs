@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using EasyToolKit.Core.Reflection;
 
 namespace EasyToolKit.Serialization.Implementations
 {
@@ -25,10 +26,9 @@ namespace EasyToolKit.Serialization.Implementations
             }
 
             var members = new List<SerializationMemberDefinition>();
-            var bindingFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 
-            var memberInfos = type.GetMembers(bindingFlags)
-                .Where(m => m is FieldInfo || m is PropertyInfo)
+            var memberInfos = type.GetMembers(BindingFlagsHelper.AllInstance)
+                .Where(memberInfo => memberInfo is FieldInfo || memberInfo is PropertyInfo)
                 .ToList();
 
             for (int i = 0; i < memberInfos.Count; i++)

@@ -1,6 +1,6 @@
-namespace EasyToolKit.Serialization
+namespace EasyToolKit.Serialization.Processors
 {
-    [SerializerConfiguration(SerializerPriorityLevel.Primitive)]
+    [ProcessorConfiguration(ProcessorPriorityLevel.Primitive)]
     public class IntProcessor : SerializationProcessor<int>
     {
         protected override void Process(string name, ref int value, IDataFormatter formatter)

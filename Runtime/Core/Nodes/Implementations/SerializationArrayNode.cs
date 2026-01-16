@@ -4,20 +4,24 @@ using EasyToolKit.Core.Reflection;
 
 namespace EasyToolKit.Serialization.Implementations
 {
-    internal sealed class AtomicSerializationNode<T> : SerializationNodeBase<T>, IAtomicSerializationNode
+    internal sealed class SerializationArrayNode<T> : SerializationNodeBase<T>, ISerializationArrayNode
     {
         private InstanceGetter _valueGetter;
         private InstanceSetter _valueSetter;
 
-        public AtomicSerializationNode(
+        public SerializationArrayNode(
+            int rank,
             SerializationMemberDefinition memberDefinition,
             ISerializationNode parent = null,
             int index = -1,
             ISerializationProcessor<T> serializer = null)
             : base(memberDefinition, serializer, parent, index)
         {
+            Rank = rank;
         }
 
-        public override NodeType NodeType => NodeType.Atomic;
+        public override NodeType NodeType => NodeType.Array;
+
+        public int Rank { get; }
     }
 }
