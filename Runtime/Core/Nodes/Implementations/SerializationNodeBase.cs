@@ -15,13 +15,13 @@ namespace EasyToolKit.Serialization.Implementations
         protected SerializationNodeBase(
             Type valueType,
             SerializationMemberDefinition memberDefinition,
-            IEasySerializer serializer,
+            ISerializationProcessor serializer,
             ISerializationNode parent,
             int index)
         {
             ValueType = valueType ?? throw new ArgumentNullException(nameof(valueType));
             Definition = memberDefinition ?? throw new ArgumentNullException(nameof(memberDefinition));
-            Serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+            Processor = serializer ?? throw new ArgumentNullException(nameof(serializer));
             Parent = parent;
             Index = index;
 
@@ -42,7 +42,7 @@ namespace EasyToolKit.Serialization.Implementations
 
         public Type ValueType { get; }
 
-        public IEasySerializer Serializer { get; }
+        public ISerializationProcessor Processor { get; }
 
         public InstanceGetter ValueGetter { get; }
 
@@ -90,11 +90,11 @@ namespace EasyToolKit.Serialization.Implementations
 
     public abstract class SerializationNodeBase<T> : SerializationNodeBase
     {
-        public new IEasySerializer<T> Serializer { get; }
+        public new ISerializationProcessor<T> Serializer { get; }
 
         protected SerializationNodeBase(
             SerializationMemberDefinition memberDefinition,
-            IEasySerializer<T> serializer,
+            ISerializationProcessor<T> serializer,
             ISerializationNode parent,
             int index) : base(typeof(T), memberDefinition, serializer, parent, index)
         {

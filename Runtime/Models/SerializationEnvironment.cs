@@ -8,25 +8,30 @@ namespace EasyToolKit.Serialization
     /// </summary>
     public sealed class SerializationEnvironment : Singleton<SerializationEnvironment>
     {
-        private readonly IServiceContainer _serviceContainer;
+        private readonly IServiceContainer _factoryContainer;
 
         private SerializationEnvironment()
         {
-            var descriptors = GetDefaultServiceDescriptors();
-            _serviceContainer = ServiceContainerBuilder.Build(descriptors);
+            var descriptors = GetServiceDescriptors();
+            _factoryContainer = ServiceContainerBuilder.Build(descriptors);
+        }
+
+        public T GetFactory<T>() where T : class
+        {
+            return _factoryContainer.GetService(typeof(T)) as T;
         }
 
         /// <summary>
         /// Gets the default service descriptors for serialization.
         /// </summary>
         /// <returns>Collection of default service descriptors.</returns>
-        private static ServiceDescriptor[] GetDefaultServiceDescriptors()
+        private static ServiceDescriptor[] GetServiceDescriptors()
         {
             return new ServiceDescriptor[]
             {
                 ServiceDescriptor.Singleton<
-                    ISerializationNodeBuilder,
-                    Implementations.SerializationNodeBuilder>(),
+                    ISerializationNodeFactory,
+                    Implementations.SerializationNodeFactory>(),
 
                 ServiceDescriptor.Singleton<
                     ISerializationStructureResolverFactory,
@@ -37,19 +42,9 @@ namespace EasyToolKit.Serialization
                     Implementations.FormatterFactory>(),
 
                 ServiceDescriptor.Singleton<
-                    ISerializerFactory,
-                    Implementations.SerializerFactory>(),
+                    ISerializationProcessorFactory,
+                    Implementations.SerializationProcessorFactory>(),
             };
-        }
-
-        /// <summary>
-        /// Gets a service of the specified type from the container.
-        /// </summary>
-        /// <typeparam name="T">The type of service to retrieve.</typeparam>
-        /// <returns>The service instance, or null if not found.</returns>
-        public T GetService<T>() where T : class
-        {
-            return _serviceContainer.GetService(typeof(T)) as T;
         }
     }
 }
