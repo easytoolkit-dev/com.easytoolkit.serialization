@@ -7,7 +7,7 @@ namespace EasyToolKit.Serialization.Implementations
     /// <summary>
     /// Base class for serialization nodes, providing common properties and methods.
     /// </summary>
-    internal abstract class SerializationNodeBase : ISerializationNode
+    public abstract class SerializationNodeBase : ISerializationNode
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="SerializationNodeBase"/> class.
@@ -16,13 +16,12 @@ namespace EasyToolKit.Serialization.Implementations
             Type valueType,
             SerializationMemberDefinition memberDefinition,
             IEasySerializer serializer,
-            ISerializationNode parent = null,
-            int index = -1)
+            ISerializationNode parent,
+            int index)
         {
             ValueType = valueType ?? throw new ArgumentNullException(nameof(valueType));
             Definition = memberDefinition ?? throw new ArgumentNullException(nameof(memberDefinition));
             Serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
-            Serializer.Node = this;
             Parent = parent;
             Index = index;
 
@@ -66,6 +65,8 @@ namespace EasyToolKit.Serialization.Implementations
             return false;
         }
 
+        public abstract void Process(string name, ref object value, IDataFormatter formatter);
+
         private InstanceGetter CreateValueGetter(MemberInfo memberInfo)
         {
             return memberInfo.MemberType switch
@@ -84,6 +85,27 @@ namespace EasyToolKit.Serialization.Implementations
                 MemberTypes.Property => ReflectionUtility.CreateInstancePropertySetter((PropertyInfo)memberInfo),
                 _ => throw new ArgumentException($"Unsupported member type: {memberInfo.MemberType}")
             };
+        }
+    }
+
+    public abstract class SerializationNodeBase<T> : SerializationNodeBase
+    {
+        public new IEasySerializer<T> Serializer { get; }
+
+        protected SerializationNodeBase(
+            SerializationMemberDefinition memberDefinition,
+            IEasySerializer<T> serializer,
+            ISerializationNode parent,
+            int index) : base(typeof(T), memberDefinition, serializer, parent, index)
+        {
+            Serializer = serializer;
+        }
+
+        public override void Process(string name, ref object value, IDataFormatter formatter)
+        {
+            var castedValue = value != null ? (T)value : default;
+            Serializer.Process(name, ref castedValue, formatter);
+            value = castedValue;
         }
     }
 }

@@ -14,24 +14,6 @@ namespace EasyToolKit.Serialization
         /// <param name="serializationData">The serialization data to populate.</param>
         public static void To<T>(T value, ref EasySerializationData serializationData)
         {
-            To(value, typeof(T), ref serializationData);
-        }
-
-        /// <summary>Deserializes a value from the specified serialization data.</summary>
-        /// <typeparam name="T">The type of value to deserialize.</typeparam>
-        /// <param name="serializationData">The serialization data to read from.</param>
-        /// <returns>The deserialized value.</returns>
-        public static T From<T>(ref EasySerializationData serializationData)
-        {
-            return (T)From(typeof(T), ref serializationData);
-        }
-
-        /// <summary>Serializes a value to the specified serialization data.</summary>
-        /// <param name="value">The value to serialize.</param>
-        /// <param name="valueType">The type of value to serialize.</param>
-        /// <param name="serializationData">The serialization data to populate.</param>
-        public static void To(object value, Type valueType, ref EasySerializationData serializationData)
-        {
             if (value == null)
             {
                 // Debug.LogWarning("Serialize null value!");
@@ -40,46 +22,40 @@ namespace EasyToolKit.Serialization
             }
 
             // Build node tree first
-            var nodeBuilder = SerializationGlobalContext.Instance.GetService<ISerializationNodeBuilder>();
-            var rootNode = nodeBuilder.BuildNode(valueType);
+            using var stream = new MemoryStream();
+            var formatter = SerializationEnvironment.Instance.GetService<IFormatterFactory>()
+                .CreateWriter(serializationData.FormatterType, stream);
 
-            using (var stream = new MemoryStream())
-            {
-                var formatter = SerializationGlobalContext.Instance.GetService<IFormatterFactory>()
-                    .CreateWriter(serializationData.FormatterType, stream);
+            var serializer = SerializationEnvironment.Instance.GetService<ISerializerFactory>()
+                .GetSerializer<T>();
+            serializer.Process(ref value, formatter);
 
-                rootNode.Serializer.Process(ref value, formatter);
-
-                serializationData.ReferencedUnityObjects =
-                    new System.Collections.Generic.List<UnityEngine.Object>(formatter.GetObjectTable());
-                serializationData.SetData(stream.ToArray());
-            }
+            serializationData.ReferencedUnityObjects =
+                new System.Collections.Generic.List<UnityEngine.Object>(formatter.GetObjectTable());
+            serializationData.SetData(stream.ToArray());
         }
 
         /// <summary>Deserializes a value from the specified serialization data.</summary>
-        /// <param name="type">The type of value to deserialize.</param>
+        /// <typeparam name="T">The type of value to deserialize.</typeparam>
         /// <param name="serializationData">The serialization data to read from.</param>
         /// <returns>The deserialized value.</returns>
-        public static object From(Type type, ref EasySerializationData serializationData)
+        public static T From<T>(ref EasySerializationData serializationData)
         {
-            // Build node tree first
-            var nodeBuilder = SerializationGlobalContext.Instance.GetService<ISerializationNodeBuilder>();
-            var rootNode = nodeBuilder.BuildNode(type);
-
-            object res = null;
+            T result = default;
             var buf = serializationData.GetData();
             if (buf.Length == 0)
-                return null;
+                return default;
 
-            using (var stream = new MemoryStream(buf))
-            {
-                var formatter = SerializationGlobalContext.Instance.GetService<IFormatterFactory>()
-                    .CreateReader(serializationData.FormatterType, stream);
-                formatter.SetObjectTable(serializationData.ReferencedUnityObjects);
-                rootNode.Serializer.Process(ref res, formatter);
-            }
+            using var stream = new MemoryStream(buf);
+            var formatter = SerializationEnvironment.Instance.GetService<IFormatterFactory>()
+                .CreateReader(serializationData.FormatterType, stream);
+            formatter.SetObjectTable(serializationData.ReferencedUnityObjects);
 
-            return res;
+            var serializer = SerializationEnvironment.Instance.GetService<ISerializerFactory>()
+                .GetSerializer<T>();
+            serializer.Process(ref result, formatter);
+
+            return result;
         }
     }
 }

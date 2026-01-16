@@ -5,7 +5,7 @@ using EasyToolKit.Core.Reflection;
 namespace EasyToolKit.Serialization
 {
     /// <summary>
-    /// Represents a node in the serialization structure hierarchy.
+    /// Represents a node in the serialized structure hierarchy.
     /// </summary>
     public interface ISerializationNode
     {
@@ -58,5 +58,7 @@ namespace EasyToolKit.Serialization
         /// Determines whether this node is a child of the specified node.
         /// </summary>
         bool IsChildOf(ISerializationNode node);
+
+        void Process(string name, ref object value, IDataFormatter formatter);
     }
 }

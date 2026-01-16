@@ -8,11 +8,6 @@ namespace EasyToolKit.Serialization
     {
         public override void Process(string name, ref T value, IDataFormatter formatter)
         {
-            if (Node.Parent == null)
-            {
-                throw new NotImplementedException();
-            }
-
             UnityEngine.Object unityObject = value;
 
             formatter.BeginMember(name);
