@@ -2,17 +2,11 @@ using System;
 
 namespace EasyToolKit.Serialization
 {
-    /// <summary>
-    /// Core formatter interface for serialization and deserialization operations.
-    /// High-level modules depend on this abstraction for dependency inversion.
-    /// </summary>
     public interface IDataFormatter
     {
-        /// <summary>Gets the format type of this formatter.</summary>
-        FormatterType Type { get; }
+        SerializationFormat Type { get; }
 
-        /// <summary>Gets the operation direction (input or output).</summary>
-        FormatterDirection Direction { get; }
+        FormatterOperation Operation { get; }
 
         /// <summary>Begins a new member/field with the specified name.</summary>
         void BeginMember(string name);

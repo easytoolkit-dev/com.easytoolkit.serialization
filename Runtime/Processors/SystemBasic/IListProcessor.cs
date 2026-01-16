@@ -15,7 +15,7 @@ namespace EasyToolKit.Serialization.Processors
             var sizeTag = new SizeTag(value == null ? 0 : (uint)value.Count);
             formatter.Format(ref sizeTag);
 
-            if (formatter.Direction == FormatterDirection.Output)
+            if (formatter.Operation == FormatterOperation.Write)
             {
                 if (value == null)
                     return;

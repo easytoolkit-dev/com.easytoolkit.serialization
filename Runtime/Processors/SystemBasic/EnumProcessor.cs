@@ -10,24 +10,22 @@ namespace EasyToolKit.Serialization.Processors
         {
             formatter.BeginMember(name);
 
-            var direction = formatter.Direction;
-
-            if (formatter.Type != FormatterType.Binary)
+            if (formatter.Type != SerializationFormat.Binary)
             {
                 var str = string.Empty;
-                if (direction == FormatterDirection.Output)
+                if (formatter.Operation == FormatterOperation.Write)
                     str = Enum.GetName(typeof(T), value);
                 formatter.Format(ref str);
-                if (direction == FormatterDirection.Input)
+                if (formatter.Operation == FormatterOperation.Read)
                     value = Enum.Parse<T>(str);
             }
             else
             {
                 int val = 0;
-                if (direction == FormatterDirection.Output)
+                if (formatter.Operation == FormatterOperation.Write)
                     val = Convert.ToInt32(value);
                 formatter.Format(ref val);
-                if (direction == FormatterDirection.Input)
+                if (formatter.Operation == FormatterOperation.Read)
                     value = (T)(object)val;
             }
             formatter.EndMember();

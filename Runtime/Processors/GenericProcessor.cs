@@ -29,12 +29,11 @@ namespace EasyToolKit.Serialization.Processors
             // Use Node.Members (triggers lazy initialization)
             var members = node.Members;
 
-            var direction = formatter.Direction;
             foreach (var memberNode in members)
             {
                 object memberValue = null;
 
-                if (direction == FormatterDirection.Output)
+                if (formatter.Operation == FormatterOperation.Write)
                 {
                     var getter = memberNode.ValueGetter;
                     if (getter == null)
@@ -48,7 +47,7 @@ namespace EasyToolKit.Serialization.Processors
 
                 memberNode.Process(memberNode.Definition.Name, ref memberValue, formatter);
 
-                if (direction == FormatterDirection.Input)
+                if (formatter.Operation == FormatterOperation.Read)
                 {
                     var setter = memberNode.ValueSetter;
                     if (setter == null)

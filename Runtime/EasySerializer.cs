@@ -21,7 +21,7 @@ namespace EasyToolKit.Serialization
             // Build node tree first
             using var stream = new MemoryStream();
             var formatter = SerializationEnvironment.Instance.GetFactory<IFormatterFactory>()
-                .CreateWriter(serializationData.FormatterType, stream);
+                .CreateWriter(serializationData.Format, stream);
 
             var serializer = SerializationEnvironment.Instance.GetFactory<ISerializationProcessorFactory>()
                 .GetSerializer<T>();
@@ -45,7 +45,7 @@ namespace EasyToolKit.Serialization
 
             using var stream = new MemoryStream(buf);
             var formatter = SerializationEnvironment.Instance.GetFactory<IFormatterFactory>()
-                .CreateReader(serializationData.FormatterType, stream);
+                .CreateReader(serializationData.Format, stream);
             formatter.SetObjectTable(serializationData.ReferencedUnityObjects);
 
             var serializer = SerializationEnvironment.Instance.GetFactory<ISerializationProcessorFactory>()
