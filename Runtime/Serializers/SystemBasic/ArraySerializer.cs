@@ -7,7 +7,7 @@ namespace EasyToolKit.Serialization
     [SerializerConfiguration(SerializerPriorityLevel.SystemBasic)]
     public class ArraySerializer<T> : EasySerializer<T[]>
     {
-        private static readonly EasySerializer<T> Serializer = GetSerializer<T>();
+        private static readonly EasySerializer<T> Serializer;
 
         public override void Process(string name, ref T[] value, IDataFormatter formatter)
         {

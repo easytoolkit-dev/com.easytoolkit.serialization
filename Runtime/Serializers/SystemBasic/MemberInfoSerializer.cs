@@ -30,7 +30,7 @@
 //                         throw new NotImplementedException();
 //                 }
 //             }
-//             
+//
 //             archive.StartNode();
 //
 //             MemberTypesSerializer.Process("Type", ref type, archive);

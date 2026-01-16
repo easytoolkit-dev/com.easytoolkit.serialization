@@ -6,7 +6,6 @@ namespace EasyToolKit.Serialization
     [SerializerConfiguration(SerializerPriorityLevel.Generic)]
     public class GenericSerializer<T> : EasySerializer<T>
     {
-        private static readonly bool IsNode = IsNodeImpl(typeof(T));
         private static readonly Func<T> Constructor = CreateConstructor();
 
         public override bool CanSerialize(Type valueType)
@@ -26,22 +25,13 @@ namespace EasyToolKit.Serialization
                 value = Constructor();
             }
 
-            if (Node.Parent == null)
-            {
-                if (IsNode)
-                {
-                    formatter.BeginMember(name);
-                    formatter.BeginObject();
-                }
-            }
-
+            var node = (IStructSerializationNode)Environment.GetService<ISerializationNodeBuilder>().BuildNode<T>();
             // Use Node.Members (triggers lazy initialization)
-            var members = ((IStructSerializationNode)Node).Members;
+            var members = node.Members;
 
             var direction = formatter.Direction;
             foreach (var memberNode in members)
             {
-                var memberSerializer = memberNode.Serializer;
                 object memberValue = null;
 
                 if (direction == FormatterDirection.Output)
@@ -56,7 +46,7 @@ namespace EasyToolKit.Serialization
                     memberValue = getter(ref boxedValue);
                 }
 
-                memberSerializer.Process(memberNode.Definition.Name, ref memberValue, formatter);
+                memberNode.Process(memberNode.Definition.Name, ref memberValue, formatter);
 
                 if (direction == FormatterDirection.Input)
                 {
@@ -71,21 +61,6 @@ namespace EasyToolKit.Serialization
                     value = (T)boxedValue;
                 }
             }
-
-            if (Node.Parent == null)
-            {
-                if (IsNode)
-                {
-                    formatter.EndObject();
-                    formatter.EndMember();
-                }
-            }
-        }
-
-        private static bool IsNodeImpl(Type type)
-        {
-            return (type.IsClass && type != typeof(string)) ||
-                   (type.IsValueType && !type.IsPrimitive && !type.IsEnum);
         }
 
         private static Func<T> CreateConstructor()

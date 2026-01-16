@@ -4,14 +4,13 @@ using EasyToolKit.Core.Patterns;
 namespace EasyToolKit.Serialization
 {
     /// <summary>
-    /// Global context for serialization operations with dependency injection support.
-    /// Provides access to global services such as member info accessors during serialization.
+    /// Environment for serialization operations with dependency injection support.
     /// </summary>
-    public sealed class SerializationGlobalContext : Singleton<SerializationGlobalContext>
+    public sealed class SerializationEnvironment : Singleton<SerializationEnvironment>
     {
         private readonly IServiceContainer _serviceContainer;
 
-        private SerializationGlobalContext()
+        private SerializationEnvironment()
         {
             var descriptors = GetDefaultServiceDescriptors();
             _serviceContainer = ServiceContainerBuilder.Build(descriptors);
@@ -36,6 +35,10 @@ namespace EasyToolKit.Serialization
                 ServiceDescriptor.Singleton<
                     IFormatterFactory,
                     Implementations.FormatterFactory>(),
+
+                ServiceDescriptor.Singleton<
+                    ISerializerFactory,
+                    Implementations.SerializerFactory>(),
             };
         }
 

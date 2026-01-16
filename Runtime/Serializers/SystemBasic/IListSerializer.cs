@@ -5,7 +5,7 @@ namespace EasyToolKit.Serialization
     [SerializerConfiguration(priority: (int)SerializerPriorityLevel.SystemBasic)]
     public class IListSerializer<T> : EasySerializer<IList<T>>
     {
-        private static readonly EasySerializer<T> Serializer = GetSerializer<T>();
+        private static readonly EasySerializer<T> Serializer;
 
         public override void Process(string name, ref IList<T> value, IDataFormatter formatter)
         {
