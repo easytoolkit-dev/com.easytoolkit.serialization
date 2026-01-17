@@ -32,30 +32,30 @@ namespace EasyToolKit.Serialization.Implementations
         public override void EndObject() => throw new NotImplementedException();
 
         /// <inheritdoc />
-        public override bool Format(ref int value) => throw new NotImplementedException();
+        public override void Format(ref int value) => throw new NotImplementedException();
 
         /// <inheritdoc />
-        public override bool Format(ref Varint32 value) => throw new NotImplementedException();
+        public override void Format(ref Varint32 value) => throw new NotImplementedException();
 
         /// <inheritdoc />
-        public override bool Format(ref SizeTag size) => throw new NotImplementedException();
+        public override void Format(ref SizeTag size) => throw new NotImplementedException();
 
         /// <inheritdoc />
-        public override bool Format(ref bool value) => throw new NotImplementedException();
+        public override void Format(ref bool value) => throw new NotImplementedException();
 
         /// <inheritdoc />
-        public override bool Format(ref float value) => throw new NotImplementedException();
+        public override void Format(ref float value) => throw new NotImplementedException();
 
         /// <inheritdoc />
-        public override bool Format(ref double value) => throw new NotImplementedException();
+        public override void Format(ref double value) => throw new NotImplementedException();
 
         /// <inheritdoc />
-        public override bool Format(ref string str) => throw new NotImplementedException();
+        public override void Format(ref string str) => throw new NotImplementedException();
 
         /// <inheritdoc />
-        public override bool Format(ref byte[] data) => throw new NotImplementedException();
+        public override void Format(ref byte[] data) => throw new NotImplementedException();
 
         /// <inheritdoc />
-        public override bool Format(ref UnityEngine.Object unityObject) => throw new NotImplementedException();
+        public override void Format(ref UnityEngine.Object unityObject) => throw new NotImplementedException();
     }
 }

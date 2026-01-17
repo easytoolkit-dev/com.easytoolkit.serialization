@@ -2,12 +2,14 @@ using System;
 
 namespace EasyToolKit.Serialization
 {
-    public interface ISerializationProcessor : ISerializationTypeValidator
+    public interface ISerializationProcessor
     {
         /// <summary>
         /// Gets the value type this serializer is designed for.
         /// </summary>
         Type ValueType { get; }
+
+        bool CanProcess(Type valueType);
     }
 
     public interface ISerializationProcessor<T> : ISerializationProcessor

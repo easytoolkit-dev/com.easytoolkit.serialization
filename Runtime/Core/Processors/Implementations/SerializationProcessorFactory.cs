@@ -9,17 +9,17 @@ namespace EasyToolKit.Serialization.Implementations
 {
     public sealed class SerializationProcessorFactory : ISerializationProcessorFactory
     {
-        private readonly ITypeMatcher _serializerTypeMatcher;
+        private readonly ITypeMatcher _typeMatcher;
 
         public SerializationProcessorFactory()
         {
-            _serializerTypeMatcher = TypeMatcherFactory.CreateDefault();
+            _typeMatcher = TypeMatcherFactory.CreateDefault();
             InitializeTypeMatcher();
         }
 
         private void InitializeTypeMatcher()
         {
-            _serializerTypeMatcher.SetTypeMatchIndices(SerializationProcessorUtility.ProcessorTypes.Select(type =>
+            _typeMatcher.SetTypeMatchIndices(SerializationProcessorUtility.ProcessorTypes.Select(type =>
             {
                 var config = type.GetCustomAttribute<ProcessorConfigurationAttribute>();
                 config ??= ProcessorConfigurationAttribute.Default;
@@ -29,22 +29,66 @@ namespace EasyToolKit.Serialization.Implementations
             }));
         }
 
-        public ISerializationProcessor<T> GetSerializer<T>()
+        public ISerializationProcessor<T> GetProcessor<T>()
         {
-            return (ISerializationProcessor<T>)GetSerializer(typeof(T));
+            return (ISerializationProcessor<T>)GetProcessor(typeof(T));
         }
 
-        private ISerializationProcessor GetSerializer(Type valueType)
+        private ISerializationProcessor GetProcessor(Type valueType)
+        {
+            var processor = GetProcessorInstance(valueType);
+            InjectDependencyToProcessor(processor);
+            return processor;
+        }
+
+        private void InjectDependencyToProcessor(ISerializationProcessor processor)
+        {
+            foreach (var memberInfo in processor.GetType().GetMembers(MemberAccessFlags.All))
+            {
+                if (memberInfo.GetCustomAttribute<DependencyProcessorAttribute>() != null)
+                {
+                    var memberType = memberInfo.GetMemberType();
+                    if (!memberType.IsImplementsOpenGenericType(typeof(ISerializationProcessor<>)))
+                    {
+                        throw new InvalidOperationException(
+                            $"Member '{memberInfo.Name}' of type '{memberType.FullName}' is not a ISerializationProcessor<T>.");
+                    }
+                    var valueType = memberType.GetArgumentsOfInheritedOpenGenericType(typeof(ISerializationProcessor<>))[0];
+
+                    if (memberInfo is FieldInfo fieldInfo)
+                    {
+                        var setter = ReflectionUtility.CreateInstanceFieldSetter(fieldInfo)
+                            .AsTyped<ISerializationProcessor, ISerializationProcessor>();
+                        var dependency = GetProcessor(valueType);
+                        setter(ref processor, dependency);
+                    }
+                    else if (memberInfo is PropertyInfo propertyInfo)
+                    {
+                        var setter = ReflectionUtility.CreateInstancePropertySetter(propertyInfo)
+                            .AsTyped<ISerializationProcessor, ISerializationProcessor>();
+                        var dependency = GetProcessor(valueType);
+                        setter(ref processor, dependency);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException(
+                            $"Member '{memberInfo.Name}' of type '{memberType.FullName}' is not a field or property.");
+                    }
+                }
+            }
+        }
+
+        private ISerializationProcessor GetProcessorInstance(Type valueType)
         {
             var resultsList = new List<TypeMatchResult[]>
             {
-                _serializerTypeMatcher.GetMatches(Type.EmptyTypes),
-                _serializerTypeMatcher.GetMatches(valueType)
+                _typeMatcher.GetMatches(Type.EmptyTypes),
+                _typeMatcher.GetMatches(valueType)
             };
-            var results = _serializerTypeMatcher.GetMergedResults(resultsList);
+            var results = _typeMatcher.GetMergedResults(resultsList);
             foreach (var result in results)
             {
-                if (CanSerializeType(result.MatchedType, valueType))
+                if (CanProcessType(result.MatchedType, valueType))
                 {
                     return result.MatchedType.CreateInstance<ISerializationProcessor>();
                 }
@@ -53,10 +97,10 @@ namespace EasyToolKit.Serialization.Implementations
             return null;
         }
 
-        private static bool CanSerializeType(Type serializerType, Type valueType)
+        private static bool CanProcessType(Type serializerType, Type valueType)
         {
             var serializer = (ISerializationProcessor)FormatterServices.GetUninitializedObject(serializerType);
-            return serializer.CanSerialize(valueType);
+            return serializer.CanProcess(valueType);
         }
     }
 }

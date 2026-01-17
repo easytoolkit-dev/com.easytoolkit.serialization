@@ -24,7 +24,7 @@ namespace EasyToolKit.Serialization
                 .CreateWriter(serializationData.Format, stream);
 
             var serializer = SerializationEnvironment.Instance.GetFactory<ISerializationProcessorFactory>()
-                .GetSerializer<T>();
+                .GetProcessor<T>();
             serializer.Process(ref value, formatter);
 
             serializationData.ReferencedUnityObjects =
@@ -49,7 +49,7 @@ namespace EasyToolKit.Serialization
             formatter.SetObjectTable(serializationData.ReferencedUnityObjects);
 
             var serializer = SerializationEnvironment.Instance.GetFactory<ISerializationProcessorFactory>()
-                .GetSerializer<T>();
+                .GetProcessor<T>();
             serializer.Process(ref result, formatter);
 
             return result;

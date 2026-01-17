@@ -49,82 +49,73 @@ namespace EasyToolKit.Serialization.Implementations
         }
 
         /// <inheritdoc />
-        public override bool Format(ref int value)
+        public override void Format(ref int value)
         {
             _writer.Write(value);
-            return true;
         }
 
         /// <inheritdoc />
-        public override bool Format(ref Varint32 value)
+        public override void Format(ref Varint32 value)
         {
             WriteVarint32(value.Value);
-            return true;
         }
 
         /// <inheritdoc />
-        public override bool Format(ref SizeTag size)
+        public override void Format(ref SizeTag size)
         {
             WriteVarint32(size.Size);
-            return true;
         }
 
         /// <inheritdoc />
-        public override bool Format(ref bool value)
+        public override void Format(ref bool value)
         {
             _writer.Write(value ? (byte)1 : (byte)0);
-            return true;
         }
 
         /// <inheritdoc />
-        public override bool Format(ref float value)
+        public override void Format(ref float value)
         {
             _writer.Write(value);
-            return true;
         }
 
         /// <inheritdoc />
-        public override bool Format(ref double value)
+        public override void Format(ref double value)
         {
             _writer.Write(value);
-            return true;
         }
 
         /// <inheritdoc />
-        public override bool Format(ref string str)
+        public override void Format(ref string str)
         {
             if (str == null)
             {
                 WriteVarint32(0);
-                return true;
+                return;
             }
 
             var bytes = Encoding.UTF8.GetBytes(str);
             WriteVarint32((uint)bytes.Length);
             _writer.Write(bytes);
-            return true;
         }
 
         /// <inheritdoc />
-        public override bool Format(ref byte[] data)
+        public override void Format(ref byte[] data)
         {
             if (data == null)
             {
                 WriteVarint32(0);
-                return true;
+                return;
             }
 
             WriteVarint32((uint)data.Length);
             _writer.Write(data);
-            return true;
         }
 
         /// <inheritdoc />
-        public override bool Format(ref UnityEngine.Object unityObject)
+        public override void Format(ref UnityEngine.Object unityObject)
         {
             var index = RegisterReference(unityObject);
             WriteVarint32((uint)index);
-            return true;
         }
 
         /// <summary>Writes a 32-bit unsigned integer using variable-length encoding.</summary>
