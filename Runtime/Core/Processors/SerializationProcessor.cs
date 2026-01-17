@@ -22,7 +22,7 @@ namespace EasyToolKit.Serialization
         /// </summary>
         /// <param name="valueType">The type to validate for serialization support.</param>
         /// <returns>True if the type can be serialized; otherwise, false.</returns>
-        public virtual bool CanSerialize(Type valueType) => valueType == typeof(T);
+        public virtual bool CanProcess(Type valueType) => valueType == typeof(T);
 
         /// <summary>
         /// Processes a strongly-typed value during serialization or deserialization.

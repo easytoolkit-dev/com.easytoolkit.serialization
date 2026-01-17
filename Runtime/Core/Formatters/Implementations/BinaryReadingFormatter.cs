@@ -46,83 +46,74 @@ namespace EasyToolKit.Serialization.Implementations
         }
 
         /// <inheritdoc />
-        public override bool Format(ref int value)
+        public override void Format(ref int value)
         {
             value = _reader.ReadInt32();
-            return true;
         }
 
         /// <inheritdoc />
-        public override bool Format(ref Varint32 value)
+        public override void Format(ref Varint32 value)
         {
             value = new Varint32(ReadVarint32());
-            return true;
         }
 
         /// <inheritdoc />
-        public override bool Format(ref SizeTag size)
+        public override void Format(ref SizeTag size)
         {
             size = new SizeTag(ReadVarint32());
-            return true;
         }
 
         /// <inheritdoc />
-        public override bool Format(ref bool value)
+        public override void Format(ref bool value)
         {
             var byteValue = _reader.ReadByte();
             value = byteValue != 0;
-            return true;
         }
 
         /// <inheritdoc />
-        public override bool Format(ref float value)
+        public override void Format(ref float value)
         {
             value = _reader.ReadSingle();
-            return true;
         }
 
         /// <inheritdoc />
-        public override bool Format(ref double value)
+        public override void Format(ref double value)
         {
             value = _reader.ReadDouble();
-            return true;
         }
 
         /// <inheritdoc />
-        public override bool Format(ref string str)
+        public override void Format(ref string str)
         {
             var length = ReadVarint32();
             if (length == 0)
             {
                 str = null;
-                return true;
+                return;
             }
 
             var bytes = _reader.ReadBytes((int)length);
             str = Encoding.UTF8.GetString(bytes);
-            return true;
         }
 
         /// <inheritdoc />
-        public override bool Format(ref byte[] data)
+        public override void Format(ref byte[] data)
         {
             var length = ReadVarint32();
             if (length == 0)
             {
                 data = null;
-                return true;
+                return;
             }
 
             data = _reader.ReadBytes((int)length);
-            return true;
         }
 
         /// <inheritdoc />
-        public override bool Format(ref UnityEngine.Object unityObject)
+        public override void Format(ref UnityEngine.Object unityObject)
         {
             var index = ReadVarint32();
             unityObject = ResolveReference((int)index);
-            return true;
         }
 
         /// <summary>Reads a 32-bit unsigned integer using variable-length decoding.</summary>

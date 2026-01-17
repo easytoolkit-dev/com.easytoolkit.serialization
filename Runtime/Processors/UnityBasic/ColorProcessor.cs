@@ -5,14 +5,15 @@ namespace EasyToolKit.Serialization.Processors
     [ProcessorConfiguration(ProcessorPriorityLevel.UnityBasic)]
     public class ColorProcessor : SerializationProcessor<Color>
     {
-        private static readonly ISerializationProcessor<float> FloatSerializer;
+        [DependencyProcessor]
+        private ISerializationProcessor<float> _floatSerializer;
 
         protected override void Process(string name, ref Color value, IDataFormatter formatter)
         {
-            FloatSerializer.Process("R", ref value.r, formatter);
-            FloatSerializer.Process("G", ref value.g, formatter);
-            FloatSerializer.Process("B", ref value.b, formatter);
-            FloatSerializer.Process("A", ref value.a, formatter);
+            _floatSerializer.Process("R", ref value.r, formatter);
+            _floatSerializer.Process("G", ref value.g, formatter);
+            _floatSerializer.Process("B", ref value.b, formatter);
+            _floatSerializer.Process("A", ref value.a, formatter);
         }
     }
 }

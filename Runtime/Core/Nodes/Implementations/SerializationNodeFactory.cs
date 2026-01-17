@@ -16,7 +16,7 @@ namespace EasyToolKit.Serialization.Implementations
         /// </summary>
         public ISerializationNode BuildNode<T>()
         {
-            return BuildRootNodeImpl<T>(null, -1, null);
+            return BuildRootNodeWithoutParametersCheck<T>(null, -1, null);
         }
 
         /// <summary>
@@ -30,10 +30,10 @@ namespace EasyToolKit.Serialization.Implementations
             if (memberInfo == null) throw new ArgumentNullException(nameof(memberInfo));
             if (parent == null) throw new ArgumentNullException(nameof(parent));
 
-            return BuildRootNodeImpl<T>(memberInfo, index, parent);
+            return BuildRootNodeWithoutParametersCheck<T>(memberInfo, index, parent);
         }
 
-        private ISerializationNode BuildRootNodeImpl<T>(
+        private ISerializationNode BuildRootNodeWithoutParametersCheck<T>(
             [CanBeNull] MemberInfo memberInfo,
             int index,
             [CanBeNull] ISerializationNode parent)
@@ -59,7 +59,7 @@ namespace EasyToolKit.Serialization.Implementations
             };
 
             // Create serializer
-            var serializer = _serializationProcessorFactory.GetSerializer<T>();
+            var serializer = _serializationProcessorFactory.GetProcessor<T>();
             if (serializer == null)
             {
                 throw new InvalidOperationException(

@@ -5,7 +5,8 @@ namespace EasyToolKit.Serialization.Processors
     [ProcessorConfiguration(priority: (int)ProcessorPriorityLevel.SystemBasic)]
     public class IListProcessor<T> : SerializationProcessor<IList<T>>
     {
-        private static readonly ISerializationProcessor<T> Serializer;
+        [DependencyProcessor]
+        private ISerializationProcessor<T> _serializer;
 
         protected override void Process(string name, ref IList<T> value, IDataFormatter formatter)
         {
@@ -24,7 +25,7 @@ namespace EasyToolKit.Serialization.Processors
                 for (int i = 0; i < count; i++)
                 {
                     var item = value[i];
-                    Serializer.Process(ref item, formatter);
+                    _serializer.Process(ref item, formatter);
                 }
             }
             else
@@ -33,7 +34,7 @@ namespace EasyToolKit.Serialization.Processors
                 for (int i = 0; i < sizeTag.Size; i++)
                 {
                     T item = default;
-                    Serializer.Process(ref item, formatter);
+                    _serializer.Process(ref item, formatter);
                     total.Add(item);
                 }
 

@@ -8,7 +8,7 @@ namespace EasyToolKit.Serialization.Processors
     {
         private static readonly Func<T> Constructor = CreateConstructor();
 
-        public override bool CanSerialize(Type valueType)
+        public override bool CanProcess(Type valueType)
         {
             return !valueType.IsBasicValueType() && !valueType.IsSubclassOf(typeof(UnityEngine.Object));
         }
@@ -26,7 +26,6 @@ namespace EasyToolKit.Serialization.Processors
             }
 
             var node = (ISerializationStructuralNode)Environment.GetFactory<ISerializationNodeFactory>().BuildNode<T>();
-            // Use Node.Members (triggers lazy initialization)
             var members = node.Members;
 
             foreach (var memberNode in members)

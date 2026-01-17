@@ -1,13 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace EasyToolKit.Serialization.Processors
 {
     [ProcessorConfiguration(ProcessorPriorityLevel.SystemBasic)]
     public class ArrayProcessor<T> : SerializationProcessor<T[]>
     {
-        private static readonly ISerializationProcessor<T> Serializer;
+        [DependencyProcessor]
+        private ISerializationProcessor<T> _serializer;
 
         protected override void Process(string name, ref T[] value, IDataFormatter formatter)
         {
@@ -25,7 +22,7 @@ namespace EasyToolKit.Serialization.Processors
                 foreach (var item in value)
                 {
                     var tmp = item;
-                    Serializer.Process(ref tmp, formatter);
+                    _serializer.Process(ref tmp, formatter);
                 }
             }
             else
@@ -34,7 +31,7 @@ namespace EasyToolKit.Serialization.Processors
                 for (int i = 0; i < sizeTag.Size; i++)
                 {
                     T item = default;
-                    Serializer.Process(ref item, formatter);
+                    _serializer.Process(ref item, formatter);
                     total[i] = item;
                 }
 

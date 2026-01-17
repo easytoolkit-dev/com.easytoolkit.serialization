@@ -27,7 +27,7 @@ namespace EasyToolKit.Serialization.Implementations
 
             var members = new List<SerializationMemberDefinition>();
 
-            var memberInfos = type.GetMembers(BindingFlagsHelper.AllInstance)
+            var memberInfos = type.GetMembers(MemberAccessFlags.AllInstance)
                 .Where(memberInfo => memberInfo is FieldInfo || memberInfo is PropertyInfo)
                 .ToList();
 

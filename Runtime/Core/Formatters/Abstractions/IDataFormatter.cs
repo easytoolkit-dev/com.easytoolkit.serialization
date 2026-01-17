@@ -21,30 +21,30 @@ namespace EasyToolKit.Serialization
         void EndObject();
 
         /// <summary>Formats an integer value.</summary>
-        bool Format(ref int value);
+        void Format(ref int value);
 
         /// <summary>Formats a variable-length integer value.</summary>
-        bool Format(ref Varint32 value);
+        void Format(ref Varint32 value);
 
         /// <summary>Formats a collection size tag.</summary>
-        bool Format(ref SizeTag size);
+        void Format(ref SizeTag size);
 
         /// <summary>Formats a boolean value.</summary>
-        bool Format(ref bool value);
+        void Format(ref bool value);
 
         /// <summary>Formats a float value.</summary>
-        bool Format(ref float value);
+        void Format(ref float value);
 
         /// <summary>Formats a double value.</summary>
-        bool Format(ref double value);
+        void Format(ref double value);
 
         /// <summary>Formats a string value.</summary>
-        bool Format(ref string str);
+        void Format(ref string str);
 
         /// <summary>Formats a byte array.</summary>
-        bool Format(ref byte[] data);
+        void Format(ref byte[] data);
 
         /// <summary>Formats a Unity object reference.</summary>
-        bool Format(ref UnityEngine.Object unityObject);
+        void Format(ref UnityEngine.Object unityObject);
     }
 }

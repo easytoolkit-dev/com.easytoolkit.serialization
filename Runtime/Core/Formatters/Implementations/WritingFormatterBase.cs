@@ -41,30 +41,30 @@ namespace EasyToolKit.Serialization.Implementations
         public abstract void EndObject();
 
         /// <inheritdoc />
-        public abstract bool Format(ref int value);
+        public abstract void Format(ref int value);
 
         /// <inheritdoc />
-        public abstract bool Format(ref Varint32 value);
+        public abstract void Format(ref Varint32 value);
 
         /// <inheritdoc />
-        public abstract bool Format(ref SizeTag size);
+        public abstract void Format(ref SizeTag size);
 
         /// <inheritdoc />
-        public abstract bool Format(ref bool value);
+        public abstract void Format(ref bool value);
 
         /// <inheritdoc />
-        public abstract bool Format(ref float value);
+        public abstract void Format(ref float value);
 
         /// <inheritdoc />
-        public abstract bool Format(ref double value);
+        public abstract void Format(ref double value);
 
         /// <inheritdoc />
-        public abstract bool Format(ref string str);
+        public abstract void Format(ref string str);
 
         /// <inheritdoc />
-        public abstract bool Format(ref byte[] data);
+        public abstract void Format(ref byte[] data);
 
         /// <inheritdoc />
-        public abstract bool Format(ref UnityEngine.Object unityObject);
+        public abstract void Format(ref UnityEngine.Object unityObject);
     }
 }
