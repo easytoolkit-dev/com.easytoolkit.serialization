@@ -55,18 +55,17 @@ namespace EasyToolKit.Serialization
             }
 
             s_typeMatcher = TypeMatcherFactory.CreateDefault();
-            s_typeMatcher.SetTypeMatchIndices(s_resolverTypes
+            s_typeMatcher.SetTypeMatchCabdudates(s_resolverTypes
                 .OrderByDescending(GetResolverPriority)
                 .Select((type, i) =>
                 {
-                    var index = new TypeMatchIndex(type, s_resolverTypes.Length - i, null);
+                    Type[] constraints = null;
                     if (type.BaseType != null && type.BaseType.IsGenericType)
                     {
                         // For generic resolvers, extract the target generic type from the inheritance chain.
-                        index.Targets = type.GetArgumentsOfInheritedOpenGenericType(type.BaseType.GetGenericTypeDefinition());
+                        constraints = type.GetArgumentsOfInheritedGenericTypeDefinition(type.BaseType.GetGenericTypeDefinition());
                     }
-
-                    return index;
+                    return new TypeMatchCandidate(type, s_resolverTypes.Length - i, constraints);
                 }));
         }
 

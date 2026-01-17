@@ -19,13 +19,13 @@ namespace EasyToolKit.Serialization.Implementations
 
         private void InitializeTypeMatcher()
         {
-            _typeMatcher.SetTypeMatchIndices(SerializationProcessorUtility.ProcessorTypes.Select(type =>
+            _typeMatcher.SetTypeMatchCabdudates(SerializationProcessorUtility.ProcessorTypes.Select(type =>
             {
                 var config = type.GetCustomAttribute<ProcessorConfigurationAttribute>();
                 config ??= ProcessorConfigurationAttribute.Default;
 
-                var argType = type.GetArgumentsOfInheritedOpenGenericType(typeof(ISerializationProcessor<>));
-                return new TypeMatchIndex(type, config.Priority, argType);
+                var argType = type.GetArgumentsOfInheritedGenericTypeDefinition(typeof(ISerializationProcessor<>));
+                return new TypeMatchCandidate(type, config.Priority, argType);
             }));
         }
 
@@ -43,6 +43,7 @@ namespace EasyToolKit.Serialization.Implementations
 
         private void InjectDependencyToProcessor(ISerializationProcessor processor)
         {
+            //TODO: circular dependency processor
             foreach (var memberInfo in processor.GetType().GetMembers(MemberAccessFlags.All))
             {
                 if (memberInfo.GetCustomAttribute<DependencyProcessorAttribute>() != null)
@@ -53,7 +54,7 @@ namespace EasyToolKit.Serialization.Implementations
                         throw new InvalidOperationException(
                             $"Member '{memberInfo.Name}' of type '{memberType.FullName}' is not a ISerializationProcessor<T>.");
                     }
-                    var valueType = memberType.GetArgumentsOfInheritedOpenGenericType(typeof(ISerializationProcessor<>))[0];
+                    var valueType = memberType.GetArgumentsOfInheritedGenericTypeDefinition(typeof(ISerializationProcessor<>))[0];
 
                     if (memberInfo is FieldInfo fieldInfo)
                     {

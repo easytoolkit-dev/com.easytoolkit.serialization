@@ -10,10 +10,10 @@ namespace EasyToolKit.Serialization.Processors
 
         protected override void Process(string name, ref Color value, IDataFormatter formatter)
         {
-            _floatSerializer.Process("R", ref value.r, formatter);
-            _floatSerializer.Process("G", ref value.g, formatter);
-            _floatSerializer.Process("B", ref value.b, formatter);
-            _floatSerializer.Process("A", ref value.a, formatter);
+            _floatSerializer.Process("r", ref value.r, formatter);
+            _floatSerializer.Process("g", ref value.g, formatter);
+            _floatSerializer.Process("b", ref value.b, formatter);
+            _floatSerializer.Process("a", ref value.a, formatter);
         }
     }
 }
