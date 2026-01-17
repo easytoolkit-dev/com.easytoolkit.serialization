@@ -10,7 +10,9 @@ namespace EasyToolKit.Serialization.Processors
 
         public override bool CanProcess(Type valueType)
         {
-            return !valueType.IsBasicValueType() && !valueType.IsSubclassOf(typeof(UnityEngine.Object));
+            return !valueType.IsBasicValueType() &&
+                   !valueType.IsSubclassOf(typeof(UnityEngine.Object)) &&
+                   valueType.IsDefined<SerializableAttribute>();
         }
 
         protected override void Process(string name, ref T value, IDataFormatter formatter)

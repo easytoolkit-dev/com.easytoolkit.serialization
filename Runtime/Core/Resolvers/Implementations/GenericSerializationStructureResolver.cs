@@ -14,8 +14,8 @@ namespace EasyToolKit.Serialization.Implementations
     {
         public bool CanResolve(Type type)
         {
-            // Only resolve types with [Serializable] attribute
-            return type.GetCustomAttribute<SerializableAttribute>() != null;
+            return !type.IsBasicValueType() &&
+                   !type.IsSubclassOf(typeof(UnityEngine.Object));
         }
 
         public SerializationMemberDefinition[] Resolve(Type type)

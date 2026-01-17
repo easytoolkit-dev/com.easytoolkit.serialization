@@ -9,11 +9,10 @@ namespace EasyToolKit.Serialization
         /// <typeparam name="T">The type of value to serialize.</typeparam>
         /// <param name="value">The value to serialize.</param>
         /// <param name="serializationData">The serialization data to populate.</param>
-        public static void Serialize<T>(T value, ref EasySerializationData serializationData)
+        public static void Serialize<T>(ref T value, ref EasySerializationData serializationData)
         {
             if (value == null)
             {
-                // Debug.LogWarning("Serialize null value!");
                 serializationData.SetData(new byte[] { });
                 return;
             }
