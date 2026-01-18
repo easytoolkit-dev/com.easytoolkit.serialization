@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace EasyToolKit.Serialization.Processors
 {
-    [ProcessorConfiguration(priority: (int)ProcessorPriorityLevel.SystemBasic)]
+    [ProcessorConfiguration(ProcessorPriorityLevel.SystemBasic, AllowTypeArgumentInheritance = true)]
     public class IListProcessor<T> : SerializationProcessor<IList<T>>
     {
         [DependencyProcessor]
@@ -13,7 +13,7 @@ namespace EasyToolKit.Serialization.Processors
             formatter.BeginMember(name);
             formatter.BeginObject();
 
-            var sizeTag = new SizeTag(value == null ? 0 : (uint)value.Count);
+            var sizeTag = new SizeTag((uint)value.Count);
             formatter.Format(ref sizeTag);
 
             if (formatter.Operation == FormatterOperation.Write)
@@ -30,15 +30,12 @@ namespace EasyToolKit.Serialization.Processors
             }
             else
             {
-                var total = new List<T>((int)sizeTag.Size);
                 for (int i = 0; i < sizeTag.Size; i++)
                 {
                     T item = default;
                     _serializer.Process(ref item, formatter);
-                    total.Add(item);
+                    value.Add(item);
                 }
-
-                value = total;
             }
 
             formatter.EndObject();

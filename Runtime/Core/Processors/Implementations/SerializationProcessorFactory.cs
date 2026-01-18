@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using EasyToolKit.Core.Reflection;
+using JetBrains.Annotations;
 
 namespace EasyToolKit.Serialization.Implementations
 {
@@ -19,12 +20,12 @@ namespace EasyToolKit.Serialization.Implementations
 
         private void InitializeTypeMatcher()
         {
-            _typeMatcher.SetTypeMatchCabdudates(SerializationProcessorUtility.ProcessorTypes.Select(type =>
+            _typeMatcher.SetTypeMatchCandidates(SerializationProcessorUtility.ProcessorTypes.Select(type =>
             {
                 var config = type.GetCustomAttribute<ProcessorConfigurationAttribute>();
                 config ??= ProcessorConfigurationAttribute.Default;
 
-                var argType = type.GetArgumentsOfInheritedGenericTypeDefinition(typeof(ISerializationProcessor<>));
+                var argType = type.GetGenericArgumentsRelativeTo(typeof(ISerializationProcessor<>));
                 return new TypeMatchCandidate(type, config.Priority, argType);
             }));
         }
@@ -36,25 +37,46 @@ namespace EasyToolKit.Serialization.Implementations
 
         private ISerializationProcessor GetProcessor(Type valueType)
         {
+            if (!valueType.IsInstantiable() && !valueType.IsArray && valueType != typeof(string))
+            {
+                throw new InvalidOperationException($"Type '{valueType.FullName}' is not instantiable.");
+            }
+
             var processor = GetProcessorInstance(valueType);
+            if (processor == null)
+                return null;
             InjectDependencyToProcessor(processor);
+
+            var baseValueType = processor.GetType().GetGenericArgumentsRelativeTo(typeof(ISerializationProcessor<>))[0];
+            if (baseValueType != valueType)
+            {
+                if (!valueType.IsDerivedFrom(baseValueType))
+                {
+                    throw new InvalidOperationException(
+                        $"Type '{valueType.FullName}' is not derived from '{baseValueType.FullName}'.");
+                }
+                var processorWrapperType = typeof(SerializationProcessorWrapper<,>).MakeGenericType(valueType, baseValueType);
+                return processorWrapperType.CreateInstance<ISerializationProcessor>(processor);
+            }
             return processor;
         }
 
-        private void InjectDependencyToProcessor(ISerializationProcessor processor)
+        private void InjectDependencyToProcessor([NotNull] ISerializationProcessor processor)
         {
+            if (processor == null)
+                throw new ArgumentNullException(nameof(processor));
             //TODO: circular dependency processor
             foreach (var memberInfo in processor.GetType().GetMembers(MemberAccessFlags.All))
             {
                 if (memberInfo.GetCustomAttribute<DependencyProcessorAttribute>() != null)
                 {
                     var memberType = memberInfo.GetMemberType();
-                    if (!memberType.IsImplementsOpenGenericType(typeof(ISerializationProcessor<>)))
+                    if (!memberType.IsDerivedFromGenericDefinition(typeof(ISerializationProcessor<>)))
                     {
                         throw new InvalidOperationException(
                             $"Member '{memberInfo.Name}' of type '{memberType.FullName}' is not a ISerializationProcessor<T>.");
                     }
-                    var valueType = memberType.GetArgumentsOfInheritedGenericTypeDefinition(typeof(ISerializationProcessor<>))[0];
+                    var valueType = memberType.GetGenericArgumentsRelativeTo(typeof(ISerializationProcessor<>))[0];
 
                     if (memberInfo is FieldInfo fieldInfo)
                     {
@@ -79,6 +101,7 @@ namespace EasyToolKit.Serialization.Implementations
             }
         }
 
+        [CanBeNull]
         private ISerializationProcessor GetProcessorInstance(Type valueType)
         {
             var resultsList = new List<TypeMatchResult[]>
@@ -89,6 +112,11 @@ namespace EasyToolKit.Serialization.Implementations
             var results = _typeMatcher.GetMergedResults(resultsList);
             foreach (var result in results)
             {
+                if (result.Constraints[0] != valueType)
+                {
+                    continue;
+                }
+
                 if (CanProcessType(result.MatchedType, valueType))
                 {
                     return result.MatchedType.CreateInstance<ISerializationProcessor>();

@@ -66,23 +66,22 @@ namespace EasyToolKit.Serialization.Implementations
                     $"Cannot find serializer for type '{typeof(T).FullName}'.");
             }
 
-            // Check if has structure resolver
-            var resolver = _resolverFactory.CreateResolver(typeof(T));
-            if (resolver != null)
+            // Array type
+            if (typeof(T).IsDerivedFromGenericDefinition(typeof(IList<>)))
             {
-                return new SerializationStructuralNode<T>(
-                    nodeFactory: this,
+                return new SerializationArrayNode<T>(
                     memberDefinition: memberDefinition,
                     parent: parent,
                     index: index,
                     serializer: serializer);
             }
 
-            // Array type
-            if (typeof(T).IsArray)
+            // Check if has structure resolver
+            var resolver = _resolverFactory.CreateResolver(typeof(T));
+            if (resolver != null)
             {
-                return new SerializationArrayNode<T>(
-                    rank: typeof(T).GetArrayRank(),
+                return new SerializationStructuralNode<T>(
+                    nodeFactory: this,
                     memberDefinition: memberDefinition,
                     parent: parent,
                     index: index,

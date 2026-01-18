@@ -10,18 +10,14 @@ namespace EasyToolKit.Serialization.Implementations
         private InstanceSetter _valueSetter;
 
         public SerializationArrayNode(
-            int rank,
             SerializationMemberDefinition memberDefinition,
             ISerializationNode parent = null,
             int index = -1,
             ISerializationProcessor<T> serializer = null)
             : base(memberDefinition, serializer, parent, index)
         {
-            Rank = rank;
         }
 
         public override NodeType NodeType => NodeType.Array;
-
-        public int Rank { get; }
     }
 }
