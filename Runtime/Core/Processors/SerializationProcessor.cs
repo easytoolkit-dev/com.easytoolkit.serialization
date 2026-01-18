@@ -1,9 +1,23 @@
 using System;
+using EasyToolKit.Core.Reflection;
+using JetBrains.Annotations;
 
 namespace EasyToolKit.Serialization
 {
     public abstract class SerializationProcessor<T> : ISerializationProcessor<T>
     {
+        private static readonly bool IsClassType = typeof(T).IsClass && typeof(T) != typeof(string);
+        private static readonly bool IsInstantiableType = typeof(T).IsInstantiable();
+        [CanBeNull] private static readonly ConstructorInvoker<T> ConstructorInvoker;
+
+        static SerializationProcessor()
+        {
+            if (IsClassType && IsInstantiableType)
+            {
+                ConstructorInvoker = ReflectionUtility.CreateConstructorInvoker<T>(typeof(T).GetConstructor(Type.EmptyTypes));
+            }
+        }
+
         /// <summary>
         /// Gets the shared serialization context for accessing services.
         /// </summary>
@@ -22,7 +36,7 @@ namespace EasyToolKit.Serialization
         /// </summary>
         /// <param name="valueType">The type to validate for serialization support.</param>
         /// <returns>True if the type can be serialized; otherwise, false.</returns>
-        public virtual bool CanProcess(Type valueType) => valueType == typeof(T);
+        public virtual bool CanProcess(Type valueType) => true;
 
         /// <summary>
         /// Processes a strongly-typed value during serialization or deserialization.
@@ -56,12 +70,20 @@ namespace EasyToolKit.Serialization
         void ISerializationProcessor<T>.Process(ref T value, IDataFormatter formatter)
         {
             EnsureInitialize();
+            if (value == null && ConstructorInvoker != null)
+            {
+                value = ConstructorInvoker();
+            }
             Process(ref value, formatter);
         }
 
         void ISerializationProcessor<T>.Process(string name, ref T value, IDataFormatter formatter)
         {
             EnsureInitialize();
+            if (value == null && ConstructorInvoker != null)
+            {
+                value = ConstructorInvoker();
+            }
             Process(name, ref value, formatter);
         }
     }

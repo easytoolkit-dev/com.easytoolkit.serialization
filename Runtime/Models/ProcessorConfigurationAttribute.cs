@@ -18,6 +18,8 @@ namespace EasyToolKit.Serialization
         /// </summary>
         public int Priority { get; }
 
+        public bool AllowTypeArgumentInheritance { get; set; }
+
         /// <summary>
         /// Initializes a new instance with Custom priority level.
         /// </summary>

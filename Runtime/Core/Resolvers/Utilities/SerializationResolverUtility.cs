@@ -50,12 +50,12 @@ namespace EasyToolKit.Serialization
                 s_resolverTypes = AppDomain.CurrentDomain.GetAssemblies()
                     .SelectMany(assembly => assembly.GetTypes())
                     .Where(type => type.IsClass && !type.IsInterface && !type.IsAbstract &&
-                                   type.IsInheritsFrom<ISerializationResolver>())
+                                   type.IsDerivedFrom<ISerializationResolver>())
                     .ToArray();
             }
 
             s_typeMatcher = TypeMatcherFactory.CreateDefault();
-            s_typeMatcher.SetTypeMatchCabdudates(s_resolverTypes
+            s_typeMatcher.SetTypeMatchCandidates(s_resolverTypes
                 .OrderByDescending(GetResolverPriority)
                 .Select((type, i) =>
                 {
@@ -63,7 +63,7 @@ namespace EasyToolKit.Serialization
                     if (type.BaseType != null && type.BaseType.IsGenericType)
                     {
                         // For generic resolvers, extract the target generic type from the inheritance chain.
-                        constraints = type.GetArgumentsOfInheritedGenericTypeDefinition(type.BaseType.GetGenericTypeDefinition());
+                        constraints = type.GetGenericArgumentsRelativeTo(type.BaseType.GetGenericTypeDefinition());
                     }
                     return new TypeMatchCandidate(type, s_resolverTypes.Length - i, constraints);
                 }));

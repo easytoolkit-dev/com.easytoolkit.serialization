@@ -88,7 +88,7 @@ namespace EasyToolKit.Serialization.Implementations
             var length = ReadVarint32();
             if (length == 0)
             {
-                str = null;
+                str = string.Empty;
                 return;
             }
 
