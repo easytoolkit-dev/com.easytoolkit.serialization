@@ -37,7 +37,7 @@ namespace EasyToolKit.Serialization.Implementations
 
         private ISerializationProcessor GetProcessor(Type valueType)
         {
-            if (!valueType.IsInstantiable() && !valueType.IsArray && valueType != typeof(string))
+            if (!valueType.IsInstantiable(allowLenient: true) && !valueType.IsArray && valueType != typeof(string))
             {
                 throw new InvalidOperationException($"Type '{valueType.FullName}' is not instantiable.");
             }
