@@ -1,27 +1,26 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using EasyToolKit.Core.Textual;
 using JetBrains.Annotations;
 using UnityEngine;
 
 namespace EasyToolKit.Serialization
 {
     [Serializable]
-    public struct EasySerializationData
+    public struct SerializationData
     {
         [SerializeField, CanBeNull] private byte[] _binaryData;
         [SerializeField, CanBeNull] private string _stringData;
         [SerializeField, CanBeNull] private List<UnityEngine.Object> _referencedUnityObjects;
 
-        public EasySerializationData(byte[] binaryData, List<UnityEngine.Object> referencedUnityObjects = null)
+        public SerializationData(byte[] binaryData, List<UnityEngine.Object> referencedUnityObjects = null)
         {
             _binaryData = binaryData;
             _stringData = null;
             _referencedUnityObjects = referencedUnityObjects;
         }
 
-        public EasySerializationData(string stringData, List<UnityEngine.Object> referencedUnityObjects = null)
+        public SerializationData(string stringData, List<UnityEngine.Object> referencedUnityObjects = null)
         {
             _binaryData = null;
             _stringData = stringData;

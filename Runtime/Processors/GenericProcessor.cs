@@ -1,5 +1,7 @@
 using System;
+using System.Reflection;
 using EasyToolKit.Core.Reflection;
+using EasyToolKit.Serialization.Utilities;
 
 namespace EasyToolKit.Serialization.Processors
 {
@@ -10,9 +12,14 @@ namespace EasyToolKit.Serialization.Processors
 
         public override bool CanProcess(Type valueType)
         {
-            return !valueType.IsBasicValueType() &&
-                   !valueType.IsSubclassOf(typeof(UnityEngine.Object)) &&
-                   valueType.IsDefined<SerializableAttribute>();
+            if (!valueType.IsBasicValueType() &&
+                !valueType.IsSubclassOf(typeof(UnityEngine.Object)) &&
+                valueType.IsDefined<SerializableAttribute>())
+            {
+                return true;
+            }
+
+            return SerializedTypeUtility.GetDefinedEasySerializableAttribute(valueType) != null;
         }
 
         protected override void Process(string name, ref T value, IDataFormatter formatter)

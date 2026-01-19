@@ -7,14 +7,27 @@ namespace EasyToolKit.Serialization
     public abstract class SerializationProcessor<T> : ISerializationProcessor<T>
     {
         private static readonly bool IsClassType = typeof(T).IsClass && typeof(T) != typeof(string);
-        private static readonly bool IsInstantiableType = typeof(T).IsInstantiable();
-        [CanBeNull] private static readonly ConstructorInvoker<T> ConstructorInvoker;
+        private static readonly bool IsInstantiableType = typeof(T).IsInstantiable(allowLenient: true);
+        [CanBeNull] private static readonly ParameterlessConstructorInvoker<T> ConstructorInvoker;
 
         static SerializationProcessor()
         {
             if (IsClassType && IsInstantiableType)
             {
-                ConstructorInvoker = ReflectionCompiler.CreateConstructorInvoker<T>(typeof(T).GetConstructor(Type.EmptyTypes));
+                foreach (var constructorInfo in typeof(T).GetConstructors(MemberAccessFlags.AllInstance))
+                {
+                    try
+                    {
+                        ConstructorInvoker = ReflectionCompiler.CreateParameterlessConstructorInvoker<T>(
+                            constructorInfo, autoFillParameters: true
+                        );
+                        break;
+                    }
+                    catch (Exception e)
+                    {
+                        // ignored
+                    }
+                }
             }
         }
 
@@ -56,7 +69,9 @@ namespace EasyToolKit.Serialization
         /// <param name="formatter">The data formatter to use for processing.</param>
         protected abstract void Process(string name, ref T value, IDataFormatter formatter);
 
-        protected virtual void Initialize() { }
+        protected virtual void Initialize()
+        {
+        }
 
         private void EnsureInitialize()
         {
@@ -74,6 +89,7 @@ namespace EasyToolKit.Serialization
             {
                 value = ConstructorInvoker();
             }
+
             Process(ref value, formatter);
         }
 
@@ -84,6 +100,7 @@ namespace EasyToolKit.Serialization
             {
                 value = ConstructorInvoker();
             }
+
             Process(name, ref value, formatter);
         }
     }

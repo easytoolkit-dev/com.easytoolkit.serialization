@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using EasyToolKit.Core.Reflection;
+using EasyToolKit.Serialization.Utilities;
 
 namespace EasyToolKit.Serialization.Implementations
 {
@@ -20,15 +21,15 @@ namespace EasyToolKit.Serialization.Implementations
 
         public SerializationMemberDefinition[] Resolve(Type type)
         {
-            if (!CanResolve(type))
-            {
-                return Array.Empty<SerializationMemberDefinition>();
-            }
+            var attribute = SerializedTypeUtility.GetDefinedEasySerializableAttribute(type);
+            var memberFlags = attribute?.MemberFlags ?? SerializableMemberFlags.Default;
+            var requireSerializeFieldOnNonPublic = attribute?.RequireSerializeFieldOnNonPublic ?? false;
 
             var members = new List<SerializationMemberDefinition>();
 
             var memberInfos = type.GetMembers(MemberAccessFlags.AllInstance)
                 .Where(memberInfo => memberInfo is FieldInfo || memberInfo is PropertyInfo)
+                .Where(memberInfo => ShouldIncludeMember(memberInfo, memberFlags, requireSerializeFieldOnNonPublic))
                 .ToList();
 
             for (int i = 0; i < memberInfos.Count; i++)
@@ -49,6 +50,78 @@ namespace EasyToolKit.Serialization.Implementations
             }
 
             return members.ToArray();
+        }
+
+        /// <summary>
+        /// Determines whether a member should be included based on the specified flags.
+        /// </summary>
+        private static bool ShouldIncludeMember(MemberInfo memberInfo, SerializableMemberFlags flags, bool requireSerializeFieldOnNonPublic)
+        {
+            // Check member type (Field vs Property)
+            bool isField = memberInfo is FieldInfo;
+            bool isProperty = memberInfo is PropertyInfo;
+
+            if (isField && !flags.HasFlag(SerializableMemberFlags.Field))
+            {
+                return false;
+            }
+
+            if (isProperty && !flags.HasFlag(SerializableMemberFlags.Property))
+            {
+                return false;
+            }
+
+            // Check visibility (Public vs NonPublic)
+            bool isPublic = IsPublicMember(memberInfo);
+            bool includePublic = flags.HasFlag(SerializableMemberFlags.Public);
+            bool includeNonPublic = flags.HasFlag(SerializableMemberFlags.NonPublic);
+
+            if (isPublic && !includePublic)
+            {
+                return false;
+            }
+
+            if (!isPublic && !includeNonPublic)
+            {
+                return false;
+            }
+
+            // Check if non-public field requires SerializeField attribute
+            if (!isPublic && isField && requireSerializeFieldOnNonPublic)
+            {
+                var fieldInfo = (FieldInfo)memberInfo;
+                var serializeFieldAttributes = fieldInfo.GetCustomAttributes(typeof(UnityEngine.SerializeField), inherit: true);
+                if (serializeFieldAttributes.Length == 0)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Determines whether a member is public.
+        /// </summary>
+        private static bool IsPublicMember(MemberInfo memberInfo)
+        {
+            return memberInfo.MemberType switch
+            {
+                MemberTypes.Field => ((FieldInfo)memberInfo).IsPublic,
+                MemberTypes.Property => IsPropertyPublic((PropertyInfo)memberInfo),
+                _ => false
+            };
+        }
+
+        /// <summary>
+        /// Determines whether a property is public (has at least public getter or setter).
+        /// </summary>
+        private static bool IsPropertyPublic(PropertyInfo propertyInfo)
+        {
+            var getMethod = propertyInfo.GetGetMethod(nonPublic: true);
+            var setMethod = propertyInfo.GetSetMethod(nonPublic: true);
+
+            return (getMethod != null && getMethod.IsPublic) || (setMethod != null && setMethod.IsPublic);
         }
 
         private static Type GetMemberType(MemberInfo memberInfo)
