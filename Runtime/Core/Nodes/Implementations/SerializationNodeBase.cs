@@ -71,8 +71,8 @@ namespace EasyToolKit.Serialization.Implementations
         {
             return memberInfo.MemberType switch
             {
-                MemberTypes.Field => ReflectionUtility.CreateInstanceFieldGetter((FieldInfo)memberInfo),
-                MemberTypes.Property => ReflectionUtility.CreateInstancePropertyGetter((PropertyInfo)memberInfo),
+                MemberTypes.Field => ReflectionCompiler.CreateInstanceFieldGetter((FieldInfo)memberInfo),
+                MemberTypes.Property => ReflectionCompiler.CreateInstancePropertyGetter((PropertyInfo)memberInfo),
                 _ => throw new ArgumentException($"Unsupported member type: {memberInfo.MemberType}")
             };
         }
@@ -81,8 +81,8 @@ namespace EasyToolKit.Serialization.Implementations
         {
             return memberInfo.MemberType switch
             {
-                MemberTypes.Field => ReflectionUtility.CreateInstanceFieldSetter((FieldInfo)memberInfo),
-                MemberTypes.Property => ReflectionUtility.CreateInstancePropertySetter((PropertyInfo)memberInfo),
+                MemberTypes.Field => ReflectionCompiler.CreateInstanceFieldSetter((FieldInfo)memberInfo),
+                MemberTypes.Property => ReflectionCompiler.CreateInstancePropertySetter((PropertyInfo)memberInfo),
                 _ => throw new ArgumentException($"Unsupported member type: {memberInfo.MemberType}")
             };
         }

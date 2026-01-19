@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 
 namespace EasyToolKit.Serialization.Implementations
 {
@@ -9,7 +10,7 @@ namespace EasyToolKit.Serialization.Implementations
     /// </summary>
     public abstract class ReadingFormatterBase : IReadingFormatter
     {
-        private IReadOnlyList<UnityEngine.Object> _objectTable;
+        [CanBeNull] private IReadOnlyList<UnityEngine.Object> _objectTable;
 
         /// <inheritdoc />
         public abstract SerializationFormat Type { get; }

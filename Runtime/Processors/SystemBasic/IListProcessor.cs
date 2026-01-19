@@ -13,13 +13,15 @@ namespace EasyToolKit.Serialization.Processors
             formatter.BeginMember(name);
             formatter.BeginObject();
 
-            var sizeTag = new SizeTag((uint)value.Count);
-            formatter.Format(ref sizeTag);
-
             if (formatter.Operation == FormatterOperation.Write)
             {
+                var sizeTag = new SizeTag(value == null ? 0u : (uint)value.Count);
+                formatter.Format(ref sizeTag);
+
                 if (value == null)
+                {
                     return;
+                }
 
                 var count = value.Count;
                 for (int i = 0; i < count; i++)
@@ -30,6 +32,17 @@ namespace EasyToolKit.Serialization.Processors
             }
             else
             {
+                var sizeTag = new SizeTag();
+                formatter.Format(ref sizeTag);
+
+                // Empty list (either was null or empty, keep as null)
+                if (sizeTag.Size == 0)
+                {
+                    value = null;
+                    return;
+                }
+
+                value = new List<T>((int)sizeTag.Size);
                 for (int i = 0; i < sizeTag.Size; i++)
                 {
                     T item = default;

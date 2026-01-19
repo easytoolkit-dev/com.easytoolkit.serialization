@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using EasyToolKit.Core.Textual;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace EasyToolKit.Serialization
@@ -8,97 +10,74 @@ namespace EasyToolKit.Serialization
     [Serializable]
     public struct EasySerializationData
     {
-        [SerializeField] public SerializationFormat Format;
-        [SerializeField] public byte[] BinaryData;
-        [SerializeField] public string StringData;
-        [SerializeField] public List<UnityEngine.Object> ReferencedUnityObjects;
+        [SerializeField, CanBeNull] private byte[] _binaryData;
+        [SerializeField, CanBeNull] private string _stringData;
+        [SerializeField, CanBeNull] private List<UnityEngine.Object> _referencedUnityObjects;
 
-        public bool IsContainsData => BinaryData != null || StringData != null || ReferencedUnityObjects != null;
-
-        public EasySerializationData(SerializationFormat format)
+        public EasySerializationData(byte[] binaryData, List<UnityEngine.Object> referencedUnityObjects = null)
         {
-            Format = format;
-            if (format == SerializationFormat.Binary)
-            {
-                BinaryData = new byte[] { };
-                StringData = null;
-            }
-            else
-            {
-                StringData = string.Empty;
-                BinaryData = null;
-            }
-
-            ReferencedUnityObjects = new List<UnityEngine.Object>();
+            _binaryData = binaryData;
+            _stringData = null;
+            _referencedUnityObjects = referencedUnityObjects;
         }
 
-        public EasySerializationData(byte[] binaryData, SerializationFormat format)
-            : this(binaryData, new List<UnityEngine.Object>(), format)
+        public EasySerializationData(string stringData, List<UnityEngine.Object> referencedUnityObjects = null)
         {
+            _binaryData = null;
+            _stringData = stringData;
+            _referencedUnityObjects = referencedUnityObjects;
         }
 
-        public EasySerializationData(string stringData, SerializationFormat format)
-            : this(stringData, new List<UnityEngine.Object>(), format)
+        [CanBeNull] public byte[] BinaryData
         {
+            get => _binaryData;
+            set => _binaryData = value;
         }
 
-        public EasySerializationData(byte[] binaryData, List<UnityEngine.Object> referencedUnityObjects,
-            SerializationFormat format)
+        [CanBeNull] public string StringData
         {
-            if (format != SerializationFormat.Binary)
-            {
-                throw new ArgumentException("Binary data can only be serialized by the FormatterType.Binary mode");
-            }
-
-            BinaryData = binaryData;
-            StringData = null;
-            ReferencedUnityObjects = referencedUnityObjects;
-            Format = format;
+            get => _stringData;
+            set => _stringData = value;
         }
 
-        public EasySerializationData(string stringData, List<UnityEngine.Object> referencedUnityObjects,
-            SerializationFormat format)
+        [CanBeNull] public List<UnityEngine.Object> ReferencedUnityObjects
+        {
+            get => _referencedUnityObjects;
+            set => _referencedUnityObjects = value;
+        }
+
+        public void Clear()
+        {
+            _binaryData = null;
+            _stringData = null;
+            _referencedUnityObjects?.Clear();
+        }
+
+        public byte[] GetBuffer(SerializationFormat format)
         {
             if (format == SerializationFormat.Binary)
-            {
-                throw new ArgumentException("String data can not be serialized by the FormatterType.Binary mode");
-            }
-
-            StringData = stringData;
-            BinaryData = null;
-            ReferencedUnityObjects = referencedUnityObjects;
-            Format = format;
-        }
-
-        public byte[] GetData()
-        {
-            if (!IsContainsData)
-            {
-                return new byte[] { };
-            }
-
-            if (Format == SerializationFormat.Binary)
             {
                 return BinaryData;
             }
-
-            if (string.IsNullOrEmpty(StringData))
+            else
             {
-                return new byte[] { };
+                if (StringData == null)
+                {
+                    return null;
+                }
+                return Encoding.UTF8.GetBytes(StringData);
             }
-
-            return Encoding.UTF8.GetBytes(StringData);
         }
 
-        public void SetData(byte[] data)
+        public void SetBuffer(SerializationFormat format, byte[] buffer)
         {
-            if (Format == SerializationFormat.Binary)
+            if (format == SerializationFormat.Binary)
             {
-                BinaryData = data;
+                BinaryData = buffer;
             }
             else
             {
-                StringData = Encoding.UTF8.GetString(data);
+                StringData = Encoding.UTF8.GetString(buffer);
             }
         }
     }
