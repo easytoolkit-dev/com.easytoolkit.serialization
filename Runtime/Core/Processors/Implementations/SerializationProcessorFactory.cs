@@ -80,14 +80,14 @@ namespace EasyToolKit.Serialization.Implementations
 
                     if (memberInfo is FieldInfo fieldInfo)
                     {
-                        var setter = ReflectionUtility.CreateInstanceFieldSetter(fieldInfo)
+                        var setter = ReflectionCompiler.CreateInstanceFieldSetter(fieldInfo)
                             .AsTyped<ISerializationProcessor, ISerializationProcessor>();
                         var dependency = GetProcessor(valueType);
                         setter(ref processor, dependency);
                     }
                     else if (memberInfo is PropertyInfo propertyInfo)
                     {
-                        var setter = ReflectionUtility.CreateInstancePropertySetter(propertyInfo)
+                        var setter = ReflectionCompiler.CreateInstancePropertySetter(propertyInfo)
                             .AsTyped<ISerializationProcessor, ISerializationProcessor>();
                         var dependency = GetProcessor(valueType);
                         setter(ref processor, dependency);

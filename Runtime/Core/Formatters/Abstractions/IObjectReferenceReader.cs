@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace EasyToolKit.Serialization
@@ -12,7 +13,7 @@ namespace EasyToolKit.Serialization
         /// <summary>
         /// Sets the object reference table for resolving Unity object references.
         /// </summary>
-        void SetObjectTable(IReadOnlyList<Object> objects);
+        void SetObjectTable([CanBeNull] IReadOnlyList<Object> objects);
 
         /// <summary>
         /// Resolves a Unity object reference from its index in the object table.

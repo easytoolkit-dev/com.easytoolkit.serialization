@@ -14,7 +14,7 @@ namespace EasyToolKit.Serialization
         {
             if (IsClassType && IsInstantiableType)
             {
-                ConstructorInvoker = ReflectionUtility.CreateConstructorInvoker<T>(typeof(T).GetConstructor(Type.EmptyTypes));
+                ConstructorInvoker = ReflectionCompiler.CreateConstructorInvoker<T>(typeof(T).GetConstructor(Type.EmptyTypes));
             }
         }
 
@@ -70,7 +70,7 @@ namespace EasyToolKit.Serialization
         void ISerializationProcessor<T>.Process(ref T value, IDataFormatter formatter)
         {
             EnsureInitialize();
-            if (value == null && ConstructorInvoker != null)
+            if (value == null && ConstructorInvoker != null && formatter.Operation == FormatterOperation.Read)
             {
                 value = ConstructorInvoker();
             }
@@ -80,7 +80,7 @@ namespace EasyToolKit.Serialization
         void ISerializationProcessor<T>.Process(string name, ref T value, IDataFormatter formatter)
         {
             EnsureInitialize();
-            if (value == null && ConstructorInvoker != null)
+            if (value == null && ConstructorInvoker != null && formatter.Operation == FormatterOperation.Read)
             {
                 value = ConstructorInvoker();
             }

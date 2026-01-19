@@ -43,7 +43,8 @@ namespace EasyToolKit.Serialization.Processors
                     }
 
                     var boxedValue = (object)value;
-                    memberValue = getter(ref boxedValue);
+                    memberValue = getter(boxedValue);
+                    value = (T)boxedValue;
                 }
 
                 memberNode.Process(memberNode.Definition.Name, ref memberValue, formatter);
@@ -57,7 +58,7 @@ namespace EasyToolKit.Serialization.Processors
                     }
 
                     var boxedValue = (object)value;
-                    setter(ref boxedValue, memberValue);
+                    setter(boxedValue, memberValue);
                     value = (T)boxedValue;
                 }
             }

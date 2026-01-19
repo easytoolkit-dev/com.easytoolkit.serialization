@@ -1,9 +1,10 @@
 using System;
+using JetBrains.Annotations;
 
 namespace EasyToolKit.Serialization
 {
     public interface ISerializationProcessorFactory
     {
-        ISerializationProcessor<T> GetProcessor<T>();
+        [CanBeNull] ISerializationProcessor<T> GetProcessor<T>();
     }
 }
