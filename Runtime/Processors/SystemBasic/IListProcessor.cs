@@ -8,7 +8,7 @@ namespace EasyToolKit.Serialization.Processors
         [DependencyProcessor]
         private ISerializationProcessor<T> _serializer;
 
-        protected override void Process(string name, ref IList<T> value, IDataFormatter formatter)
+        public override void Process(string name, ref IList<T> value, IDataFormatter formatter)
         {
             formatter.BeginMember(name);
             formatter.BeginObject();

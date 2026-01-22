@@ -14,15 +14,16 @@ namespace EasyToolKit.Serialization.Implementations
         /// <summary>
         /// Builds a root node for the specified type.
         /// </summary>
-        public ISerializationNode BuildNode<T>()
+        public ISerializationNode BuildNode(Type valueType)
         {
-            return BuildRootNodeWithoutParametersCheck<T>(null, -1, null);
+            return BuildRootNodeWithoutParametersCheck(valueType, null, -1, null);
         }
 
         /// <summary>
         /// Builds a child node for the specified type with additional context.
         /// </summary>
-        public ISerializationNode BuildNode<T>(
+        public ISerializationNode BuildNode(
+            Type valueType,
             MemberInfo memberInfo,
             int index,
             ISerializationNode parent)
@@ -30,10 +31,11 @@ namespace EasyToolKit.Serialization.Implementations
             if (memberInfo == null) throw new ArgumentNullException(nameof(memberInfo));
             if (parent == null) throw new ArgumentNullException(nameof(parent));
 
-            return BuildRootNodeWithoutParametersCheck<T>(memberInfo, index, parent);
+            return BuildRootNodeWithoutParametersCheck(valueType, memberInfo, index, parent);
         }
 
-        private ISerializationNode BuildRootNodeWithoutParametersCheck<T>(
+        private ISerializationNode BuildRootNodeWithoutParametersCheck(
+            Type valueType,
             [CanBeNull] MemberInfo memberInfo,
             int index,
             [CanBeNull] ISerializationNode parent)
@@ -44,56 +46,58 @@ namespace EasyToolKit.Serialization.Implementations
                                      "ISerializationStructureResolverFactory is not registered.");
 
             _serializationProcessorFactory ??= SerializationEnvironment.Instance
-                                       .GetFactory<ISerializationProcessorFactory>()
-                                   ?? throw new InvalidOperationException(
-                                       "ISerializerFactory is not registered.");
+                                                   .GetFactory<ISerializationProcessorFactory>()
+                                               ?? throw new InvalidOperationException(
+                                                   "ISerializerFactory is not registered.");
 
             // Create child node member definition
             var memberDefinition = new SerializationMemberDefinition
             {
                 Name = memberInfo?.Name,
-                MemberType = typeof(T),
+                MemberType = valueType,
                 MemberInfo = memberInfo,
                 IsRequired = false,
                 DefaultValue = null
             };
 
             // Create serializer
-            var serializer = _serializationProcessorFactory.GetProcessor<T>();
+            var serializer = _serializationProcessorFactory.GetProcessor(valueType);
             if (serializer == null)
             {
                 throw new InvalidOperationException(
-                    $"Cannot find serializer for type '{typeof(T).FullName}'.");
+                    $"Cannot find serializer for type '{valueType.FullName}'.");
             }
 
             // Array type
-            if (typeof(T).IsImplementsGenericDefinition(typeof(IList<>)))
+            if (valueType.IsImplementsGenericDefinition(typeof(IList<>)))
             {
-                return new SerializationArrayNode<T>(
-                    memberDefinition: memberDefinition,
-                    parent: parent,
-                    index: index,
-                    serializer: serializer);
+                return new SerializationArrayNode(
+                    valueType,
+                    memberDefinition,
+                    parent,
+                    index,
+                    serializer);
             }
 
             // Check if has structure resolver
-            var resolver = _resolverFactory.CreateResolver(typeof(T));
+            var resolver = _resolverFactory.CreateResolver(valueType);
             if (resolver != null)
             {
-                return new SerializationStructuralNode<T>(
-                    nodeFactory: this,
-                    memberDefinition: memberDefinition,
-                    parent: parent,
-                    index: index,
-                    serializer: serializer);
+                return new SerializationStructuralNode(
+                    valueType,
+                    memberDefinition,
+                    serializer,
+                    parent,
+                    index);
             }
 
             // Atomic type
-            return new SerializationAtomicNode<T>(
-                memberDefinition: memberDefinition,
-                parent: parent,
-                index: index,
-                serializer: serializer);
+            return new SerializationAtomicNode(
+                valueType,
+                memberDefinition,
+                parent,
+                index,
+                serializer);
         }
     }
 }

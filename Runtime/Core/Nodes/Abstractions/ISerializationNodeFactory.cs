@@ -12,7 +12,7 @@ namespace EasyToolKit.Serialization
         /// Builds a root node for the specified type.
         /// </summary>
         /// <returns>A root serialization node.</returns>
-        ISerializationNode BuildNode<T>();
+        ISerializationNode BuildNode(Type valueType);
 
         /// <summary>
         /// Builds a child node for the specified type with additional context.
@@ -21,7 +21,8 @@ namespace EasyToolKit.Serialization
         /// <param name="index">The index in parent.</param>
         /// <param name="parent">The parent node.</param>
         /// <returns>A child serialization node.</returns>
-        ISerializationNode BuildNode<T>(
+        ISerializationNode BuildNode(
+            Type valueType,
             MemberInfo memberInfo,
             int index,
             ISerializationNode parent);

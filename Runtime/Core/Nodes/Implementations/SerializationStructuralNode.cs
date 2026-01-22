@@ -5,22 +5,20 @@ using EasyToolKit.Core.Reflection;
 
 namespace EasyToolKit.Serialization.Implementations
 {
-    internal sealed class SerializationStructuralNode<T> : SerializationNodeBase<T>, ISerializationStructuralNode
+    internal sealed class SerializationStructuralNode : SerializationNodeBase, ISerializationStructuralNode
     {
-        private readonly ISerializationNodeFactory _nodeFactory;
         private readonly ISerializationStructureResolverFactory _resolverFactory;
         private IReadOnlyList<ISerializationNode> _members;
         private bool _isResolved;
 
         public SerializationStructuralNode(
-            ISerializationNodeFactory nodeFactory,
+            Type valueType,
             SerializationMemberDefinition memberDefinition,
-            ISerializationProcessor<T> serializer,
+            ISerializationProcessor serializer,
             ISerializationNode parent = null,
             int index = -1)
-            : base(memberDefinition, serializer, parent, index)
+            : base(valueType, memberDefinition, serializer, parent, index)
         {
-            _nodeFactory = nodeFactory ?? throw new ArgumentNullException(nameof(nodeFactory));
             _resolverFactory = SerializationEnvironment.Instance
                                    .GetFactory<ISerializationStructureResolverFactory>()
                                ?? throw new InvalidOperationException(
@@ -71,10 +69,9 @@ namespace EasyToolKit.Serialization.Implementations
                 var definition = memberDefinitions[i];
                 if (definition == null) continue;
 
-                var buildNode = typeof(ISerializationNodeFactory)
-                    .GetOverloadMethod(nameof(ISerializationNodeFactory.BuildNode), MemberAccessFlags.All, 3)
-                    .MakeGenericMethod(definition.MemberType);
-                var childNode = (ISerializationNode)buildNode.Invoke(_nodeFactory, new object[] { definition.MemberInfo, i, this });
+
+                var childNode = SerializationEnvironment.Instance.GetFactory<ISerializationNodeFactory>()
+                    .BuildNode(definition.MemberType, definition.MemberInfo, i, this);
                 children.Add(childNode);
             }
 

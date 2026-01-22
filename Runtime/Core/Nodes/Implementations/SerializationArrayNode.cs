@@ -4,17 +4,18 @@ using EasyToolKit.Core.Reflection;
 
 namespace EasyToolKit.Serialization.Implementations
 {
-    internal sealed class SerializationArrayNode<T> : SerializationNodeBase<T>, ISerializationArrayNode
+    public sealed class SerializationArrayNode : SerializationNodeBase, ISerializationArrayNode
     {
         private InstanceGetter _valueGetter;
         private InstanceSetter _valueSetter;
 
         public SerializationArrayNode(
+            Type valueType,
             SerializationMemberDefinition memberDefinition,
             ISerializationNode parent = null,
             int index = -1,
-            ISerializationProcessor<T> serializer = null)
-            : base(memberDefinition, serializer, parent, index)
+            ISerializationProcessor serializer = null)
+            : base(valueType, memberDefinition, serializer, parent, index)
         {
         }
 

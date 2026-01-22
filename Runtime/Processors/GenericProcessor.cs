@@ -22,7 +22,7 @@ namespace EasyToolKit.Serialization.Processors
             return SerializedTypeUtility.GetDefinedEasySerializableAttribute(valueType) != null;
         }
 
-        protected override void Process(string name, ref T value, IDataFormatter formatter)
+        public override void Process(string name, ref T value, IDataFormatter formatter)
         {
             if (value == null)
             {
@@ -34,7 +34,7 @@ namespace EasyToolKit.Serialization.Processors
                 value = Constructor();
             }
 
-            var node = (ISerializationStructuralNode)Environment.GetFactory<ISerializationNodeFactory>().BuildNode<T>();
+            var node = (ISerializationStructuralNode)Environment.GetFactory<ISerializationNodeFactory>().BuildNode(typeof(T));
             var members = node.Members;
 
             foreach (var memberNode in members)
@@ -54,7 +54,7 @@ namespace EasyToolKit.Serialization.Processors
                     value = (T)boxedValue;
                 }
 
-                memberNode.Process(memberNode.Definition.Name, ref memberValue, formatter);
+                memberNode.Processor.ProcessUntyped(memberNode.Definition.Name, ref memberValue, formatter);
 
                 if (formatter.Operation == FormatterOperation.Read)
                 {

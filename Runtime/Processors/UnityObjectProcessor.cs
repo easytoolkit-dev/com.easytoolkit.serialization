@@ -6,7 +6,7 @@ namespace EasyToolKit.Serialization.Processors
     public class UnityObjectProcessor<T> : SerializationProcessor<T>
         where T : UnityEngine.Object
     {
-        protected override void Process(string name, ref T value, IDataFormatter formatter)
+        public override void Process(string name, ref T value, IDataFormatter formatter)
         {
             UnityEngine.Object unityObject = value;
 

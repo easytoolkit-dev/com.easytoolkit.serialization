@@ -8,12 +8,20 @@ namespace EasyToolKit.Serialization
     {
         public static void Serialize<T>(ref T value, SerializationFormat format, ref SerializationData serializationData)
         {
+            var untypedValue = (object)value;
+            Serialize(untypedValue, format, ref serializationData);
+            value = (T)untypedValue;
+        }
+
+        public static void Serialize(object value, SerializationFormat format, ref SerializationData serializationData)
+        {
             if (value == null)
             {
                 serializationData.Clear();
                 return;
             }
 
+            var valueType = value.GetType();
             // Build node tree first
             using var stream = new MemoryStream();
             var formatter = SerializationEnvironment.Instance.GetFactory<IFormatterFactory>()
@@ -25,15 +33,15 @@ namespace EasyToolKit.Serialization
             }
 
             var processor = SerializationEnvironment.Instance.GetFactory<ISerializationProcessorFactory>()
-                .GetProcessor<T>();
+                .GetProcessor(valueType);
             if (processor == null)
             {
                 throw new SerializationException(
-                    $"Cannot serialize type '{typeof(T)}'. No serialization processor found for this type. " +
+                    $"Cannot serialize type '{valueType}'. No serialization processor found for this type. " +
                     $"Ensure the type is either a primitive type, a collection, or marked with [Serializable] or [EasySerializable].");
             }
 
-            processor.Process(ref value, formatter);
+            processor.ProcessUntyped(ref value, formatter);
 
             var objectTable = formatter.GetObjectTable();
             if (objectTable.Count > 0)
@@ -45,6 +53,20 @@ namespace EasyToolKit.Serialization
                 serializationData.ReferencedUnityObjects = null;
             }
             serializationData.SetBuffer(format, stream.ToArray());
+        }
+
+        public static byte[] SerializeToBinary(object value)
+        {
+            List<UnityEngine.Object> referencedUnityObjects = null;
+            return SerializeToBinary(value, ref referencedUnityObjects);
+        }
+
+        public static byte[] SerializeToBinary(object value, ref List<UnityEngine.Object> referencedUnityObjects)
+        {
+            var serializationData = new SerializationData(Array.Empty<byte>(), referencedUnityObjects);
+            Serialize(value, SerializationFormat.Binary, ref serializationData);
+            referencedUnityObjects = serializationData.ReferencedUnityObjects;
+            return serializationData.BinaryData;
         }
 
         public static byte[] SerializeToBinary<T>(ref T value)
@@ -63,13 +85,18 @@ namespace EasyToolKit.Serialization
 
         public static T Deserialize<T>(SerializationFormat format, ref SerializationData serializationData)
         {
+            return (T)Deserialize(typeof(T), format, ref serializationData);
+        }
+
+        public static object Deserialize(Type type, SerializationFormat format, ref SerializationData serializationData)
+        {
             var buffer = serializationData.GetBuffer(format);
             if (buffer == null)
             {
-                return default;
+                return null;
             }
 
-            T result = default;
+            object result = null;
             using var stream = new MemoryStream(buffer);
             var formatter = SerializationEnvironment.Instance.GetFactory<IFormatterFactory>()
                 .CreateReader(format, stream);
@@ -82,17 +109,28 @@ namespace EasyToolKit.Serialization
             formatter.SetObjectTable(serializationData.ReferencedUnityObjects);
 
             var processor = SerializationEnvironment.Instance.GetFactory<ISerializationProcessorFactory>()
-                .GetProcessor<T>();
+                .GetProcessor(type);
             if (processor == null)
             {
                 throw new SerializationException(
-                    $"Cannot deserialize type '{typeof(T)}'. No serialization processor found for this type. " +
+                    $"Cannot deserialize type '{type}'. No serialization processor found for this type. " +
                     $"Ensure the type is either a primitive type, a collection, or marked with [Serializable] or [EasySerializable].");
             }
 
-            processor.Process(ref result, formatter);
+            processor.ProcessUntyped(ref result, formatter);
 
             return result;
+        }
+
+        public static object DeserializeFromBinary(Type type, byte[] data)
+        {
+            return DeserializeFromBinary(type, data, null);
+        }
+
+        public static object DeserializeFromBinary(Type type, byte[] data, List<UnityEngine.Object> referencedUnityObjects)
+        {
+            var serializationData = new SerializationData(data, referencedUnityObjects);
+            return Deserialize(type, SerializationFormat.Binary, ref serializationData);
         }
 
         public static T DeserializeFromBinary<T>(byte[] data)

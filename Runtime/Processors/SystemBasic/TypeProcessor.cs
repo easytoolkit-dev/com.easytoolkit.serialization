@@ -5,7 +5,7 @@ namespace EasyToolKit.Serialization.Processors
     [ProcessorConfiguration(ProcessorPriorityLevel.SystemBasic)]
     public class TypeProcessor : SerializationProcessor<Type>
     {
-        protected override void Process(string name, ref Type value, IDataFormatter formatter)
+        public override void Process(string name, ref Type value, IDataFormatter formatter)
         {
             formatter.BeginMember(name);
 

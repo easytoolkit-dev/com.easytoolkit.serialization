@@ -56,7 +56,7 @@ namespace EasyToolKit.Serialization
         /// </summary>
         /// <param name="value">The value to process.</param>
         /// <param name="formatter">The data formatter to use for processing.</param>
-        protected virtual void Process(ref T value, IDataFormatter formatter)
+        public virtual void Process(ref T value, IDataFormatter formatter)
         {
             Process(null, ref value, formatter);
         }
@@ -67,7 +67,7 @@ namespace EasyToolKit.Serialization
         /// <param name="name">The member name being processed.</param>
         /// <param name="value">The value to process.</param>
         /// <param name="formatter">The data formatter to use for processing.</param>
-        protected abstract void Process(string name, ref T value, IDataFormatter formatter);
+        public abstract void Process(string name, ref T value, IDataFormatter formatter);
 
         protected virtual void Initialize()
         {
@@ -82,7 +82,7 @@ namespace EasyToolKit.Serialization
             }
         }
 
-        void ISerializationProcessor<T>.Process(ref T value, IDataFormatter formatter)
+        void ISerializationProcessor.ProcessUntyped(ref object value, IDataFormatter formatter)
         {
             EnsureInitialize();
             if (value == null && ConstructorInvoker != null && formatter.Operation == FormatterOperation.Read)
@@ -90,10 +90,16 @@ namespace EasyToolKit.Serialization
                 value = ConstructorInvoker();
             }
 
-            Process(ref value, formatter);
+            T castedValue = default;
+            if (value != null)
+            {
+                castedValue = (T)value;
+            }
+            Process(ref castedValue, formatter);
+            value = castedValue;
         }
 
-        void ISerializationProcessor<T>.Process(string name, ref T value, IDataFormatter formatter)
+        void ISerializationProcessor.ProcessUntyped(string name, ref object value, IDataFormatter formatter)
         {
             EnsureInitialize();
             if (value == null && ConstructorInvoker != null && formatter.Operation == FormatterOperation.Read)
@@ -101,7 +107,13 @@ namespace EasyToolKit.Serialization
                 value = ConstructorInvoker();
             }
 
-            Process(name, ref value, formatter);
+            T castedValue = default;
+            if (value != null)
+            {
+                castedValue = (T)value;
+            }
+            Process(name, ref castedValue, formatter);
+            value = castedValue;
         }
     }
 }
