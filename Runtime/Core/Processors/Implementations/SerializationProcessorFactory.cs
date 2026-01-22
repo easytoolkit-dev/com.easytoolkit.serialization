@@ -71,7 +71,7 @@ namespace EasyToolKit.Serialization.Implementations
                 if (memberInfo.GetCustomAttribute<DependencyProcessorAttribute>() != null)
                 {
                     var memberType = memberInfo.GetMemberType();
-                    if (!memberType.IsDerivedFromGenericDefinition(typeof(ISerializationProcessor<>)))
+                    if (!memberType.IsImplementsGenericDefinition(typeof(ISerializationProcessor<>)))
                     {
                         throw new InvalidOperationException(
                             $"Member '{memberInfo.Name}' of type '{memberType.FullName}' is not a ISerializationProcessor<T>.");
