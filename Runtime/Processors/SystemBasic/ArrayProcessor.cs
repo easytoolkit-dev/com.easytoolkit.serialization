@@ -2,7 +2,7 @@ using System;
 
 namespace EasyToolKit.Serialization.Processors
 {
-    [ProcessorConfiguration(ProcessorPriorityLevel.SystemBasic)]
+    [ProcessorConfiguration(ProcessorPriorityLevel.SystemBasic + 1)]
     public class ArrayProcessor<T> : SerializationProcessor<T[]>
     {
         [DependencyProcessor]

@@ -67,7 +67,7 @@ namespace EasyToolKit.Serialization.Implementations
             }
 
             // Array type
-            if (typeof(T).IsDerivedFromGenericDefinition(typeof(IList<>)))
+            if (typeof(T).IsImplementsGenericDefinition(typeof(IList<>)))
             {
                 return new SerializationArrayNode<T>(
                     memberDefinition: memberDefinition,

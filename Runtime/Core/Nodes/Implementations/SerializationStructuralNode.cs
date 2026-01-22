@@ -72,7 +72,7 @@ namespace EasyToolKit.Serialization.Implementations
                 if (definition == null) continue;
 
                 var buildNode = typeof(ISerializationNodeFactory)
-                    .ResolveOverloadMethod(nameof(ISerializationNodeFactory.BuildNode), MemberAccessFlags.All, 3)
+                    .GetOverloadMethod(nameof(ISerializationNodeFactory.BuildNode), MemberAccessFlags.All, 3)
                     .MakeGenericMethod(definition.MemberType);
                 var childNode = (ISerializationNode)buildNode.Invoke(_nodeFactory, new object[] { definition.MemberInfo, i, this });
                 children.Add(childNode);
