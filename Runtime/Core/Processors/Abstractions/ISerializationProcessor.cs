@@ -10,6 +10,9 @@ namespace EasyToolKit.Serialization
         Type ValueType { get; }
 
         bool CanProcess(Type valueType);
+
+        void ProcessUntyped(ref object value, IDataFormatter formatter);
+        void ProcessUntyped(string name, ref object value, IDataFormatter formatter);
     }
 
     public interface ISerializationProcessor<T> : ISerializationProcessor

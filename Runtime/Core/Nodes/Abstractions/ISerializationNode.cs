@@ -58,7 +58,5 @@ namespace EasyToolKit.Serialization
         /// Determines whether this node is a child of the specified node.
         /// </summary>
         bool IsChildOf(ISerializationNode node);
-
-        void Process(string name, ref object value, IDataFormatter formatter);
     }
 }

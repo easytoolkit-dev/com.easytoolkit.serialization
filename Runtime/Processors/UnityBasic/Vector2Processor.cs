@@ -8,7 +8,7 @@ namespace EasyToolKit.Serialization.Processors
         [DependencyProcessor]
         private ISerializationProcessor<float> _floatSerializer;
 
-        protected override void Process(string name, ref Vector2 value, IDataFormatter formatter)
+        public override void Process(string name, ref Vector2 value, IDataFormatter formatter)
         {
             _floatSerializer.Process("x", ref value.x, formatter);
             _floatSerializer.Process("y", ref value.y, formatter);

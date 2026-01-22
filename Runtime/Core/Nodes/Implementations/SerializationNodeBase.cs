@@ -65,8 +65,6 @@ namespace EasyToolKit.Serialization.Implementations
             return false;
         }
 
-        public abstract void Process(string name, ref object value, IDataFormatter formatter);
-
         private InstanceGetter CreateValueGetter(MemberInfo memberInfo)
         {
             return memberInfo.MemberType switch
@@ -85,27 +83,6 @@ namespace EasyToolKit.Serialization.Implementations
                 MemberTypes.Property => ReflectionCompiler.CreateInstancePropertySetter((PropertyInfo)memberInfo),
                 _ => throw new ArgumentException($"Unsupported member type: {memberInfo.MemberType}")
             };
-        }
-    }
-
-    public abstract class SerializationNodeBase<T> : SerializationNodeBase
-    {
-        public new ISerializationProcessor<T> Serializer { get; }
-
-        protected SerializationNodeBase(
-            SerializationMemberDefinition memberDefinition,
-            ISerializationProcessor<T> serializer,
-            ISerializationNode parent,
-            int index) : base(typeof(T), memberDefinition, serializer, parent, index)
-        {
-            Serializer = serializer;
-        }
-
-        public override void Process(string name, ref object value, IDataFormatter formatter)
-        {
-            var castedValue = value != null ? (T)value : default;
-            Serializer.Process(name, ref castedValue, formatter);
-            value = castedValue;
         }
     }
 }

@@ -30,12 +30,7 @@ namespace EasyToolKit.Serialization.Implementations
             }));
         }
 
-        public ISerializationProcessor<T> GetProcessor<T>()
-        {
-            return (ISerializationProcessor<T>)GetProcessor(typeof(T));
-        }
-
-        private ISerializationProcessor GetProcessor(Type valueType)
+        public ISerializationProcessor GetProcessor(Type valueType)
         {
             if (!valueType.IsInstantiable(allowLenient: true) && !valueType.IsArray && valueType != typeof(string))
             {

@@ -6,7 +6,7 @@ namespace EasyToolKit.Serialization.Processors
     public class EnumProcessor<T> : SerializationProcessor<T>
         where T : struct, Enum
     {
-        protected override void Process(string name, ref T value, IDataFormatter formatter)
+        public override void Process(string name, ref T value, IDataFormatter formatter)
         {
             formatter.BeginMember(name);
 
