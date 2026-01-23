@@ -9,8 +9,6 @@ namespace EasyToolKit.Serialization.Implementations
     /// </summary>
     public sealed class JsonWritingFormatter : WritingFormatterBase
     {
-        /// <summary>Creates a new JSON writing formatter.</summary>
-        /// <param name="stream">The stream to write to.</param>
         public JsonWritingFormatter(Stream stream)
         {
             throw new NotImplementedException("JSON writing formatter is not yet implemented.");
@@ -20,25 +18,46 @@ namespace EasyToolKit.Serialization.Implementations
         public override SerializationFormat Type => SerializationFormat.Json;
 
         /// <inheritdoc />
-        public override void BeginMember(string name) => throw new NotImplementedException();
+        protected override void BeginMember(string name) => throw new NotImplementedException();
 
         /// <inheritdoc />
-        public override void EndMember() => throw new NotImplementedException();
+        protected override void EndMember() => throw new NotImplementedException();
 
         /// <inheritdoc />
-        public override void BeginObject() => throw new NotImplementedException();
+        protected override void BeginObject() => throw new NotImplementedException();
 
         /// <inheritdoc />
-        public override void EndObject() => throw new NotImplementedException();
+        protected override void EndObject() => throw new NotImplementedException();
+
+        /// <inheritdoc />
+        protected override void BeginArray() => throw new NotImplementedException();
+
+        /// <inheritdoc />
+        protected override void EndArray() => throw new NotImplementedException();
 
         /// <inheritdoc />
         public override void Format(ref int value) => throw new NotImplementedException();
 
         /// <inheritdoc />
-        public override void Format(ref Varint32 value) => throw new NotImplementedException();
+        public override void Format(ref sbyte value) => throw new NotImplementedException();
 
         /// <inheritdoc />
-        public override void Format(ref SizeTag size) => throw new NotImplementedException();
+        public override void Format(ref short value) => throw new NotImplementedException();
+
+        /// <inheritdoc />
+        public override void Format(ref long value) => throw new NotImplementedException();
+
+        /// <inheritdoc />
+        public override void Format(ref byte value) => throw new NotImplementedException();
+
+        /// <inheritdoc />
+        public override void Format(ref ushort value) => throw new NotImplementedException();
+
+        /// <inheritdoc />
+        public override void Format(ref uint value) => throw new NotImplementedException();
+
+        /// <inheritdoc />
+        public override void Format(ref ulong value) => throw new NotImplementedException();
 
         /// <inheritdoc />
         public override void Format(ref bool value) => throw new NotImplementedException();

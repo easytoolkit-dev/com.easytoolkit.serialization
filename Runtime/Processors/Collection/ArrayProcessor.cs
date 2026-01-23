@@ -10,13 +10,13 @@ namespace EasyToolKit.Serialization.Processors
 
         public override void Process(string name, ref T[] value, IDataFormatter formatter)
         {
-            formatter.BeginMember(name);
-            formatter.BeginObject();
+            using var memberScope = formatter.EnterMember(name);
+            using var objectScope = formatter.EnterObject();
 
             if (formatter.Operation == FormatterOperation.Write)
             {
-                var sizeTag = new SizeTag(value == null ? 0u : (uint)value.Length);
-                formatter.Format(ref sizeTag);
+                var size = value.Length;
+                formatter.Format(ref size);
 
                 if (value == null)
                     return;
@@ -29,18 +29,18 @@ namespace EasyToolKit.Serialization.Processors
             }
             else
             {
-                var sizeTag = new SizeTag();
-                formatter.Format(ref sizeTag);
+                var size = 0;
+                formatter.Format(ref size);
 
                 // Empty array (either was null or empty)
-                if (sizeTag.Size == 0)
+                if (size == 0)
                 {
                     value = Array.Empty<T>();
                     return;
                 }
 
-                var total = new T[sizeTag.Size];
-                for (int i = 0; i < sizeTag.Size; i++)
+                var total = new T[size];
+                for (int i = 0; i < size; i++)
                 {
                     T item = default;
                     _serializer.Process(ref item, formatter);
@@ -49,8 +49,6 @@ namespace EasyToolKit.Serialization.Processors
 
                 value = total;
             }
-            formatter.EndObject();
-            formatter.EndMember();
         }
     }
 }

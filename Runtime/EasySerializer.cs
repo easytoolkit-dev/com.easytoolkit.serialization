@@ -24,7 +24,7 @@ namespace EasyToolKit.Serialization
             var valueType = value.GetType();
             // Build node tree first
             using var stream = new MemoryStream();
-            var formatter = SerializationEnvironment.Instance.GetFactory<IFormatterFactory>()
+            using var formatter = SerializationEnvironment.Instance.GetFactory<IFormatterFactory>()
                 .CreateWriter(format, stream);
             if (formatter == null)
             {
@@ -98,7 +98,7 @@ namespace EasyToolKit.Serialization
 
             object result = null;
             using var stream = new MemoryStream(buffer);
-            var formatter = SerializationEnvironment.Instance.GetFactory<IFormatterFactory>()
+            using var formatter = SerializationEnvironment.Instance.GetFactory<IFormatterFactory>()
                 .CreateReader(format, stream);
             if (formatter == null)
             {

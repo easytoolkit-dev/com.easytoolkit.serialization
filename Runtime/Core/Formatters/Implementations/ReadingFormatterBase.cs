@@ -1,16 +1,26 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using JetBrains.Annotations;
 
 namespace EasyToolKit.Serialization.Implementations
 {
     /// <summary>
     /// Abstract base class for reading formatters.
-    /// Provides common Unity object reference resolution logic.
+    /// Provides common Unity object reference resolution logic and Begin/End pairing validation.
     /// </summary>
     public abstract class ReadingFormatterBase : IReadingFormatter
     {
+        /// <summary>Represents the type of formatting operation for tracking Begin/End pairs.</summary>
+        private enum OperationType
+        {
+            Member,
+            Object,
+            Array
+        }
+
         [CanBeNull] private IReadOnlyList<UnityEngine.Object> _objectTable;
+        private readonly Stack<OperationType> _operationStack = new();
 
         /// <inheritdoc />
         public abstract SerializationFormat Type { get; }
@@ -32,26 +42,41 @@ namespace EasyToolKit.Serialization.Implementations
             return _objectTable[index - 1];
         }
 
-        /// <inheritdoc />
-        public abstract void BeginMember(string name);
+        protected abstract void BeginMember(string name);
 
-        /// <inheritdoc />
-        public abstract void EndMember();
+        protected abstract void EndMember();
 
-        /// <inheritdoc />
-        public abstract void BeginObject();
+        protected abstract void BeginObject();
 
-        /// <inheritdoc />
-        public abstract void EndObject();
+        protected abstract void EndObject();
+
+        protected abstract void BeginArray();
+
+        protected abstract void EndArray();
 
         /// <inheritdoc />
         public abstract void Format(ref int value);
 
         /// <inheritdoc />
-        public abstract void Format(ref Varint32 value);
+        public abstract void Format(ref sbyte value);
 
         /// <inheritdoc />
-        public abstract void Format(ref SizeTag size);
+        public abstract void Format(ref short value);
+
+        /// <inheritdoc />
+        public abstract void Format(ref long value);
+
+        /// <inheritdoc />
+        public abstract void Format(ref byte value);
+
+        /// <inheritdoc />
+        public abstract void Format(ref ushort value);
+
+        /// <inheritdoc />
+        public abstract void Format(ref uint value);
+
+        /// <inheritdoc />
+        public abstract void Format(ref ulong value);
 
         /// <inheritdoc />
         public abstract void Format(ref bool value);
@@ -70,5 +95,80 @@ namespace EasyToolKit.Serialization.Implementations
 
         /// <inheritdoc />
         public abstract void Format(ref UnityEngine.Object unityObject);
+
+        /// <inheritdoc />
+        void IDataFormatter.BeginMember(string name)
+        {
+            _operationStack.Push(OperationType.Member);
+            BeginMember(name);
+        }
+
+        /// <inheritdoc />
+        void IDataFormatter.EndMember()
+        {
+            ValidateEndOperation(OperationType.Member);
+            EndMember();
+        }
+
+        /// <inheritdoc />
+        void IDataFormatter.BeginObject()
+        {
+            _operationStack.Push(OperationType.Object);
+            BeginObject();
+        }
+
+        /// <inheritdoc />
+        void IDataFormatter.EndObject()
+        {
+            ValidateEndOperation(OperationType.Object);
+            EndObject();
+        }
+
+        /// <inheritdoc />
+        void IDataFormatter.BeginArray()
+        {
+            _operationStack.Push(OperationType.Array);
+            BeginArray();
+        }
+
+        /// <inheritdoc />
+        void IDataFormatter.EndArray()
+        {
+            ValidateEndOperation(OperationType.Array);
+            EndArray();
+        }
+
+        /// <summary>
+        /// Validates the end of an operation and checks for proper pairing.
+        /// </summary>
+        /// <param name="operationType">The type of operation being ended.</param>
+        /// <exception cref="InvalidOperationException">Thrown when the operation type does not match the expected type.</exception>
+        private void ValidateEndOperation(OperationType operationType)
+        {
+            if (_operationStack.Count == 0)
+            {
+                throw new InvalidOperationException(
+                    $"Cannot end {operationType} operation: no matching Begin operation found. The operation stack is empty.");
+            }
+
+            var expectedOperation = _operationStack.Pop();
+            if (expectedOperation != operationType)
+            {
+                throw new InvalidOperationException(
+                    $"Unbalanced Begin/End operations. Expected End{expectedOperation}, but called End{operationType}.");
+            }
+        }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            if (_operationStack.Count > 0)
+            {
+                var operation = _operationStack.Peek();
+                throw new InvalidOperationException(
+                    $"Formatter disposed with unbalanced Begin/End operations. " +
+                    $"Missing End{operation} call for the corresponding Begin{operation} operation.");
+            }
+        }
     }
 }
