@@ -14,8 +14,7 @@ namespace EasyToolKit.Serialization
             {
                 if (s_processorTypes == null)
                 {
-                    s_processorTypes = AppDomain.CurrentDomain.GetAssemblies()
-                        .SelectMany(assembly => assembly.GetTypes())
+                    s_processorTypes = AssemblyUtility.GetTypes(AssemblyCategory.Custom)
                         .Where(type => type.IsClass && !type.IsInterface && !type.IsAbstract &&
                                        type.IsDerivedFrom<ISerializationProcessor>())
                         .ToArray();

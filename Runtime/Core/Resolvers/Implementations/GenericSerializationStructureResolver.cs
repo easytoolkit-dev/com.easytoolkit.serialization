@@ -11,7 +11,7 @@ namespace EasyToolKit.Serialization.Implementations
     /// Resolves serialization structure for types marked with [Serializable] attribute.
     /// </summary>
     [SerializationResolverPriority(10.0)]
-    internal sealed class GenericSerializationStructureResolver : ISerializationStructureResolver
+    public sealed class GenericSerializationStructureResolver : ISerializationStructureResolver
     {
         public bool CanResolve(Type type)
         {
