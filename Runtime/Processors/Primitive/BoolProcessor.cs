@@ -5,9 +5,8 @@ namespace EasyToolKit.Serialization.Processors
     {
         public override void Process(string name, ref bool value, IDataFormatter formatter)
         {
-            formatter.BeginMember(name);
+            using var memberScope = formatter.EnterMember(name);
             formatter.Format(ref value);
-            formatter.EndMember();
         }
     }
 }

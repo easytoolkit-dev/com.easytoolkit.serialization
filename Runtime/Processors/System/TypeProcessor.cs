@@ -1,4 +1,5 @@
 using System;
+using EasyToolKit.Core.Reflection;
 
 namespace EasyToolKit.Serialization.Processors
 {
@@ -7,7 +8,7 @@ namespace EasyToolKit.Serialization.Processors
     {
         public override void Process(string name, ref Type value, IDataFormatter formatter)
         {
-            formatter.BeginMember(name);
+            using var memberScope = formatter.EnterMember(name);
 
             string typeName = null;
             if (formatter.Operation == FormatterOperation.Write)
@@ -17,8 +18,6 @@ namespace EasyToolKit.Serialization.Processors
 
             if (formatter.Operation == FormatterOperation.Read)
                 value = NameToType(typeName);
-
-            formatter.EndMember();
         }
 
         private static string TypeToName(Type type)
@@ -27,14 +26,14 @@ namespace EasyToolKit.Serialization.Processors
             {
                 return string.Empty;
             }
-            return type.FullName + ", " + type.Assembly.GetName().Name;
+            return type.AssemblyQualifiedName ?? type.FullName;
         }
 
         private static Type NameToType(string name)
         {
             if (string.IsNullOrEmpty(name))
                 return null;
-            return Type.GetType(name);
+            return TypeUtility.FindType(name);
         }
     }
 }

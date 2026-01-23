@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Text;
 using EasyToolKit.Core.Textual;
@@ -13,8 +14,6 @@ namespace EasyToolKit.Serialization.Implementations
         private readonly BinaryWriter _writer;
         private int _nodeDepth;
 
-        /// <summary>Creates a new binary writing formatter.</summary>
-        /// <param name="stream">The stream to write to.</param>
         public BinaryWritingFormatter(Stream stream)
         {
             _writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen: true);
@@ -25,45 +24,115 @@ namespace EasyToolKit.Serialization.Implementations
         public override SerializationFormat Type => SerializationFormat.Binary;
 
         /// <inheritdoc />
-        public override void BeginMember(string name)
+        protected override void BeginMember(string name)
         {
-            // No-op for binary format
+            if (string.IsNullOrEmpty(name))
+            {
+                _writer.Write((byte)BinaryFormatterTag.MemberBegin);
+            }
+            else
+            {
+                _writer.Write((byte)BinaryFormatterTag.NamedMemberBegin);
+                var bytes = Encoding.UTF8.GetBytes(name);
+                WriteVarint32((uint)bytes.Length);
+                _writer.Write(bytes);
+            }
+            WriteVarint32((uint)_nodeDepth);
         }
 
         /// <inheritdoc />
-        public override void EndMember()
+        protected override void EndMember()
         {
-            // No-op for binary format
+            WriteVarint32((uint)_nodeDepth);
+            _writer.Write((byte)BinaryFormatterTag.MemberEnd);
         }
 
         /// <inheritdoc />
-        public override void BeginObject()
+        protected override void BeginObject()
         {
+            _writer.Write((byte)BinaryFormatterTag.ObjectBegin);
+            WriteVarint32((uint)_nodeDepth);
             _nodeDepth++;
         }
 
         /// <inheritdoc />
-        public override void EndObject()
+        protected override void EndObject()
         {
             _nodeDepth--;
+            WriteVarint32((uint)_nodeDepth);
+            _writer.Write((byte)BinaryFormatterTag.ObjectEnd);
+        }
+
+        /// <inheritdoc />
+        protected override void BeginArray()
+        {
+            _writer.Write((byte)BinaryFormatterTag.ArrayBegin);
+            WriteVarint32((uint)_nodeDepth);
+            _nodeDepth++;
+        }
+
+        /// <inheritdoc />
+        protected override void EndArray()
+        {
+            _nodeDepth--;
+            WriteVarint32((uint)_nodeDepth);
+            _writer.Write((byte)BinaryFormatterTag.ArrayEnd);
         }
 
         /// <inheritdoc />
         public override void Format(ref int value)
         {
+            // Use zigzag encoding to handle negative numbers
+            uint encoded = (uint)((value << 1) ^ (value >> 31));
+            WriteVarint32(encoded);
+        }
+
+        /// <inheritdoc />
+        public override void Format(ref sbyte value)
+        {
+            // Use zigzag encoding to handle negative numbers
+            int encoded = (value << 1) ^ (value >> 7);
+            _writer.Write((byte)encoded);
+        }
+
+        /// <inheritdoc />
+        public override void Format(ref short value)
+        {
+            // Use zigzag encoding to handle negative numbers
+            int encoded = (value << 1) ^ (value >> 15);
+            WriteVarint32((uint)encoded);
+        }
+
+        /// <inheritdoc />
+        public override void Format(ref long value)
+        {
+            // Use zigzag encoding to handle negative numbers
+            ulong encoded = ((ulong)value << 1) ^ (ulong)(value >> 63);
+            WriteVarint64(encoded);
+        }
+
+        /// <inheritdoc />
+        public override void Format(ref byte value)
+        {
             _writer.Write(value);
         }
 
         /// <inheritdoc />
-        public override void Format(ref Varint32 value)
+        public override void Format(ref ushort value)
         {
-            WriteVarint32(value.Value);
+            WriteVarint32(value);
         }
 
         /// <inheritdoc />
-        public override void Format(ref SizeTag size)
+        public override void Format(ref uint value)
         {
-            WriteVarint32(size.Size);
+            WriteVarint32(value);
+        }
+
+        /// <inheritdoc />
+        public override void Format(ref ulong value)
+        {
+            WriteVarint64(value);
         }
 
         /// <inheritdoc />
@@ -121,6 +190,18 @@ namespace EasyToolKit.Serialization.Implementations
         /// <summary>Writes a 32-bit unsigned integer using variable-length encoding.</summary>
         /// <param name="value">The value to write.</param>
         private void WriteVarint32(uint value)
+        {
+            while (value > 0x7F)
+            {
+                _writer.Write((byte)((value & 0x7F) | 0x80));
+                value >>= 7;
+            }
+            _writer.Write((byte)value);
+        }
+
+        /// <summary>Writes a 64-bit unsigned integer using variable-length encoding.</summary>
+        /// <param name="value">The value to write.</param>
+        private void WriteVarint64(ulong value)
         {
             while (value > 0x7F)
             {
