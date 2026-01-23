@@ -47,8 +47,7 @@ namespace EasyToolKit.Serialization
         {
             if (s_resolverTypes == null)
             {
-                s_resolverTypes = AppDomain.CurrentDomain.GetAssemblies()
-                    .SelectMany(assembly => assembly.GetTypes())
+                s_resolverTypes = AssemblyUtility.GetTypes(AssemblyCategory.Custom)
                     .Where(type => type.IsClass && !type.IsInterface && !type.IsAbstract &&
                                    type.IsDerivedFrom<ISerializationResolver>())
                     .ToArray();
