@@ -8,7 +8,7 @@ namespace EasyToolKit.Serialization.Processors
     [ProcessorConfiguration(ProcessorPriorityLevel.Generic)]
     public class GenericProcessor<T> : SerializationProcessor<T>
     {
-        private static readonly Func<T> Constructor = CreateConstructor();
+        private ISerializationStructuralNode _node;
 
         public override bool CanProcess(Type valueType)
         {
@@ -22,20 +22,18 @@ namespace EasyToolKit.Serialization.Processors
             return SerializedTypeUtility.GetDefinedEasySerializableAttribute(valueType) != null;
         }
 
+        protected override void Initialize()
+        {
+            _node = (ISerializationStructuralNode)Environment.GetFactory<ISerializationNodeFactory>()
+                .BuildNode(typeof(T));
+        }
+
         public override void Process(string name, ref T value, IDataFormatter formatter)
         {
-            if (value == null)
-            {
-                if (Constructor == null)
-                {
-                    throw new ArgumentException($"Type '{typeof(T)}' does not have a default constructor.");
-                }
+            formatter.BeginMember(name);
+            using var objectScope = formatter.EnterObject();
 
-                value = Constructor();
-            }
-
-            var node = (ISerializationStructuralNode)Environment.GetFactory<ISerializationNodeFactory>().BuildNode(typeof(T));
-            var members = node.Members;
+            var members = _node.Members;
 
             foreach (var memberNode in members)
             {
@@ -49,9 +47,7 @@ namespace EasyToolKit.Serialization.Processors
                         throw new ArgumentException($"Member '{memberNode.Definition.Name}' is not readable!");
                     }
 
-                    var boxedValue = (object)value;
-                    memberValue = getter(boxedValue);
-                    value = (T)boxedValue;
+                    memberValue = getter(value);
                 }
 
                 memberNode.Processor.ProcessUntyped(memberNode.Definition.Name, ref memberValue, formatter);
@@ -64,22 +60,8 @@ namespace EasyToolKit.Serialization.Processors
                         throw new ArgumentException($"Member '{memberNode.Definition.Name}' is not writable!");
                     }
 
-                    var boxedValue = (object)value;
-                    setter(boxedValue, memberValue);
-                    value = (T)boxedValue;
+                    setter(value, memberValue);
                 }
-            }
-        }
-
-        private static Func<T> CreateConstructor()
-        {
-            try
-            {
-                return () => (T)Activator.CreateInstance(typeof(T));
-            }
-            catch (Exception e)
-            {
-                return null;
             }
         }
     }

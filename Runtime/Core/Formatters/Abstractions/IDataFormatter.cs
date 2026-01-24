@@ -37,28 +37,14 @@ namespace EasyToolKit.Serialization
         /// Begins serialization of a member with an optional name.
         /// </summary>
         /// <param name="name">The member name, or null/empty for unnamed members.</param>
-        /// <remarks>
-        /// Members represent fields or properties within an object. The name can be used
-        /// for named serialization formats (JSON, XML) or omitted for compact binary formats.
-        /// Must be followed by a call to <see cref="EndMember"/> after writing the member value.
-        /// </remarks>
         void BeginMember(string name);
-
-        /// <summary>
-        /// Ends the current member serialization scope.
-        /// </summary>
-        /// <remarks>
-        /// Must be called after <see cref="BeginMember"/> and writing the member value.
-        /// </remarks>
-        void EndMember();
 
         /// <summary>
         /// Begins serialization of a complex object.
         /// </summary>
         /// <remarks>
-        /// Objects are complex types containing multiple members. After calling this method,
-        /// use <see cref="BeginMember"/> and <see cref="EndMember"/> pairs to serialize
-        /// each member, then call <see cref="EndObject"/> to complete the object.
+        /// Objects are complex types containing multiple members.
+        /// Call <see cref="EndObject"/> to complete the object.
         /// </remarks>
         void BeginObject();
 
@@ -71,13 +57,17 @@ namespace EasyToolKit.Serialization
         void EndObject();
 
         /// <summary>
-        /// Begins serialization of an array.
+        /// Begins serialization of an array with a specified length.
         /// </summary>
+        /// <param name="length">The array length to read or write.</param>
         /// <remarks>
-        /// Arrays are sequences of values. After calling this method, serialize each
-        /// element sequentially, then call <see cref="EndArray"/> to complete the array.
+        /// Arrays are sequences of values. The length parameter allows the formatter
+        /// to serialize or deserialize the array size information.
+        /// - During serialization: length is written to the output
+        /// - During deserialization: length is read from the input
+        /// Call <see cref="EndArray"/> to complete the array.
         /// </remarks>
-        void BeginArray();
+        void BeginArray(ref int length);
 
         /// <summary>
         /// Ends the current array serialization scope.

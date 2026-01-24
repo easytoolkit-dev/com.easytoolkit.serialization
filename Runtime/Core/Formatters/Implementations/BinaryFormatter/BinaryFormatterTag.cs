@@ -16,28 +16,23 @@ namespace EasyToolKit.Serialization.Implementations
         NamedMemberBegin = 0x81,
 
         /// <summary>
-        /// Marks the end of a member.
-        /// </summary>
-        MemberEnd = 0x82,
-
-        /// <summary>
         /// Marks the beginning of an object.
         /// </summary>
-        ObjectBegin = 0x83,
+        ObjectBegin = 0x82,
 
         /// <summary>
         /// Marks the end of an object.
         /// </summary>
-        ObjectEnd = 0x84,
+        ObjectEnd = 0x83,
 
         /// <summary>
         /// Marks the beginning of an array.
         /// </summary>
-        ArrayBegin = 0x85,
+        ArrayBegin = 0x84,
 
         /// <summary>
         /// Marks the end of an array.
         /// </summary>
-        ArrayEnd = 0x86,
+        ArrayEnd = 0x85,
     }
 }

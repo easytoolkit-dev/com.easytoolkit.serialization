@@ -10,14 +10,22 @@ namespace EasyToolKit.Serialization.Processors
 
         public override void Process(string name, ref IList<T> value, IDataFormatter formatter)
         {
-            using var memberScope = formatter.EnterMember(name);
-            using var objectScope = formatter.EnterObject();
+            formatter.BeginMember(name);
+
+            int size;
+            if (formatter.Operation == FormatterOperation.Write)
+            {
+                size = value?.Count ?? 0;
+            }
+            else
+            {
+                size = 0;
+            }
+
+            using var arrayScope = formatter.EnterArray(ref size);
 
             if (formatter.Operation == FormatterOperation.Write)
             {
-                var size = value?.Count ?? 0;
-                formatter.Format(ref size);
-
                 if (value == null)
                 {
                     return;
@@ -32,9 +40,6 @@ namespace EasyToolKit.Serialization.Processors
             }
             else
             {
-                var size = 0;
-                formatter.Format(ref size);
-
                 // Empty list (either was null or empty, keep as null)
                 if (size == 0)
                 {
