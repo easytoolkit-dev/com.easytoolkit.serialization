@@ -70,17 +70,10 @@ namespace EasyToolKit.Serialization.Implementations
         }
 
         /// <inheritdoc />
-        public override void BeginMember(string name)
+        protected override void BeginMember(string name)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                WriteByte((byte)BinaryFormatterTag.MemberBegin);
-            }
-            else
-            {
-                WriteByte((byte)BinaryFormatterTag.NamedMemberBegin);
-                WriteBytes(name);
-            }
+            WriteByte((byte)BinaryFormatterTag.MemberBegin);
+            WriteBytes(name);
         }
 
         /// <inheritdoc />
@@ -426,6 +419,8 @@ namespace EasyToolKit.Serialization.Implementations
         public override void Dispose()
         {
             _position = 0;
+            _length = 0;
+            _nodeDepth = 0;
             _buffer = Array.Empty<byte>();
             PoolUtility.ReleaseObject(this);
             base.Dispose();

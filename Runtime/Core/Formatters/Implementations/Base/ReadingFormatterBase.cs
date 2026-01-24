@@ -20,6 +20,7 @@ namespace EasyToolKit.Serialization.Implementations
 
         [CanBeNull] private IReadOnlyList<UnityEngine.Object> _objectTable;
         private readonly Stack<OperationType> _operationStack = new();
+        private int _anonymousMemberId;
 
         /// <inheritdoc />
         public abstract SerializationFormat Type { get; }
@@ -53,7 +54,7 @@ namespace EasyToolKit.Serialization.Implementations
         /// <inheritdoc />
         public abstract int GetRemainingLength();
 
-        public abstract void BeginMember(string name);
+        protected abstract void BeginMember(string name);
 
         protected abstract void BeginObject();
 
@@ -104,6 +105,18 @@ namespace EasyToolKit.Serialization.Implementations
 
         /// <inheritdoc />
         public abstract void Format(ref UnityEngine.Object unityObject);
+
+        /// <inheritdoc />
+        void IDataFormatter.BeginMember(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                // Generate auto-generated name for anonymous members
+                name = $"${_anonymousMemberId++}";
+            }
+
+            BeginMember(name);
+        }
 
         /// <inheritdoc />
         void IDataFormatter.BeginObject()
@@ -157,6 +170,7 @@ namespace EasyToolKit.Serialization.Implementations
         /// <inheritdoc />
         public virtual void Dispose()
         {
+            _anonymousMemberId = 0;
             if (_operationStack.Count > 0)
             {
                 var operation = _operationStack.Peek();

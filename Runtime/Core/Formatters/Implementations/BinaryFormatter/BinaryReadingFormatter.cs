@@ -48,27 +48,25 @@ namespace EasyToolKit.Serialization.Implementations
         public override int GetRemainingLength() => _buffer.Length - _position;
 
         /// <inheritdoc />
-        public override void BeginMember(string name)
+        protected override void BeginMember(string name)
         {
             var tag = (BinaryFormatterTag)ReadByte();
-            if (tag == BinaryFormatterTag.NamedMemberBegin)
-            {
-                var length = ReadVarint32();
-                if (length > 0)
-                {
-                    var readName = ReadString((int)length);
-                    // Verify name matches if provided
-                    if (!string.IsNullOrEmpty(name) && readName != name)
-                    {
-                        throw new InvalidOperationException(
-                            $"Member name mismatch. Expected '{name}', found '{readName}'.");
-                    }
-                }
-            }
-            else if (tag != BinaryFormatterTag.MemberBegin)
+            if (tag != BinaryFormatterTag.MemberBegin)
             {
                 throw new InvalidOperationException(
-                    $"Invalid tag at BeginMember. Expected {BinaryFormatterTag.MemberBegin} or {BinaryFormatterTag.NamedMemberBegin}, found {tag}.");
+                    $"Invalid tag at BeginMember. Expected {BinaryFormatterTag.MemberBegin}, found {tag}.");
+            }
+
+            var length = ReadVarint32();
+            if (length > 0)
+            {
+                var readName = ReadString((int)length);
+                // Verify name matches if provided (skip verification for auto-generated names starting with '$')
+                if (!string.IsNullOrEmpty(name) && !name.StartsWith("$") && readName != name)
+                {
+                    throw new InvalidOperationException(
+                        $"Member name mismatch. Expected '{name}', found '{readName}'.");
+                }
             }
         }
 
