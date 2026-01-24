@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Text;
+using EasyToolKit.Core.Pooling;
 using EasyToolKit.Core.Textual;
 
 namespace EasyToolKit.Serialization.Implementations
@@ -11,16 +12,23 @@ namespace EasyToolKit.Serialization.Implementations
     /// </summary>
     public sealed class BinaryWritingFormatter : WritingFormatterBase
     {
+        private int _position;
+        private int _length;
         private byte[] _buffer;
         private int _nodeDepth;
         private const int DefaultInitialCapacity = 1024;
+
+        public BinaryWritingFormatter()
+            : this(DefaultInitialCapacity)
+        {
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BinaryWritingFormatter"/> class
         /// with the specified initial buffer capacity.
         /// </summary>
         /// <param name="initialCapacity">The initial capacity of the internal buffer in bytes.</param>
-        public BinaryWritingFormatter(int initialCapacity = DefaultInitialCapacity)
+        public BinaryWritingFormatter(int initialCapacity)
         {
             if (initialCapacity <= 0)
                 throw new ArgumentOutOfRangeException(nameof(initialCapacity), "Initial capacity must be positive.");
@@ -412,6 +420,15 @@ namespace EasyToolKit.Serialization.Implementations
             _position += size;
             if (_position > _length)
                 _length = _position;
+        }
+
+        /// <inheritdoc />
+        public override void Dispose()
+        {
+            _position = 0;
+            _buffer = Array.Empty<byte>();
+            PoolUtility.ReleaseObject(this);
+            base.Dispose();
         }
     }
 }
