@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -11,10 +12,14 @@ namespace EasyToolKit.Serialization.Implementations
     public sealed class SerializationProcessorFactory : ISerializationProcessorFactory
     {
         private readonly ITypeMatcher _typeMatcher;
+        private readonly ConcurrentDictionary<Type, ISerializationProcessor> _processorCache;
+        private readonly ConcurrentDictionary<Type, bool> _instantiableCache;
 
         public SerializationProcessorFactory()
         {
             _typeMatcher = TypeMatcherFactory.CreateDefault();
+            _processorCache = new ConcurrentDictionary<Type, ISerializationProcessor>();
+            _instantiableCache = new ConcurrentDictionary<Type, bool>();
             InitializeTypeMatcher();
         }
 
@@ -32,28 +37,35 @@ namespace EasyToolKit.Serialization.Implementations
 
         public ISerializationProcessor GetProcessor(Type valueType)
         {
-            if (!valueType.IsInstantiable(allowLenient: true) && !valueType.IsArray && valueType != typeof(string))
+            var isInstantiable = _instantiableCache.GetOrAdd(valueType,
+                type => type.IsInstantiable(allowLenient: true) || type.IsArray || type == typeof(string));
+
+            if (!isInstantiable)
             {
                 throw new InvalidOperationException($"Type '{valueType.FullName}' is not instantiable.");
             }
 
-            var processor = CreateProcessor(valueType);
-            if (processor == null)
-                return null;
-            InjectDependencyToProcessor(processor);
-
-            var baseValueType = processor.GetType().GetGenericArgumentsRelativeTo(typeof(ISerializationProcessor<>))[0];
-            if (baseValueType != valueType)
+            return _processorCache.GetOrAdd(valueType, type =>
             {
-                if (!valueType.IsDerivedFrom(baseValueType))
+                var processor = CreateProcessor(type);
+                if (processor == null)
+                    return null;
+                InjectDependencyToProcessor(processor);
+
+                var baseValueType = processor.GetType().GetGenericArgumentsRelativeTo(typeof(ISerializationProcessor<>))[0];
+                if (baseValueType != type)
                 {
-                    throw new InvalidOperationException(
-                        $"Type '{valueType.FullName}' is not derived from '{baseValueType.FullName}'.");
+                    if (!type.IsDerivedFrom(baseValueType))
+                    {
+                        throw new InvalidOperationException(
+                            $"Type '{type.FullName}' is not derived from '{baseValueType.FullName}'.");
+                    }
+                    var processorWrapperType = typeof(SerializationProcessorWrapper<,>).MakeGenericType(type, baseValueType);
+                    return processorWrapperType.CreateInstance<ISerializationProcessor>(processor);
                 }
-                var processorWrapperType = typeof(SerializationProcessorWrapper<,>).MakeGenericType(valueType, baseValueType);
-                return processorWrapperType.CreateInstance<ISerializationProcessor>(processor);
-            }
-            return processor;
+
+                return processor;
+            });
         }
 
         private void InjectDependencyToProcessor([NotNull] ISerializationProcessor processor)

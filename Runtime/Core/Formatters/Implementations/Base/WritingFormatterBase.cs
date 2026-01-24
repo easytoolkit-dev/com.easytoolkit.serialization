@@ -16,6 +16,12 @@ namespace EasyToolKit.Serialization.Implementations
             Array
         }
 
+        /// <summary>The current write position in bytes within the buffer.</summary>
+        protected int _position;
+
+        /// <summary>The current data length (written bytes count).</summary>
+        protected int _length;
+
         private readonly List<UnityEngine.Object> _objectTable = new();
         private readonly Stack<OperationType> _operationStack = new();
 
@@ -24,6 +30,18 @@ namespace EasyToolKit.Serialization.Implementations
 
         /// <inheritdoc />
         public FormatterOperation Operation => FormatterOperation.Write;
+
+        /// <inheritdoc />
+        public virtual byte[] GetBuffer() => Array.Empty<byte>();
+
+        /// <inheritdoc />
+        public virtual int GetPosition() => _position;
+
+        /// <inheritdoc />
+        public virtual int GetLength() => _length;
+
+        /// <inheritdoc />
+        public virtual byte[] ToArray() => Array.Empty<byte>();
 
         /// <inheritdoc />
         public IReadOnlyList<UnityEngine.Object> GetObjectTable() => _objectTable;
