@@ -5,23 +5,20 @@ using UnityEngine;
 namespace EasyToolKit.Serialization.Implementations
 {
     /// <summary>
-    /// JSON reading formatter implementation (not yet implemented).
+    /// JSON writing formatter implementation (not yet implemented).
     /// </summary>
-    public sealed class JsonReadingFormatter : ReadingFormatterBase
+    public sealed class JsonWritingFormatter : WritingFormatterBase
     {
-        public JsonReadingFormatter(Stream stream)
+        public JsonWritingFormatter(Stream stream)
         {
-            throw new NotImplementedException("JSON reading formatter is not yet implemented.");
+            throw new NotImplementedException("JSON writing formatter is not yet implemented.");
         }
 
         /// <inheritdoc />
         public override SerializationFormat Type => SerializationFormat.Json;
 
         /// <inheritdoc />
-        protected override void BeginMember(string name) => throw new NotImplementedException();
-
-        /// <inheritdoc />
-        protected override void EndMember() => throw new NotImplementedException();
+        public override void BeginMember(string name) => throw new NotImplementedException();
 
         /// <inheritdoc />
         protected override void BeginObject() => throw new NotImplementedException();
@@ -30,7 +27,7 @@ namespace EasyToolKit.Serialization.Implementations
         protected override void EndObject() => throw new NotImplementedException();
 
         /// <inheritdoc />
-        protected override void BeginArray() => throw new NotImplementedException();
+        protected override void BeginArray(ref int length) => throw new NotImplementedException();
 
         /// <inheritdoc />
         protected override void EndArray() => throw new NotImplementedException();

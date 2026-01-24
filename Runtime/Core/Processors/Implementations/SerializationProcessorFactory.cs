@@ -37,7 +37,7 @@ namespace EasyToolKit.Serialization.Implementations
                 throw new InvalidOperationException($"Type '{valueType.FullName}' is not instantiable.");
             }
 
-            var processor = GetProcessorInstance(valueType);
+            var processor = CreateProcessor(valueType);
             if (processor == null)
                 return null;
             InjectDependencyToProcessor(processor);
@@ -60,7 +60,6 @@ namespace EasyToolKit.Serialization.Implementations
         {
             if (processor == null)
                 throw new ArgumentNullException(nameof(processor));
-            //TODO: circular dependency processor
             foreach (var memberInfo in processor.GetType().GetMembers(MemberAccessFlags.All))
             {
                 if (memberInfo.GetCustomAttribute<DependencyProcessorAttribute>() != null)
@@ -75,17 +74,13 @@ namespace EasyToolKit.Serialization.Implementations
 
                     if (memberInfo is FieldInfo fieldInfo)
                     {
-                        var setter = ReflectionCompiler.CreateInstanceFieldSetter(fieldInfo)
-                            .AsTyped<ISerializationProcessor, ISerializationProcessor>();
                         var dependency = GetProcessor(valueType);
-                        setter(ref processor, dependency);
+                        fieldInfo.SetValue(processor, dependency);
                     }
                     else if (memberInfo is PropertyInfo propertyInfo)
                     {
-                        var setter = ReflectionCompiler.CreateInstancePropertySetter(propertyInfo)
-                            .AsTyped<ISerializationProcessor, ISerializationProcessor>();
                         var dependency = GetProcessor(valueType);
-                        setter(ref processor, dependency);
+                        propertyInfo.GetSetMethod(true).Invoke(processor, new object[] { dependency });
                     }
                     else
                     {
@@ -97,7 +92,7 @@ namespace EasyToolKit.Serialization.Implementations
         }
 
         [CanBeNull]
-        private ISerializationProcessor GetProcessorInstance(Type valueType)
+        private ISerializationProcessor CreateProcessor(Type valueType)
         {
             var resultsList = new List<TypeMatchResult[]>
             {

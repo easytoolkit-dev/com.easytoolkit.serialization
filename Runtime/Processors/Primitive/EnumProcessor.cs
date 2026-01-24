@@ -8,7 +8,7 @@ namespace EasyToolKit.Serialization.Processors
     {
         public override void Process(string name, ref T value, IDataFormatter formatter)
         {
-            using var memberScope = formatter.EnterMember(name);
+            formatter.BeginMember(name);
 
             if (formatter.Type != SerializationFormat.Binary)
             {

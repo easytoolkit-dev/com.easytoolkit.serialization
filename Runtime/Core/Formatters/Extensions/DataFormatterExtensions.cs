@@ -8,22 +8,6 @@ namespace EasyToolKit.Serialization
     public static class DataFormatterExtensions
     {
         /// <summary>
-        /// Creates a member scope that automatically manages the BeginMember/EndMember calls.
-        /// </summary>
-        /// <param name="formatter">The data formatter to create the scope for.</param>
-        /// <param name="name">The member name, or null for unnamed members.</param>
-        /// <returns>A <see cref="FormatterMemberScope"/> that will automatically end the member when disposed.</returns>
-        public static FormatterMemberScope EnterMember(this IDataFormatter formatter, string name)
-        {
-            if (formatter == null)
-            {
-                throw new ArgumentNullException(nameof(formatter));
-            }
-
-            return FormatterMemberScope.Create(formatter, name);
-        }
-
-        /// <summary>
         /// Creates an object scope that automatically manages the BeginObject/EndObject calls.
         /// </summary>
         /// <param name="formatter">The data formatter to create the scope for.</param>
@@ -42,15 +26,16 @@ namespace EasyToolKit.Serialization
         /// Creates an array scope that automatically manages the BeginArray/EndArray calls.
         /// </summary>
         /// <param name="formatter">The data formatter to create the scope for.</param>
+        /// <param name="length">The array length to read or write.</param>
         /// <returns>A <see cref="FormatterArrayScope"/> that will automatically end the array when disposed.</returns>
-        public static FormatterArrayScope EnterArray(this IDataFormatter formatter)
+        public static FormatterArrayScope EnterArray(this IDataFormatter formatter, ref int length)
         {
             if (formatter == null)
             {
                 throw new ArgumentNullException(nameof(formatter));
             }
 
-            return FormatterArrayScope.Create(formatter);
+            return FormatterArrayScope.Create(formatter, ref length);
         }
     }
 }

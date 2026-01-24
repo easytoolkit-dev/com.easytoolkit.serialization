@@ -23,7 +23,7 @@ namespace EasyToolKit.Serialization.Implementations
         public override SerializationFormat Type => SerializationFormat.Binary;
 
         /// <inheritdoc />
-        protected override void BeginMember(string name)
+        public override void BeginMember(string name)
         {
             var tag = (BinaryFormatterTag)_reader.ReadByte();
             if (tag == BinaryFormatterTag.NamedMemberBegin)
@@ -45,31 +45,6 @@ namespace EasyToolKit.Serialization.Implementations
             {
                 throw new InvalidOperationException(
                     $"Invalid tag at BeginMember. Expected {BinaryFormatterTag.MemberBegin} or {BinaryFormatterTag.NamedMemberBegin}, found {tag}.");
-            }
-
-            var depth = (int)ReadVarint32();
-            if (depth != _nodeDepth)
-            {
-                throw new InvalidOperationException(
-                    $"Depth mismatch at BeginMember. Expected {_nodeDepth}, found {depth}.");
-            }
-        }
-
-        /// <inheritdoc />
-        protected override void EndMember()
-        {
-            var depth = (int)ReadVarint32();
-            if (depth != _nodeDepth)
-            {
-                throw new InvalidOperationException(
-                    $"Depth mismatch at EndMember. Expected {_nodeDepth}, found {depth}.");
-            }
-
-            var tag = (BinaryFormatterTag)_reader.ReadByte();
-            if (tag != BinaryFormatterTag.MemberEnd)
-            {
-                throw new InvalidOperationException(
-                    $"Invalid tag at EndMember. Expected {BinaryFormatterTag.MemberEnd}, found {tag}.");
             }
         }
 
@@ -114,7 +89,7 @@ namespace EasyToolKit.Serialization.Implementations
         }
 
         /// <inheritdoc />
-        protected override void BeginArray()
+        protected override void BeginArray(ref int length)
         {
             var tag = (BinaryFormatterTag)_reader.ReadByte();
             if (tag != BinaryFormatterTag.ArrayBegin)
@@ -122,6 +97,8 @@ namespace EasyToolKit.Serialization.Implementations
                 throw new InvalidOperationException(
                     $"Invalid tag at BeginArray. Expected {BinaryFormatterTag.ArrayBegin}, found {tag}.");
             }
+
+            length = (int)ReadVarint32();
 
             var depth = (int)ReadVarint32();
             if (depth != _nodeDepth)

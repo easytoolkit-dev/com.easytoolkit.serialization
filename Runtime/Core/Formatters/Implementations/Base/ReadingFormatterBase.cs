@@ -14,7 +14,6 @@ namespace EasyToolKit.Serialization.Implementations
         /// <summary>Represents the type of formatting operation for tracking Begin/End pairs.</summary>
         private enum OperationType
         {
-            Member,
             Object,
             Array
         }
@@ -42,15 +41,13 @@ namespace EasyToolKit.Serialization.Implementations
             return _objectTable[index - 1];
         }
 
-        protected abstract void BeginMember(string name);
-
-        protected abstract void EndMember();
+        public abstract void BeginMember(string name);
 
         protected abstract void BeginObject();
 
         protected abstract void EndObject();
 
-        protected abstract void BeginArray();
+        protected abstract void BeginArray(ref int length);
 
         protected abstract void EndArray();
 
@@ -97,20 +94,6 @@ namespace EasyToolKit.Serialization.Implementations
         public abstract void Format(ref UnityEngine.Object unityObject);
 
         /// <inheritdoc />
-        void IDataFormatter.BeginMember(string name)
-        {
-            _operationStack.Push(OperationType.Member);
-            BeginMember(name);
-        }
-
-        /// <inheritdoc />
-        void IDataFormatter.EndMember()
-        {
-            ValidateEndOperation(OperationType.Member);
-            EndMember();
-        }
-
-        /// <inheritdoc />
         void IDataFormatter.BeginObject()
         {
             _operationStack.Push(OperationType.Object);
@@ -125,10 +108,10 @@ namespace EasyToolKit.Serialization.Implementations
         }
 
         /// <inheritdoc />
-        void IDataFormatter.BeginArray()
+        void IDataFormatter.BeginArray(ref int length)
         {
             _operationStack.Push(OperationType.Array);
-            BeginArray();
+            BeginArray(ref length);
         }
 
         /// <inheritdoc />

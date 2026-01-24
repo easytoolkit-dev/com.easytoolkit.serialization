@@ -24,7 +24,7 @@ namespace EasyToolKit.Serialization.Implementations
         public override SerializationFormat Type => SerializationFormat.Binary;
 
         /// <inheritdoc />
-        protected override void BeginMember(string name)
+        public override void BeginMember(string name)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -37,14 +37,6 @@ namespace EasyToolKit.Serialization.Implementations
                 WriteVarint32((uint)bytes.Length);
                 _writer.Write(bytes);
             }
-            WriteVarint32((uint)_nodeDepth);
-        }
-
-        /// <inheritdoc />
-        protected override void EndMember()
-        {
-            WriteVarint32((uint)_nodeDepth);
-            _writer.Write((byte)BinaryFormatterTag.MemberEnd);
         }
 
         /// <inheritdoc />
@@ -64,9 +56,10 @@ namespace EasyToolKit.Serialization.Implementations
         }
 
         /// <inheritdoc />
-        protected override void BeginArray()
+        protected override void BeginArray(ref int length)
         {
             _writer.Write((byte)BinaryFormatterTag.ArrayBegin);
+            WriteVarint32((uint)length);
             WriteVarint32((uint)_nodeDepth);
             _nodeDepth++;
         }

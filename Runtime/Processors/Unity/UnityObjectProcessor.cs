@@ -12,7 +12,6 @@ namespace EasyToolKit.Serialization.Processors
 
             formatter.BeginMember(name);
             formatter.Format(ref unityObject);
-            formatter.EndMember();
 
             if (formatter.Operation == FormatterOperation.Read)
             {
