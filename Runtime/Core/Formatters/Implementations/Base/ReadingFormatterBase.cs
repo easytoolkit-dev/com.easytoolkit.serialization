@@ -54,7 +54,7 @@ namespace EasyToolKit.Serialization.Implementations
         /// <inheritdoc />
         public abstract int GetRemainingLength();
 
-        protected abstract void BeginMember(string name);
+        protected abstract void BeginMember(string name, bool isInArrayContext);
 
         protected abstract void BeginObject();
 
@@ -109,13 +109,16 @@ namespace EasyToolKit.Serialization.Implementations
         /// <inheritdoc />
         void IDataFormatter.BeginMember(string name)
         {
-            if (string.IsNullOrEmpty(name))
+            // Skip name generation if in Array context
+            bool isInArrayContext = _operationStack.Count > 0 && _operationStack.Peek() == OperationType.Array;
+
+            if (!isInArrayContext && string.IsNullOrEmpty(name))
             {
                 // Generate auto-generated name for anonymous members
                 name = $"${_anonymousMemberId++}";
             }
 
-            BeginMember(name);
+            BeginMember(name, isInArrayContext);
         }
 
         /// <inheritdoc />

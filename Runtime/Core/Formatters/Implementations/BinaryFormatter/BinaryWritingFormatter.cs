@@ -70,8 +70,14 @@ namespace EasyToolKit.Serialization.Implementations
         }
 
         /// <inheritdoc />
-        protected override void BeginMember(string name)
+        protected override void BeginMember(string name, bool isInArrayContext)
         {
+            // Skip writing member data in Array context
+            if (isInArrayContext)
+            {
+                return;
+            }
+
             WriteByte((byte)BinaryFormatterTag.MemberBegin);
             WriteBytes(name);
         }
@@ -112,6 +118,7 @@ namespace EasyToolKit.Serialization.Implementations
         /// <inheritdoc />
         public override void Format(ref int value)
         {
+            WriteByte((byte)BinaryFormatterTag.Int32);
             // Use zigzag encoding to handle negative numbers
             uint encoded = (uint)((value << 1) ^ (value >> 31));
             WriteVarint32(encoded);
@@ -120,6 +127,7 @@ namespace EasyToolKit.Serialization.Implementations
         /// <inheritdoc />
         public override void Format(ref sbyte value)
         {
+            WriteByte((byte)BinaryFormatterTag.Int8);
             // Use zigzag encoding to handle negative numbers
             int encoded = (value << 1) ^ (value >> 7);
             WriteByte((byte)encoded);
@@ -128,6 +136,7 @@ namespace EasyToolKit.Serialization.Implementations
         /// <inheritdoc />
         public override void Format(ref short value)
         {
+            WriteByte((byte)BinaryFormatterTag.Int16);
             // Use zigzag encoding to handle negative numbers
             int encoded = (value << 1) ^ (value >> 15);
             WriteVarint32((uint)encoded);
@@ -136,6 +145,7 @@ namespace EasyToolKit.Serialization.Implementations
         /// <inheritdoc />
         public override void Format(ref long value)
         {
+            WriteByte((byte)BinaryFormatterTag.Int64);
             // Use zigzag encoding to handle negative numbers
             ulong encoded = ((ulong)value << 1) ^ (ulong)(value >> 63);
             WriteVarint64(encoded);
@@ -144,54 +154,63 @@ namespace EasyToolKit.Serialization.Implementations
         /// <inheritdoc />
         public override void Format(ref byte value)
         {
+            WriteByte((byte)BinaryFormatterTag.UInt8);
             WriteByte(value);
         }
 
         /// <inheritdoc />
         public override void Format(ref ushort value)
         {
+            WriteByte((byte)BinaryFormatterTag.UInt16);
             WriteVarint32(value);
         }
 
         /// <inheritdoc />
         public override void Format(ref uint value)
         {
+            WriteByte((byte)BinaryFormatterTag.UInt32);
             WriteVarint32(value);
         }
 
         /// <inheritdoc />
         public override void Format(ref ulong value)
         {
+            WriteByte((byte)BinaryFormatterTag.UInt64);
             WriteVarint64(value);
         }
 
         /// <inheritdoc />
         public override void Format(ref bool value)
         {
+            WriteByte((byte)BinaryFormatterTag.Boolean);
             WriteByte(value ? (byte)1 : (byte)0);
         }
 
         /// <inheritdoc />
         public override void Format(ref float value)
         {
+            WriteByte((byte)BinaryFormatterTag.Single);
             WriteSingle(value);
         }
 
         /// <inheritdoc />
         public override void Format(ref double value)
         {
+            WriteByte((byte)BinaryFormatterTag.Double);
             WriteDouble(value);
         }
 
         /// <inheritdoc />
         public override void Format(ref string str)
         {
+            WriteByte((byte)BinaryFormatterTag.String);
             WriteBytes(str);
         }
 
         /// <inheritdoc />
         public override void Format(ref byte[] data)
         {
+            WriteByte((byte)BinaryFormatterTag.ByteArray);
             if (data == null)
             {
                 WriteVarint32(0);
@@ -205,6 +224,7 @@ namespace EasyToolKit.Serialization.Implementations
         /// <inheritdoc />
         public override void Format(ref UnityEngine.Object unityObject)
         {
+            WriteByte((byte)BinaryFormatterTag.UnityObjectRef);
             var index = RegisterReference(unityObject);
             WriteVarint32((uint)index);
         }

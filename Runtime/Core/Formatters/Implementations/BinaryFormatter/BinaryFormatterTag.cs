@@ -1,10 +1,87 @@
 namespace EasyToolKit.Serialization.Implementations
 {
     /// <summary>
-    /// Defines tag bytes used in binary serialization format to mark structure boundaries.
+    /// Defines tag bytes used in binary serialization format to mark structure boundaries and value types.
+    /// Value type tags use 0x00-0x3F range, structure markers use 0x80+ range to distinguish them.
     /// </summary>
     internal enum BinaryFormatterTag : byte
     {
+        #region Value Type Tags (0x10-0x3F)
+
+        /// <summary>
+        /// Tag for 8-bit signed integer (sbyte) values.
+        /// </summary>
+        Int8 = 0x10,
+
+        /// <summary>
+        /// Tag for 16-bit signed integer (short) values.
+        /// </summary>
+        Int16 = 0x11,
+
+        /// <summary>
+        /// Tag for 32-bit signed integer (int) values.
+        /// </summary>
+        Int32 = 0x12,
+
+        /// <summary>
+        /// Tag for 64-bit signed integer (long) values.
+        /// </summary>
+        Int64 = 0x13,
+
+        /// <summary>
+        /// Tag for 8-bit unsigned integer (byte) values.
+        /// </summary>
+        UInt8 = 0x14,
+
+        /// <summary>
+        /// Tag for 16-bit unsigned integer (ushort) values.
+        /// </summary>
+        UInt16 = 0x15,
+
+        /// <summary>
+        /// Tag for 32-bit unsigned integer (uint) values.
+        /// </summary>
+        UInt32 = 0x16,
+
+        /// <summary>
+        /// Tag for 64-bit unsigned integer (ulong) values.
+        /// </summary>
+        UInt64 = 0x17,
+
+        /// <summary>
+        /// Tag for boolean (bool) values.
+        /// </summary>
+        Boolean = 0x18,
+
+        /// <summary>
+        /// Tag for 32-bit floating point (float) values.
+        /// </summary>
+        Single = 0x19,
+
+        /// <summary>
+        /// Tag for 64-bit floating point (double) values.
+        /// </summary>
+        Double = 0x1A,
+
+        /// <summary>
+        /// Tag for string (string) values. Followed by length-prefixed UTF-8 bytes.
+        /// </summary>
+        String = 0x1B,
+
+        /// <summary>
+        /// Tag for byte array (byte[]) values. Followed by length-prefixed bytes.
+        /// </summary>
+        ByteArray = 0x1C,
+
+        /// <summary>
+        /// Tag for Unity object reference values. Followed by varint32 reference index.
+        /// </summary>
+        UnityObjectRef = 0x1D,
+
+        #endregion
+
+        #region Structure Marker Tags (0x80-0xFF)
+
         /// <summary>
         /// Marks the beginning of a member. Always followed by a length-prefixed name string.
         /// Anonymous members use auto-generated names like "$0", "$1", etc.
@@ -30,5 +107,7 @@ namespace EasyToolKit.Serialization.Implementations
         /// Marks the end of an array.
         /// </summary>
         ArrayEnd = 0x84,
+
+        #endregion
     }
 }
