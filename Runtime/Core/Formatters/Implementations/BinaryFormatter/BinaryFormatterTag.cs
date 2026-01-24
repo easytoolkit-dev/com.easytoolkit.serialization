@@ -6,33 +6,29 @@ namespace EasyToolKit.Serialization.Implementations
     internal enum BinaryFormatterTag : byte
     {
         /// <summary>
-        /// Marks the beginning of a member with an empty name.
+        /// Marks the beginning of a member. Always followed by a length-prefixed name string.
+        /// Anonymous members use auto-generated names like "$0", "$1", etc.
         /// </summary>
         MemberBegin = 0x80,
 
         /// <summary>
-        /// Marks the beginning of a member with a name following the tag.
-        /// </summary>
-        NamedMemberBegin = 0x81,
-
-        /// <summary>
         /// Marks the beginning of an object.
         /// </summary>
-        ObjectBegin = 0x82,
+        ObjectBegin = 0x81,
 
         /// <summary>
         /// Marks the end of an object.
         /// </summary>
-        ObjectEnd = 0x83,
+        ObjectEnd = 0x82,
 
         /// <summary>
         /// Marks the beginning of an array.
         /// </summary>
-        ArrayBegin = 0x84,
+        ArrayBegin = 0x83,
 
         /// <summary>
         /// Marks the end of an array.
         /// </summary>
-        ArrayEnd = 0x85,
+        ArrayEnd = 0x84,
     }
 }
