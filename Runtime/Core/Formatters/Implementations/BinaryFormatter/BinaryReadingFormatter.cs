@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace EasyToolKit.Serialization.Implementations
@@ -10,29 +11,50 @@ namespace EasyToolKit.Serialization.Implementations
     /// </summary>
     public sealed class BinaryReadingFormatter : ReadingFormatterBase
     {
-        private readonly BinaryReader _reader;
+        private byte[] _buffer;
         private int _nodeDepth;
 
-        public BinaryReadingFormatter(Stream stream)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BinaryReadingFormatter"/> class
+        /// for object pool reuse. Use <see cref="SetBuffer"/> to set the data.
+        /// </summary>
+        public BinaryReadingFormatter()
         {
-            _reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true);
+            _buffer = Array.Empty<byte>();
             _nodeDepth = 0;
+            _position = 0;
         }
 
         /// <inheritdoc />
         public override SerializationFormat Type => SerializationFormat.Binary;
 
         /// <inheritdoc />
+        public override void SetBuffer(ReadOnlySpan<byte> buffer)
+        {
+            _buffer = buffer.ToArray();
+            _position = 0;
+            _nodeDepth = 0;
+        }
+
+        /// <inheritdoc />
+        public override ReadOnlySpan<byte> GetBuffer() => _buffer;
+
+        /// <inheritdoc />
+        public override int GetPosition() => _position;
+
+        /// <inheritdoc />
+        public override int GetRemainingLength() => _buffer.Length - _position;
+
+        /// <inheritdoc />
         public override void BeginMember(string name)
         {
-            var tag = (BinaryFormatterTag)_reader.ReadByte();
+            var tag = (BinaryFormatterTag)ReadByte();
             if (tag == BinaryFormatterTag.NamedMemberBegin)
             {
                 var length = ReadVarint32();
                 if (length > 0)
                 {
-                    var bytes = _reader.ReadBytes((int)length);
-                    var readName = Encoding.UTF8.GetString(bytes);
+                    var readName = ReadString((int)length);
                     // Verify name matches if provided
                     if (!string.IsNullOrEmpty(name) && readName != name)
                     {
@@ -51,7 +73,7 @@ namespace EasyToolKit.Serialization.Implementations
         /// <inheritdoc />
         protected override void BeginObject()
         {
-            var tag = (BinaryFormatterTag)_reader.ReadByte();
+            var tag = (BinaryFormatterTag)ReadByte();
             if (tag != BinaryFormatterTag.ObjectBegin)
             {
                 throw new InvalidOperationException(
@@ -80,7 +102,7 @@ namespace EasyToolKit.Serialization.Implementations
                     $"Depth mismatch at EndObject. Expected {_nodeDepth}, found {depth}.");
             }
 
-            var tag = (BinaryFormatterTag)_reader.ReadByte();
+            var tag = (BinaryFormatterTag)ReadByte();
             if (tag != BinaryFormatterTag.ObjectEnd)
             {
                 throw new InvalidOperationException(
@@ -91,7 +113,7 @@ namespace EasyToolKit.Serialization.Implementations
         /// <inheritdoc />
         protected override void BeginArray(ref int length)
         {
-            var tag = (BinaryFormatterTag)_reader.ReadByte();
+            var tag = (BinaryFormatterTag)ReadByte();
             if (tag != BinaryFormatterTag.ArrayBegin)
             {
                 throw new InvalidOperationException(
@@ -122,7 +144,7 @@ namespace EasyToolKit.Serialization.Implementations
                     $"Depth mismatch at EndArray. Expected {_nodeDepth}, found {depth}.");
             }
 
-            var tag = (BinaryFormatterTag)_reader.ReadByte();
+            var tag = (BinaryFormatterTag)ReadByte();
             if (tag != BinaryFormatterTag.ArrayEnd)
             {
                 throw new InvalidOperationException(
@@ -142,7 +164,7 @@ namespace EasyToolKit.Serialization.Implementations
         public override void Format(ref sbyte value)
         {
             // Decode zigzag encoding to recover signed byte
-            int encoded = _reader.ReadByte();
+            int encoded = ReadByte();
             value = (sbyte)((encoded >> 1) ^ -(encoded & 1));
         }
 
@@ -168,7 +190,7 @@ namespace EasyToolKit.Serialization.Implementations
         /// <inheritdoc />
         public override void Format(ref byte value)
         {
-            value = _reader.ReadByte();
+            value = ReadByte();
         }
 
         /// <inheritdoc />
@@ -192,20 +214,20 @@ namespace EasyToolKit.Serialization.Implementations
         /// <inheritdoc />
         public override void Format(ref bool value)
         {
-            var byteValue = _reader.ReadByte();
+            var byteValue = ReadByte();
             value = byteValue != 0;
         }
 
         /// <inheritdoc />
         public override void Format(ref float value)
         {
-            value = _reader.ReadSingle();
+            value = ReadSingle();
         }
 
         /// <inheritdoc />
         public override void Format(ref double value)
         {
-            value = _reader.ReadDouble();
+            value = ReadDouble();
         }
 
         /// <inheritdoc />
@@ -218,8 +240,26 @@ namespace EasyToolKit.Serialization.Implementations
                 return;
             }
 
-            var bytes = _reader.ReadBytes((int)length);
-            str = Encoding.UTF8.GetString(bytes);
+            str = ReadString((int)length);
+        }
+
+        /// <summary>Reads a UTF-8 string from the buffer with the specified byte length.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private string ReadString(int byteCount)
+        {
+            if (byteCount < 0)
+                throw new ArgumentOutOfRangeException(nameof(byteCount), "Byte count cannot be negative.");
+            if (_position + byteCount > _buffer.Length)
+                throw new EndOfStreamException($"Attempted to read {byteCount} bytes but only {_buffer.Length - _position} bytes available.");
+
+            unsafe
+            {
+                fixed (byte* bytePtr = &_buffer[_position])
+                {
+                    _position += byteCount;
+                    return Encoding.UTF8.GetString(bytePtr, byteCount);
+                }
+            }
         }
 
         /// <inheritdoc />
@@ -232,7 +272,7 @@ namespace EasyToolKit.Serialization.Implementations
                 return;
             }
 
-            data = _reader.ReadBytes((int)length);
+            data = ReadBytes((int)length).ToArray();
         }
 
         /// <inheritdoc />
@@ -242,36 +282,146 @@ namespace EasyToolKit.Serialization.Implementations
             unityObject = ResolveReference((int)index);
         }
 
+        /// <summary>Reads a single byte from the buffer.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private byte ReadByte()
+        {
+            if (_position >= _buffer.Length)
+                throw new EndOfStreamException("Attempted to read past the end of the buffer.");
+            return _buffer[_position++];
+        }
+
+        /// <summary>Reads the specified number of bytes from the buffer.</summary>
+        private ReadOnlySpan<byte> ReadBytes(int count)
+        {
+            if (count < 0)
+                throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be negative.");
+            if (_position + count > _buffer.Length)
+                throw new EndOfStreamException($"Attempted to read {count} bytes but only {_buffer.Length - _position} bytes available.");
+
+            var result = _buffer.AsSpan(_position, count);
+            _position += count;
+            return result;
+        }
+
         /// <summary>Reads a 32-bit unsigned integer using variable-length decoding.</summary>
-        /// <returns>The decoded value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private uint ReadVarint32()
         {
             uint value = 0;
             int shift = 0;
-            byte b;
-            do
-            {
-                b = _reader.ReadByte();
-                value |= (uint)(b & 0x7F) << shift;
-                shift += 7;
-            } while ((b & 0x80) != 0);
-            return value;
+
+            // Unrolled loop for performance (handles up to 5 bytes inline)
+            if (_position >= _buffer.Length)
+                throw new EndOfStreamException("Attempted to read past the end of the buffer.");
+
+            byte b = _buffer[_position++];
+            value = (uint)(b & 0x7F);
+            if ((b & 0x80) == 0) return value;
+
+            if (_position >= _buffer.Length)
+                throw new EndOfStreamException("Attempted to read past the end of the buffer.");
+
+            b = _buffer[_position++];
+            value |= (uint)(b & 0x7F) << 7;
+            if ((b & 0x80) == 0) return value;
+
+            if (_position >= _buffer.Length)
+                throw new EndOfStreamException("Attempted to read past the end of the buffer.");
+
+            b = _buffer[_position++];
+            value |= (uint)(b & 0x7F) << 14;
+            if ((b & 0x80) == 0) return value;
+
+            if (_position >= _buffer.Length)
+                throw new EndOfStreamException("Attempted to read past the end of the buffer.");
+
+            b = _buffer[_position++];
+            value |= (uint)(b & 0x7F) << 21;
+            if ((b & 0x80) == 0) return value;
+
+            if (_position >= _buffer.Length)
+                throw new EndOfStreamException("Attempted to read past the end of the buffer.");
+
+            b = _buffer[_position++];
+            value |= (uint)(b & 0x7F) << 28;
+            if ((b & 0x80) == 0) return value;
+
+            throw new InvalidDataException("Invalid varint32: too many bytes.");
         }
 
         /// <summary>Reads a 64-bit unsigned integer using variable-length decoding.</summary>
-        /// <returns>The decoded value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ulong ReadVarint64()
         {
             ulong value = 0;
             int shift = 0;
             byte b;
+
+            // Optimized loop for 64-bit varint
             do
             {
-                b = _reader.ReadByte();
+                if (_position >= _buffer.Length)
+                    throw new EndOfStreamException("Attempted to read past the end of the buffer.");
+
+                b = _buffer[_position++];
+
+                if (shift >= 64)
+                    throw new InvalidDataException("Invalid varint64: too many bytes.");
+
                 value |= (ulong)(b & 0x7F) << shift;
                 shift += 7;
             } while ((b & 0x80) != 0);
+
             return value;
+        }
+
+        /// <summary>Reads a 32-bit float from the buffer.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private float ReadSingle()
+        {
+            const int size = sizeof(float);
+            if (_position + size > _buffer.Length)
+                throw new EndOfStreamException($"Attempted to read {size} bytes but only {_buffer.Length - _position} bytes available.");
+
+            // Use unsafe for direct conversion from bytes
+            unsafe
+            {
+                uint value =
+                    (uint)_buffer[_position] |
+                    (uint)_buffer[_position + 1] << 8 |
+                    (uint)_buffer[_position + 2] << 16 |
+                    (uint)_buffer[_position + 3] << 24;
+                _position += size;
+                return *(float*)&value;
+            }
+        }
+
+        /// <summary>Reads a 64-bit double from the buffer.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private double ReadDouble()
+        {
+            const int size = sizeof(double);
+            if (_position + size > _buffer.Length)
+                throw new EndOfStreamException($"Attempted to read {size} bytes but only {_buffer.Length - _position} bytes available.");
+
+            // Use unsafe for direct conversion from bytes
+            unsafe
+            {
+                ulong low =
+                    (ulong)_buffer[_position] |
+                    (ulong)_buffer[_position + 1] << 8 |
+                    (ulong)_buffer[_position + 2] << 16 |
+                    (ulong)_buffer[_position + 3] << 24;
+                ulong high =
+                    (ulong)_buffer[_position + 4] |
+                    (ulong)_buffer[_position + 5] << 8 |
+                    (ulong)_buffer[_position + 6] << 16 |
+                    (ulong)_buffer[_position + 7] << 24;
+                _position += size;
+                ulong value = low | (high << 32);
+                return *(double*)&value;
+            }
         }
     }
 }

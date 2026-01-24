@@ -18,7 +18,11 @@ namespace EasyToolKit.Serialization.Implementations
             Array
         }
 
+        /// <summary>The current read position in bytes within the buffer.</summary>
+        protected int _position;
+
         [CanBeNull] private IReadOnlyList<UnityEngine.Object> _objectTable;
+        private byte[] _buffer;
         private readonly Stack<OperationType> _operationStack = new();
 
         /// <inheritdoc />
@@ -26,6 +30,22 @@ namespace EasyToolKit.Serialization.Implementations
 
         /// <inheritdoc />
         public FormatterOperation Operation => FormatterOperation.Read;
+
+        /// <inheritdoc />
+        public virtual void SetBuffer(ReadOnlySpan<byte> buffer)
+        {
+            _buffer = buffer.ToArray();
+            _position = 0;
+        }
+
+        /// <inheritdoc />
+        public virtual ReadOnlySpan<byte> GetBuffer() => _buffer;
+
+        /// <inheritdoc />
+        public virtual int GetPosition() => _position;
+
+        /// <inheritdoc />
+        public virtual int GetRemainingLength() => _buffer.Length - _position;
 
         /// <inheritdoc />
         public void SetObjectTable(IReadOnlyList<UnityEngine.Object> objects)
