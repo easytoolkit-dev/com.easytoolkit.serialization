@@ -1,4 +1,5 @@
 using System;
+using EasyToolKit.Core.Pooling;
 
 namespace EasyToolKit.Serialization.Implementations
 {
@@ -8,27 +9,22 @@ namespace EasyToolKit.Serialization.Implementations
     /// </summary>
     public sealed class FormatterFactory : IFormatterFactory
     {
-        /// <summary>
-        /// Gets the default initial capacity for writing formatters.
-        /// </summary>
-        private const int DefaultInitialCapacity = 1024;
-
         /// <inheritdoc />
-        public IReadingFormatter CreateReader(SerializationFormat type, ReadOnlySpan<byte> buffer)
+        public IReadingFormatter GetReader(SerializationFormat type)
         {
             return type switch
             {
-                SerializationFormat.Binary => new BinaryReadingFormatter(),
+                SerializationFormat.Binary => PoolUtility.RentObject<BinaryReadingFormatter>(),
                 _ => throw new ArgumentException($"Unsupported formatter type: {type}")
             };
         }
 
         /// <inheritdoc />
-        public IWritingFormatter CreateWriter(SerializationFormat type, int initialCapacity = DefaultInitialCapacity)
+        public IWritingFormatter GetWriter(SerializationFormat type)
         {
             return type switch
             {
-                SerializationFormat.Binary => new BinaryWritingFormatter(initialCapacity),
+                SerializationFormat.Binary => PoolUtility.RentObject<BinaryWritingFormatter>(),
                 _ => throw new ArgumentException($"Unsupported formatter type: {type}")
             };
         }

@@ -31,8 +31,8 @@ namespace EasyToolKit.Serialization
 
             var valueType = value.GetType();
             // Create writing formatter with internal buffer
-            var formatter = SerializationEnvironment.Instance.GetFactory<IFormatterFactory>()
-                .CreateWriter(format);
+            using var formatter = SerializationEnvironment.Instance.GetFactory<IFormatterFactory>()
+                .GetWriter(format);
             if (formatter == null)
             {
                 throw new SerializationException(
@@ -122,8 +122,8 @@ namespace EasyToolKit.Serialization
             }
 
             object result = null;
-            var formatter = SerializationEnvironment.Instance.GetFactory<IFormatterFactory>()
-                .CreateReader(format, buffer);
+            using var formatter = SerializationEnvironment.Instance.GetFactory<IFormatterFactory>()
+                .GetReader(format);
             if (formatter == null)
             {
                 throw new SerializationException(

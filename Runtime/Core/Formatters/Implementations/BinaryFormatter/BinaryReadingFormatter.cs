@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
+using EasyToolKit.Core.Pooling;
 
 namespace EasyToolKit.Serialization.Implementations
 {
@@ -11,6 +12,7 @@ namespace EasyToolKit.Serialization.Implementations
     /// </summary>
     public sealed class BinaryReadingFormatter : ReadingFormatterBase
     {
+        private int _position;
         private byte[] _buffer;
         private int _nodeDepth;
 
@@ -422,6 +424,16 @@ namespace EasyToolKit.Serialization.Implementations
                 ulong value = low | (high << 32);
                 return *(double*)&value;
             }
+        }
+
+        /// <inheritdoc />
+        public override void Dispose()
+        {
+            Array.Clear(_buffer, 0, _buffer.Length);
+            _position = 0;
+            _nodeDepth = 0;
+            PoolUtility.ReleaseObject(this);
+            base.Dispose();
         }
     }
 }

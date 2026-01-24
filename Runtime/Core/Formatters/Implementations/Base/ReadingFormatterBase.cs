@@ -18,11 +18,7 @@ namespace EasyToolKit.Serialization.Implementations
             Array
         }
 
-        /// <summary>The current read position in bytes within the buffer.</summary>
-        protected int _position;
-
         [CanBeNull] private IReadOnlyList<UnityEngine.Object> _objectTable;
-        private byte[] _buffer;
         private readonly Stack<OperationType> _operationStack = new();
 
         /// <inheritdoc />
@@ -30,22 +26,6 @@ namespace EasyToolKit.Serialization.Implementations
 
         /// <inheritdoc />
         public FormatterOperation Operation => FormatterOperation.Read;
-
-        /// <inheritdoc />
-        public virtual void SetBuffer(ReadOnlySpan<byte> buffer)
-        {
-            _buffer = buffer.ToArray();
-            _position = 0;
-        }
-
-        /// <inheritdoc />
-        public virtual ReadOnlySpan<byte> GetBuffer() => _buffer;
-
-        /// <inheritdoc />
-        public virtual int GetPosition() => _position;
-
-        /// <inheritdoc />
-        public virtual int GetRemainingLength() => _buffer.Length - _position;
 
         /// <inheritdoc />
         public void SetObjectTable(IReadOnlyList<UnityEngine.Object> objects)
@@ -60,6 +40,18 @@ namespace EasyToolKit.Serialization.Implementations
                 return null;
             return _objectTable[index - 1];
         }
+
+        /// <inheritdoc />
+        public abstract void SetBuffer(ReadOnlySpan<byte> buffer);
+
+        /// <inheritdoc />
+        public abstract ReadOnlySpan<byte> GetBuffer();
+
+        /// <inheritdoc />
+        public abstract int GetPosition();
+
+        /// <inheritdoc />
+        public abstract int GetRemainingLength();
 
         public abstract void BeginMember(string name);
 
@@ -163,7 +155,7 @@ namespace EasyToolKit.Serialization.Implementations
         }
 
         /// <inheritdoc />
-        public void Dispose()
+        public virtual void Dispose()
         {
             if (_operationStack.Count > 0)
             {
