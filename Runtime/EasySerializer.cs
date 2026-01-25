@@ -48,6 +48,7 @@ namespace EasyToolKit.Serialization
                     $"Ensure the type is either a primitive type, a collection, or marked with [Serializable] or [EasySerializable].");
             }
 
+            processor.IsRoot = true;
             processor.ProcessUntyped(ref value, formatter);
 
             var objectTable = formatter.GetObjectTable();
@@ -144,6 +145,7 @@ namespace EasyToolKit.Serialization
                     $"Ensure the type is either a primitive type, a collection, or marked with [Serializable] or [EasySerializable].");
             }
 
+            processor.IsRoot = true;
             processor.ProcessUntyped(ref result, formatter);
 
             return result;

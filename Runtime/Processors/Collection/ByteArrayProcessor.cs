@@ -5,7 +5,7 @@
     {
         public override void Process(string name, ref byte[] value, IDataFormatter formatter)
         {
-            formatter.BeginMember(name);
+            if (!IsRoot) formatter.BeginMember(name);
             formatter.Format(ref value);
         }
     }
