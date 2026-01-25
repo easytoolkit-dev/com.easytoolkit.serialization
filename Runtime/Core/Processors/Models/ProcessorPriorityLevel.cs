@@ -8,22 +8,22 @@ namespace EasyToolKit.Serialization.Processors
         Generic = -5000,
 
         /// <summary>
-        /// System basic types serializer (arrays, enums, Type, etc.).
+        /// System types serializer.
         /// </summary>
-        SystemBasic = -4000,
+        System = -4000,
 
         /// <summary>
-        /// Unity object serializer.
+        /// Collection types serializer.
         /// </summary>
-        UnityObject = -3000,
+        Collection = -3000,
 
         /// <summary>
-        /// Unity basic type serializer (Vector, Color, etc.).
+        /// Unity types serializer.
         /// </summary>
-        UnityBasic = -2000,
+        Unity = -2000,
 
         /// <summary>
-        /// Primitive type serializer (int, float, bool, string, etc.).
+        /// Primitive types serializer.
         /// </summary>
         Primitive = -1000,
 

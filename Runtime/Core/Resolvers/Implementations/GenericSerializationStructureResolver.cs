@@ -17,9 +17,7 @@ namespace EasyToolKit.Serialization.Resolvers.Implementations
         public bool CanResolve(Type valueType)
         {
             return !valueType.IsBasicValueType() &&
-                   !valueType.IsSubclassOf(typeof(UnityEngine.Object)) &&
-                   (valueType.IsDefined<SerializableAttribute>() ||
-                    SerializedTypeUtility.GetDefinedEasySerializableAttribute(valueType) != null);
+                   !valueType.IsSubclassOf(typeof(UnityEngine.Object));
         }
 
         public SerializationMemberDefinition[] Resolve(Type valueType)

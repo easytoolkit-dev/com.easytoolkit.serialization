@@ -3,7 +3,7 @@ using EasyToolKit.Serialization.Formatters;
 
 namespace EasyToolKit.Serialization.Processors
 {
-    [ProcessorConfiguration(ProcessorPriorityLevel.SystemBasic + 1)]
+    [ProcessorConfiguration(ProcessorPriorityLevel.Collection)]
     public class ArrayProcessor<T> : SerializationProcessor<T[]>
     {
         [DependencyProcessor]

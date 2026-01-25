@@ -113,6 +113,16 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// </summary>
         UnityObjectRef = 0x24,
 
+        /// <summary>
+        /// Tag for generic unmanaged values (custom structs, enums). Followed by raw bytes.
+        /// </summary>
+        UnmanagedValue = 0x25,
+
+        /// <summary>
+        /// Tag for generic unmanaged array values (custom struct arrays, enum arrays). Followed by length-prefixed raw bytes.
+        /// </summary>
+        UnmanagedArray = 0x26,
+
         #endregion
 
         #region Structure Marker Tags (0x80-0xFF)

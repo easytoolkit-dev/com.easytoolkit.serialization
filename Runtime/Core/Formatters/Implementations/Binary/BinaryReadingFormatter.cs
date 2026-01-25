@@ -25,7 +25,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         }
 
         /// <inheritdoc />
-        public override SerializationFormat Type => SerializationFormat.Binary;
+        public override SerializationFormat FormatType => SerializationFormat.Binary;
 
         /// <summary>
         /// Gets the formatter options from settings, or Default if settings is not a BinaryFormatterSettings.
@@ -612,6 +612,43 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             }
             var index = ReadVarint32();
             unityObject = ResolveReference((int)index);
+        }
+
+        /// <inheritdoc />
+        public override void FormatGenericPrimitive<T>(ref T value)
+        {
+            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
+            {
+                var tag = (BinaryFormatterTag)ReadByte();
+                if (tag != BinaryFormatterTag.UnmanagedValue)
+                {
+                    throw new InvalidOperationException(
+                        $"Invalid type tag for unmanaged value. Expected {BinaryFormatterTag.UnmanagedValue}, found {tag}.");
+                }
+            }
+            value = ReadPrimitiveValue<T>();
+        }
+
+        /// <inheritdoc />
+        public override void FormatGenericPrimitive<T>(ref T[] data)
+        {
+            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
+            {
+                var tag = (BinaryFormatterTag)ReadByte();
+                if (tag != BinaryFormatterTag.UnmanagedArray)
+                {
+                    throw new InvalidOperationException(
+                        $"Invalid type tag for unmanaged array. Expected {BinaryFormatterTag.UnmanagedArray}, found {tag}.");
+                }
+            }
+            var length = ReadVarint32();
+            if (length == 0)
+            {
+                data = Array.Empty<T>();
+                return;
+            }
+
+            data = ReadPrimitiveArray<T>((int)length);
         }
 
         /// <inheritdoc />
