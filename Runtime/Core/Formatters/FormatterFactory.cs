@@ -1,26 +1,41 @@
 using System;
 using EasyToolKit.Core.Pooling;
+using JetBrains.Annotations;
 
 namespace EasyToolKit.Serialization.Formatters
 {
     public static class FormatterFactory
     {
-        public static IReadingFormatter GetReader(SerializationFormat type)
+        public static IReadingFormatter GetReader(SerializationFormat type, [NotNull] SerializationSettings settings)
         {
-            return type switch
+            if (settings == null)
+                throw new ArgumentNullException(nameof(settings));
+            switch (type)
             {
-                SerializationFormat.Binary => PoolUtility.RentObject<Implementations.BinaryReadingFormatter>(),
-                _ => throw new ArgumentException($"Unsupported formatter type: {type}")
-            };
+                case SerializationFormat.Binary:
+                {
+                    var formatter = PoolUtility.RentObject<Implementations.BinaryReadingFormatter>();
+                    formatter.Settings = settings.BinaryFormatterSettings;
+                    return formatter;
+                }
+                default:
+                    throw new ArgumentException($"Unsupported formatter type: {type}");
+            }
         }
 
-        public static IWritingFormatter GetWriter(SerializationFormat type)
+        public static IWritingFormatter GetWriter(SerializationFormat type, [NotNull] SerializationSettings settings)
         {
-            return type switch
+            if (settings == null)
+                throw new ArgumentNullException(nameof(settings));
+            switch (type)
             {
-                SerializationFormat.Binary => PoolUtility.RentObject<Implementations.BinaryWritingFormatter>(),
-                _ => throw new ArgumentException($"Unsupported formatter type: {type}")
-            };
+                case SerializationFormat.Binary:
+                    var formatter = PoolUtility.RentObject<Implementations.BinaryWritingFormatter>();
+                    formatter.Settings = settings.BinaryFormatterSettings;
+                    return formatter;
+                default:
+                    throw new ArgumentException($"Unsupported formatter type: {type}");
+            }
         }
     }
 }

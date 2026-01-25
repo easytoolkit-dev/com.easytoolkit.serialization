@@ -121,6 +121,63 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             return value;
         }
 
+        /// <summary>Reads a 16-bit unsigned integer using fixed-width encoding (2 bytes).</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private ushort ReadUInt16Fixed()
+        {
+            const int size = 2;
+            if (_position + size > _buffer.Length)
+                throw new EndOfStreamException(
+                    $"Attempted to read {size} bytes but only {_buffer.Length - _position} bytes available.");
+
+            ushort value = (ushort)(
+                _buffer[_position] |
+                (_buffer[_position + 1] << 8));
+            _position += size;
+            return value;
+        }
+
+        /// <summary>Reads a 32-bit unsigned integer using fixed-width encoding (4 bytes).</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private uint ReadUInt32Fixed()
+        {
+            const int size = 4;
+            if (_position + size > _buffer.Length)
+                throw new EndOfStreamException(
+                    $"Attempted to read {size} bytes but only {_buffer.Length - _position} bytes available.");
+
+            uint value =
+                (uint)_buffer[_position] |
+                (uint)_buffer[_position + 1] << 8 |
+                (uint)_buffer[_position + 2] << 16 |
+                (uint)_buffer[_position + 3] << 24;
+            _position += size;
+            return value;
+        }
+
+        /// <summary>Reads a 64-bit unsigned integer using fixed-width encoding (8 bytes).</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private ulong ReadUInt64Fixed()
+        {
+            const int size = 8;
+            if (_position + size > _buffer.Length)
+                throw new EndOfStreamException(
+                    $"Attempted to read {size} bytes but only {_buffer.Length - _position} bytes available.");
+
+            ulong low =
+                (ulong)_buffer[_position] |
+                (ulong)_buffer[_position + 1] << 8 |
+                (ulong)_buffer[_position + 2] << 16 |
+                (ulong)_buffer[_position + 3] << 24;
+            ulong high =
+                (ulong)_buffer[_position + 4] |
+                (ulong)_buffer[_position + 5] << 8 |
+                (ulong)_buffer[_position + 6] << 16 |
+                (ulong)_buffer[_position + 7] << 24;
+            _position += size;
+            return low | (high << 32);
+        }
+
         /// <summary>Reads a 32-bit float from the buffer.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private float ReadSingle()

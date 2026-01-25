@@ -29,6 +29,11 @@ namespace EasyToolKit.Serialization.Formatters
         SerializationFormat Type { get; }
 
         /// <summary>
+        /// Gets or sets the formatter-specific settings for this formatter.
+        /// </summary>
+        DataFormatterSettings Settings { get; set; }
+
+        /// <summary>
         /// Gets the operation type (Read or Write) performed by this formatter.
         /// </summary>
         FormatterOperation Operation { get; }

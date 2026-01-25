@@ -13,17 +13,17 @@ namespace EasyToolKit.Serialization
         /// <summary>
         /// Serializes the specified value using the specified format and populates the serialization data.
         /// </summary>
-        public static void Serialize<T>(ref T value, SerializationFormat format, ref SerializationData serializationData)
+        public static void Serialize<T>(ref T value, SerializationFormat format, ref SerializationData serializationData, SerializationSettings settings = null)
         {
             var untypedValue = (object)value;
-            Serialize(untypedValue, format, ref serializationData);
+            Serialize(untypedValue, format, ref serializationData, settings);
             value = (T)untypedValue;
         }
 
         /// <summary>
         /// Serializes the specified value using the specified format and populates the serialization data.
         /// </summary>
-        public static void Serialize(object value, SerializationFormat format, ref SerializationData serializationData)
+        public static void Serialize(object value, SerializationFormat format, ref SerializationData serializationData, SerializationSettings settings = null)
         {
             if (value == null)
             {
@@ -31,9 +31,10 @@ namespace EasyToolKit.Serialization
                 return;
             }
 
+            settings ??= SerializationSettings.Default;
             var valueType = value.GetType();
             // Create writing formatter with internal buffer
-            using var formatter = FormatterFactory.GetWriter(format);
+            using var formatter = FormatterFactory.GetWriter(format, settings);
             if (formatter == null)
             {
                 throw new SerializationException(
@@ -66,19 +67,19 @@ namespace EasyToolKit.Serialization
         /// <summary>
         /// Serializes the specified value to binary format.
         /// </summary>
-        public static byte[] SerializeToBinary(object value)
+        public static byte[] SerializeToBinary(object value, SerializationSettings settings = null)
         {
             List<UnityEngine.Object> referencedUnityObjects = null;
-            return SerializeToBinary(value, ref referencedUnityObjects);
+            return SerializeToBinary(value, ref referencedUnityObjects, settings);
         }
 
         /// <summary>
         /// Serializes the specified value to binary format and captures referenced Unity objects.
         /// </summary>
-        public static byte[] SerializeToBinary(object value, ref List<UnityEngine.Object> referencedUnityObjects)
+        public static byte[] SerializeToBinary(object value, ref List<UnityEngine.Object> referencedUnityObjects, SerializationSettings settings = null)
         {
             var serializationData = new SerializationData(Array.Empty<byte>(), referencedUnityObjects);
-            Serialize(value, SerializationFormat.Binary, ref serializationData);
+            Serialize(value, SerializationFormat.Binary, ref serializationData, settings);
             referencedUnityObjects = serializationData.ReferencedUnityObjects;
             return serializationData.BinaryData;
         }
@@ -86,19 +87,19 @@ namespace EasyToolKit.Serialization
         /// <summary>
         /// Serializes the specified value to binary format.
         /// </summary>
-        public static byte[] SerializeToBinary<T>(ref T value)
+        public static byte[] SerializeToBinary<T>(ref T value, SerializationSettings settings = null)
         {
             List<UnityEngine.Object> referencedUnityObjects = null;
-            return SerializeToBinary(ref value, ref referencedUnityObjects);
+            return SerializeToBinary(ref value, ref referencedUnityObjects, settings);
         }
 
         /// <summary>
         /// Serializes the specified value to binary format and captures referenced Unity objects.
         /// </summary>
-        public static byte[] SerializeToBinary<T>(ref T value, ref List<UnityEngine.Object> referencedUnityObjects)
+        public static byte[] SerializeToBinary<T>(ref T value, ref List<UnityEngine.Object> referencedUnityObjects, SerializationSettings settings = null)
         {
             var serializationData = new SerializationData(Array.Empty<byte>(), referencedUnityObjects);
-            Serialize(ref value, SerializationFormat.Binary, ref serializationData);
+            Serialize(ref value, SerializationFormat.Binary, ref serializationData, settings);
             referencedUnityObjects = serializationData.ReferencedUnityObjects;
             return serializationData.BinaryData;
         }
@@ -106,15 +107,15 @@ namespace EasyToolKit.Serialization
         /// <summary>
         /// Deserializes a value of the specified type from the serialization data.
         /// </summary>
-        public static T Deserialize<T>(SerializationFormat format, ref SerializationData serializationData)
+        public static T Deserialize<T>(SerializationFormat format, ref SerializationData serializationData, SerializationSettings settings = null)
         {
-            return (T)Deserialize(typeof(T), format, ref serializationData);
+            return (T)Deserialize(typeof(T), format, ref serializationData, settings);
         }
 
         /// <summary>
         /// Deserializes a value of the specified type from the serialization data.
         /// </summary>
-        public static object Deserialize(Type type, SerializationFormat format, ref SerializationData serializationData)
+        public static object Deserialize(Type type, SerializationFormat format, ref SerializationData serializationData, SerializationSettings settings = null)
         {
             var buffer = serializationData.GetBuffer(format);
             if (buffer == null)
@@ -122,8 +123,9 @@ namespace EasyToolKit.Serialization
                 return null;
             }
 
+            settings ??= SerializationSettings.Default;
             object result = null;
-            using var formatter = FormatterFactory.GetReader(format);
+            using var formatter = FormatterFactory.GetReader(format, settings);
             if (formatter == null)
             {
                 throw new SerializationException(
@@ -152,35 +154,35 @@ namespace EasyToolKit.Serialization
         /// <summary>
         /// Deserializes a value of the specified type from binary data.
         /// </summary>
-        public static object DeserializeFromBinary(Type type, byte[] data)
+        public static object DeserializeFromBinary(Type type, byte[] data, SerializationSettings settings = null)
         {
-            return DeserializeFromBinary(type, data, null);
+            return DeserializeFromBinary(type, data, null, settings);
         }
 
         /// <summary>
         /// Deserializes a value of the specified type from binary data with referenced Unity objects.
         /// </summary>
-        public static object DeserializeFromBinary(Type type, byte[] data, List<UnityEngine.Object> referencedUnityObjects)
+        public static object DeserializeFromBinary(Type type, byte[] data, List<UnityEngine.Object> referencedUnityObjects, SerializationSettings settings = null)
         {
             var serializationData = new SerializationData(data, referencedUnityObjects);
-            return Deserialize(type, SerializationFormat.Binary, ref serializationData);
+            return Deserialize(type, SerializationFormat.Binary, ref serializationData, settings);
         }
 
         /// <summary>
         /// Deserializes a value of type T from binary data.
         /// </summary>
-        public static T DeserializeFromBinary<T>(byte[] data)
+        public static T DeserializeFromBinary<T>(byte[] data, SerializationSettings settings = null)
         {
-            return DeserializeFromBinary<T>(data, null);
+            return DeserializeFromBinary<T>(data, null, settings);
         }
 
         /// <summary>
         /// Deserializes a value of type T from binary data with referenced Unity objects.
         /// </summary>
-        public static T DeserializeFromBinary<T>(byte[] data, List<UnityEngine.Object> referencedUnityObjects)
+        public static T DeserializeFromBinary<T>(byte[] data, List<UnityEngine.Object> referencedUnityObjects, SerializationSettings settings = null)
         {
             var serializationData = new SerializationData(data, referencedUnityObjects);
-            return Deserialize<T>(SerializationFormat.Binary, ref serializationData);
+            return Deserialize<T>(SerializationFormat.Binary, ref serializationData, settings);
         }
     }
 }

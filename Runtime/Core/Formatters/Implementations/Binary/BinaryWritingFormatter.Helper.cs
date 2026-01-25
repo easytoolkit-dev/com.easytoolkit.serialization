@@ -46,22 +46,30 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
                 return;
             }
 
-            // Write string length as char count (not byte count)
-            int charCount = str.Length;
-            WriteVarint32((uint)charCount);
-
-            // Calculate byte count (2 bytes per char)
-            int byteCount = charCount * sizeof(char);
-            EnsureCapacity(byteCount);
-
-            fixed (char* charPtr = str)
-            fixed (byte* destPtr = &_buffer[_position])
+            if ((Options & BinaryFormatterOptions.EnableDirectMemoryCopy) != 0)
             {
-                // Copy raw char memory directly without encoding
-                MemoryUtility.FastMemoryCopy(charPtr, destPtr, byteCount);
+                // Current implementation: 2 bytes per char (UTF-16LE)
+                int charCount = str.Length;
+                WriteVarint32((uint)charCount);
+                int byteCount = charCount * sizeof(char);
+                EnsureCapacity(byteCount);
+
+                fixed (char* charPtr = str)
+                fixed (byte* destPtr = &_buffer[_position])
+                {
+                    MemoryUtility.FastMemoryCopy(charPtr, destPtr, byteCount);
+                }
+
+                _position += byteCount;
+            }
+            else
+            {
+                // UTF-8 encoding (smaller for ASCII, but encoding overhead)
+                byte[] utf8Bytes = System.Text.Encoding.UTF8.GetBytes(str);
+                WriteVarint32((uint)utf8Bytes.Length);
+                WriteBytes(utf8Bytes);
             }
 
-            _position += byteCount;
             if (_position > _length)
                 _length = _position;
         }
@@ -136,6 +144,50 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
                 _buffer[_position++] = buffer[i];
             }
 
+            if (_position > _length)
+                _length = _position;
+        }
+
+        /// <summary>Writes a 16-bit unsigned integer using fixed-width encoding (2 bytes).</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void WriteUInt16Fixed(ushort value)
+        {
+            const int size = 2;
+            EnsureCapacity(size);
+            _buffer[_position++] = (byte)value;
+            _buffer[_position++] = (byte)(value >> 8);
+            if (_position > _length)
+                _length = _position;
+        }
+
+        /// <summary>Writes a 32-bit unsigned integer using fixed-width encoding (4 bytes).</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void WriteUInt32Fixed(uint value)
+        {
+            const int size = 4;
+            EnsureCapacity(size);
+            _buffer[_position++] = (byte)value;
+            _buffer[_position++] = (byte)(value >> 8);
+            _buffer[_position++] = (byte)(value >> 16);
+            _buffer[_position++] = (byte)(value >> 24);
+            if (_position > _length)
+                _length = _position;
+        }
+
+        /// <summary>Writes a 64-bit unsigned integer using fixed-width encoding (8 bytes).</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void WriteUInt64Fixed(ulong value)
+        {
+            const int size = 8;
+            EnsureCapacity(size);
+            _buffer[_position++] = (byte)value;
+            _buffer[_position++] = (byte)(value >> 8);
+            _buffer[_position++] = (byte)(value >> 16);
+            _buffer[_position++] = (byte)(value >> 24);
+            _buffer[_position++] = (byte)(value >> 32);
+            _buffer[_position++] = (byte)(value >> 40);
+            _buffer[_position++] = (byte)(value >> 48);
+            _buffer[_position++] = (byte)(value >> 56);
             if (_position > _length)
                 _length = _position;
         }
