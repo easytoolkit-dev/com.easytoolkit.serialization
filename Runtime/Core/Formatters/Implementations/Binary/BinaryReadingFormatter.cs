@@ -445,6 +445,160 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         }
 
         /// <inheritdoc />
+        public override void Format(ref sbyte[] data)
+        {
+            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
+            {
+                var tag = (BinaryFormatterTag)ReadByte();
+                if (tag != BinaryFormatterTag.SByteArray)
+                {
+                    throw new InvalidOperationException(
+                        $"Invalid type tag for sbyte array. Expected {BinaryFormatterTag.SByteArray}, found {tag}.");
+                }
+            }
+            var length = ReadVarint32();
+            if (length == 0)
+            {
+                data = Array.Empty<sbyte>();
+                return;
+            }
+
+            data = ReadPrimitiveArray<sbyte>((int)length);
+        }
+
+        /// <inheritdoc />
+        public override void Format(ref short[] data)
+        {
+            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
+            {
+                var tag = (BinaryFormatterTag)ReadByte();
+                if (tag != BinaryFormatterTag.Int16Array)
+                {
+                    throw new InvalidOperationException(
+                        $"Invalid type tag for short array. Expected {BinaryFormatterTag.Int16Array}, found {tag}.");
+                }
+            }
+            var length = ReadVarint32();
+            if (length == 0)
+            {
+                data = Array.Empty<short>();
+                return;
+            }
+
+            data = ReadPrimitiveArray<short>((int)length);
+        }
+
+        /// <inheritdoc />
+        public override void Format(ref int[] data)
+        {
+            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
+            {
+                var tag = (BinaryFormatterTag)ReadByte();
+                if (tag != BinaryFormatterTag.Int32Array)
+                {
+                    throw new InvalidOperationException(
+                        $"Invalid type tag for int array. Expected {BinaryFormatterTag.Int32Array}, found {tag}.");
+                }
+            }
+            var length = ReadVarint32();
+            if (length == 0)
+            {
+                data = Array.Empty<int>();
+                return;
+            }
+
+            data = ReadPrimitiveArray<int>((int)length);
+        }
+
+        /// <inheritdoc />
+        public override void Format(ref long[] data)
+        {
+            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
+            {
+                var tag = (BinaryFormatterTag)ReadByte();
+                if (tag != BinaryFormatterTag.Int64Array)
+                {
+                    throw new InvalidOperationException(
+                        $"Invalid type tag for long array. Expected {BinaryFormatterTag.Int64Array}, found {tag}.");
+                }
+            }
+            var length = ReadVarint32();
+            if (length == 0)
+            {
+                data = Array.Empty<long>();
+                return;
+            }
+
+            data = ReadPrimitiveArray<long>((int)length);
+        }
+
+        /// <inheritdoc />
+        public override void Format(ref ushort[] data)
+        {
+            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
+            {
+                var tag = (BinaryFormatterTag)ReadByte();
+                if (tag != BinaryFormatterTag.UInt16Array)
+                {
+                    throw new InvalidOperationException(
+                        $"Invalid type tag for ushort array. Expected {BinaryFormatterTag.UInt16Array}, found {tag}.");
+                }
+            }
+            var length = ReadVarint32();
+            if (length == 0)
+            {
+                data = Array.Empty<ushort>();
+                return;
+            }
+
+            data = ReadPrimitiveArray<ushort>((int)length);
+        }
+
+        /// <inheritdoc />
+        public override void Format(ref uint[] data)
+        {
+            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
+            {
+                var tag = (BinaryFormatterTag)ReadByte();
+                if (tag != BinaryFormatterTag.UInt32Array)
+                {
+                    throw new InvalidOperationException(
+                        $"Invalid type tag for uint array. Expected {BinaryFormatterTag.UInt32Array}, found {tag}.");
+                }
+            }
+            var length = ReadVarint32();
+            if (length == 0)
+            {
+                data = Array.Empty<uint>();
+                return;
+            }
+
+            data = ReadPrimitiveArray<uint>((int)length);
+        }
+
+        /// <inheritdoc />
+        public override void Format(ref ulong[] data)
+        {
+            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
+            {
+                var tag = (BinaryFormatterTag)ReadByte();
+                if (tag != BinaryFormatterTag.UInt64Array)
+                {
+                    throw new InvalidOperationException(
+                        $"Invalid type tag for ulong array. Expected {BinaryFormatterTag.UInt64Array}, found {tag}.");
+                }
+            }
+            var length = ReadVarint32();
+            if (length == 0)
+            {
+                data = Array.Empty<ulong>();
+                return;
+            }
+
+            data = ReadPrimitiveArray<ulong>((int)length);
+        }
+
+        /// <inheritdoc />
         public override void Format(ref UnityEngine.Object unityObject)
         {
             if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)

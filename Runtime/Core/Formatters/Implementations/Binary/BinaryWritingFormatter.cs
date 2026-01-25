@@ -317,6 +317,125 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         }
 
         /// <inheritdoc />
+        public override void Format(ref sbyte[] data)
+        {
+            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
+            {
+                WriteByte((byte)BinaryFormatterTag.SByteArray);
+            }
+            if (data == null)
+            {
+                WriteVarint32(0);
+                return;
+            }
+
+            WriteVarint32((uint)data.Length);
+            WritePrimitiveArray(data);
+        }
+
+        /// <inheritdoc />
+        public override void Format(ref short[] data)
+        {
+            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
+            {
+                WriteByte((byte)BinaryFormatterTag.Int16Array);
+            }
+            if (data == null)
+            {
+                WriteVarint32(0);
+                return;
+            }
+
+            WriteVarint32((uint)data.Length);
+            WritePrimitiveArray(data);
+        }
+
+        /// <inheritdoc />
+        public override void Format(ref int[] data)
+        {
+            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
+            {
+                WriteByte((byte)BinaryFormatterTag.Int32Array);
+            }
+            if (data == null)
+            {
+                WriteVarint32(0);
+                return;
+            }
+
+            WriteVarint32((uint)data.Length);
+            WritePrimitiveArray(data);
+        }
+
+        /// <inheritdoc />
+        public override void Format(ref long[] data)
+        {
+            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
+            {
+                WriteByte((byte)BinaryFormatterTag.Int64Array);
+            }
+            if (data == null)
+            {
+                WriteVarint32(0);
+                return;
+            }
+
+            WriteVarint32((uint)data.Length);
+            WritePrimitiveArray(data);
+        }
+
+        /// <inheritdoc />
+        public override void Format(ref ushort[] data)
+        {
+            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
+            {
+                WriteByte((byte)BinaryFormatterTag.UInt16Array);
+            }
+            if (data == null)
+            {
+                WriteVarint32(0);
+                return;
+            }
+
+            WriteVarint32((uint)data.Length);
+            WritePrimitiveArray(data);
+        }
+
+        /// <inheritdoc />
+        public override void Format(ref uint[] data)
+        {
+            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
+            {
+                WriteByte((byte)BinaryFormatterTag.UInt32Array);
+            }
+            if (data == null)
+            {
+                WriteVarint32(0);
+                return;
+            }
+
+            WriteVarint32((uint)data.Length);
+            WritePrimitiveArray(data);
+        }
+
+        /// <inheritdoc />
+        public override void Format(ref ulong[] data)
+        {
+            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
+            {
+                WriteByte((byte)BinaryFormatterTag.UInt64Array);
+            }
+            if (data == null)
+            {
+                WriteVarint32(0);
+                return;
+            }
+
+            WriteVarint32((uint)data.Length);
+            WritePrimitiveArray(data);
+        }
+
+        /// <inheritdoc />
         public override void Format(ref UnityEngine.Object unityObject)
         {
             if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)

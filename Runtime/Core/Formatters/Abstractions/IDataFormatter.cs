@@ -169,6 +169,76 @@ namespace EasyToolKit.Serialization.Formatters
         void Format(ref byte[] data);
 
         /// <summary>
+        /// Serializes or deserializes an sbyte array.
+        /// </summary>
+        /// <param name="data">The sbyte array to read or write.</param>
+        /// <remarks>
+        /// Null arrays are supported. The format determines how array length and
+        /// content are encoded.
+        /// </remarks>
+        void Format(ref sbyte[] data);
+
+        /// <summary>
+        /// Serializes or deserializes a short array.
+        /// </summary>
+        /// <param name="data">The short array to read or write.</param>
+        /// <remarks>
+        /// Null arrays are supported. The format determines how array length and
+        /// content are encoded.
+        /// </remarks>
+        void Format(ref short[] data);
+
+        /// <summary>
+        /// Serializes or deserializes an int array.
+        /// </summary>
+        /// <param name="data">The int array to read or write.</param>
+        /// <remarks>
+        /// Null arrays are supported. The format determines how array length and
+        /// content are encoded.
+        /// </remarks>
+        void Format(ref int[] data);
+
+        /// <summary>
+        /// Serializes or deserializes a long array.
+        /// </summary>
+        /// <param name="data">The long array to read or write.</param>
+        /// <remarks>
+        /// Null arrays are supported. The format determines how array length and
+        /// content are encoded.
+        /// </remarks>
+        void Format(ref long[] data);
+
+        /// <summary>
+        /// Serializes or deserializes a ushort array.
+        /// </summary>
+        /// <param name="data">The ushort array to read or write.</param>
+        /// <remarks>
+        /// Null arrays are supported. The format determines how array length and
+        /// content are encoded.
+        /// </remarks>
+        void Format(ref ushort[] data);
+
+        /// <summary>
+        /// Serializes or deserializes a uint array.
+        /// </summary>
+        /// <param name="data">The uint array to read or write.</param>
+        /// <remarks>
+        /// Null arrays are supported. The format determines how array length and
+        /// content are encoded.
+        /// </remarks>
+        void Format(ref uint[] data);
+
+        /// <summary>
+        /// Serializes or deserializes a ulong array.
+        /// </summary>
+        /// <param name="data">The ulong array to read or write.</param>
+        /// <remarks>
+        /// Null arrays are supported. The format determines how array length and
+        /// content are encoded.
+        /// </remarks>
+        void Format(ref ulong[] data);
+
+        /// <summary>
         /// Serializes or deserializes a Unity object reference.
         /// </summary>
         /// <param name="unityObject">The Unity object reference to read or write.</param>

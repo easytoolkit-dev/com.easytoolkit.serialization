@@ -74,9 +74,44 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         ByteArray = 0x1C,
 
         /// <summary>
+        /// Tag for sbyte array (sbyte[]) values. Followed by length-prefixed bytes.
+        /// </summary>
+        SByteArray = 0x1D,
+
+        /// <summary>
+        /// Tag for short array (short[]) values. Followed by length-prefixed bytes.
+        /// </summary>
+        Int16Array = 0x1E,
+
+        /// <summary>
+        /// Tag for int array (int[]) values. Followed by length-prefixed bytes.
+        /// </summary>
+        Int32Array = 0x1F,
+
+        /// <summary>
+        /// Tag for long array (long[]) values. Followed by length-prefixed bytes.
+        /// </summary>
+        Int64Array = 0x20,
+
+        /// <summary>
+        /// Tag for ushort array (ushort[]) values. Followed by length-prefixed bytes.
+        /// </summary>
+        UInt16Array = 0x21,
+
+        /// <summary>
+        /// Tag for uint array (uint[]) values. Followed by length-prefixed bytes.
+        /// </summary>
+        UInt32Array = 0x22,
+
+        /// <summary>
+        /// Tag for ulong array (ulong[]) values. Followed by length-prefixed bytes.
+        /// </summary>
+        UInt64Array = 0x23,
+
+        /// <summary>
         /// Tag for Unity object reference values. Followed by varint32 reference index.
         /// </summary>
-        UnityObjectRef = 0x1D,
+        UnityObjectRef = 0x24,
 
         #endregion
 
