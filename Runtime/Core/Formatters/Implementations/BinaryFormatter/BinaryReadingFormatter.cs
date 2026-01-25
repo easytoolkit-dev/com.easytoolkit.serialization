@@ -1,7 +1,4 @@
 using System;
-using System.IO;
-using System.Runtime.CompilerServices;
-using System.Text;
 using EasyToolKit.Core.Pooling;
 
 namespace EasyToolKit.Serialization.Implementations
@@ -10,7 +7,7 @@ namespace EasyToolKit.Serialization.Implementations
     /// Binary reading formatter implementation. Deserializes data from a binary format
     /// using length-prefixed field names and varint encoding.
     /// </summary>
-    public sealed class BinaryReadingFormatter : ReadingFormatterBase
+    public sealed partial class BinaryReadingFormatter : ReadingFormatterBase
     {
         private int _position;
         private byte[] _buffer;
@@ -321,25 +318,6 @@ namespace EasyToolKit.Serialization.Implementations
             str = ReadString((int)length);
         }
 
-        /// <summary>Reads a UTF-8 string from the buffer with the specified byte length.</summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private string ReadString(int byteCount)
-        {
-            if (byteCount < 0)
-                throw new ArgumentOutOfRangeException(nameof(byteCount), "Byte count cannot be negative.");
-            if (_position + byteCount > _buffer.Length)
-                throw new EndOfStreamException($"Attempted to read {byteCount} bytes but only {_buffer.Length - _position} bytes available.");
-
-            unsafe
-            {
-                fixed (byte* bytePtr = &_buffer[_position])
-                {
-                    _position += byteCount;
-                    return Encoding.UTF8.GetString(bytePtr, byteCount);
-                }
-            }
-        }
-
         /// <inheritdoc />
         public override void Format(ref byte[] data)
         {
@@ -372,154 +350,12 @@ namespace EasyToolKit.Serialization.Implementations
             unityObject = ResolveReference((int)index);
         }
 
-        /// <summary>Reads a single byte from the buffer.</summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private byte ReadByte()
-        {
-            if (_position >= _buffer.Length)
-                throw new EndOfStreamException("Attempted to read past the end of the buffer.");
-            return _buffer[_position++];
-        }
-
-        /// <summary>Reads the specified number of bytes from the buffer.</summary>
-        private ReadOnlySpan<byte> ReadBytes(int count)
-        {
-            if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be negative.");
-            if (_position + count > _buffer.Length)
-                throw new EndOfStreamException($"Attempted to read {count} bytes but only {_buffer.Length - _position} bytes available.");
-
-            var result = _buffer.AsSpan(_position, count);
-            _position += count;
-            return result;
-        }
-
-        /// <summary>Reads a 32-bit unsigned integer using variable-length decoding.</summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private uint ReadVarint32()
-        {
-            uint value = 0;
-            int shift = 0;
-
-            // Unrolled loop for performance (handles up to 5 bytes inline)
-            if (_position >= _buffer.Length)
-                throw new EndOfStreamException("Attempted to read past the end of the buffer.");
-
-            byte b = _buffer[_position++];
-            value = (uint)(b & 0x7F);
-            if ((b & 0x80) == 0) return value;
-
-            if (_position >= _buffer.Length)
-                throw new EndOfStreamException("Attempted to read past the end of the buffer.");
-
-            b = _buffer[_position++];
-            value |= (uint)(b & 0x7F) << 7;
-            if ((b & 0x80) == 0) return value;
-
-            if (_position >= _buffer.Length)
-                throw new EndOfStreamException("Attempted to read past the end of the buffer.");
-
-            b = _buffer[_position++];
-            value |= (uint)(b & 0x7F) << 14;
-            if ((b & 0x80) == 0) return value;
-
-            if (_position >= _buffer.Length)
-                throw new EndOfStreamException("Attempted to read past the end of the buffer.");
-
-            b = _buffer[_position++];
-            value |= (uint)(b & 0x7F) << 21;
-            if ((b & 0x80) == 0) return value;
-
-            if (_position >= _buffer.Length)
-                throw new EndOfStreamException("Attempted to read past the end of the buffer.");
-
-            b = _buffer[_position++];
-            value |= (uint)(b & 0x7F) << 28;
-            if ((b & 0x80) == 0) return value;
-
-            throw new InvalidDataException("Invalid varint32: too many bytes.");
-        }
-
-        /// <summary>Reads a 64-bit unsigned integer using variable-length decoding.</summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ulong ReadVarint64()
-        {
-            ulong value = 0;
-            int shift = 0;
-            byte b;
-
-            // Optimized loop for 64-bit varint
-            do
-            {
-                if (_position >= _buffer.Length)
-                    throw new EndOfStreamException("Attempted to read past the end of the buffer.");
-
-                b = _buffer[_position++];
-
-                if (shift >= 64)
-                    throw new InvalidDataException("Invalid varint64: too many bytes.");
-
-                value |= (ulong)(b & 0x7F) << shift;
-                shift += 7;
-            } while ((b & 0x80) != 0);
-
-            return value;
-        }
-
-        /// <summary>Reads a 32-bit float from the buffer.</summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private float ReadSingle()
-        {
-            const int size = sizeof(float);
-            if (_position + size > _buffer.Length)
-                throw new EndOfStreamException($"Attempted to read {size} bytes but only {_buffer.Length - _position} bytes available.");
-
-            // Use unsafe for direct conversion from bytes
-            unsafe
-            {
-                uint value =
-                    (uint)_buffer[_position] |
-                    (uint)_buffer[_position + 1] << 8 |
-                    (uint)_buffer[_position + 2] << 16 |
-                    (uint)_buffer[_position + 3] << 24;
-                _position += size;
-                return *(float*)&value;
-            }
-        }
-
-        /// <summary>Reads a 64-bit double from the buffer.</summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private double ReadDouble()
-        {
-            const int size = sizeof(double);
-            if (_position + size > _buffer.Length)
-                throw new EndOfStreamException($"Attempted to read {size} bytes but only {_buffer.Length - _position} bytes available.");
-
-            // Use unsafe for direct conversion from bytes
-            unsafe
-            {
-                ulong low =
-                    (ulong)_buffer[_position] |
-                    (ulong)_buffer[_position + 1] << 8 |
-                    (ulong)_buffer[_position + 2] << 16 |
-                    (ulong)_buffer[_position + 3] << 24;
-                ulong high =
-                    (ulong)_buffer[_position + 4] |
-                    (ulong)_buffer[_position + 5] << 8 |
-                    (ulong)_buffer[_position + 6] << 16 |
-                    (ulong)_buffer[_position + 7] << 24;
-                _position += size;
-                ulong value = low | (high << 32);
-                return *(double*)&value;
-            }
-        }
-
         /// <inheritdoc />
         public override void Dispose()
         {
-            Array.Clear(_buffer, 0, _buffer.Length);
             _position = 0;
             _nodeDepth = 0;
+            _buffer = Array.Empty<byte>();
             PoolUtility.ReleaseObject(this);
             base.Dispose();
         }

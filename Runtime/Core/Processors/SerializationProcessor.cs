@@ -37,11 +37,14 @@ namespace EasyToolKit.Serialization
         protected static SerializationEnvironment Environment => SerializationEnvironment.Instance;
 
         private bool _isInitialized;
+        private bool _isRoot;
 
         /// <summary>
         /// Gets the value type this serializer handles.
         /// </summary>
         public Type ValueType => typeof(T);
+
+        public bool IsRoot => _isRoot;
 
         /// <summary>
         /// Determines whether the specified value type can be serialized.
@@ -80,6 +83,12 @@ namespace EasyToolKit.Serialization
                 Initialize();
                 _isInitialized = true;
             }
+        }
+
+        bool ISerializationProcessor.IsRoot
+        {
+            get => _isRoot;
+            set => _isRoot = value;
         }
 
         void ISerializationProcessor.ProcessUntyped(ref object value, IDataFormatter formatter)
