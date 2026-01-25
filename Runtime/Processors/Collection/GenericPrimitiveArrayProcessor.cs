@@ -18,7 +18,7 @@ namespace EasyToolKit.Serialization.Processors
         {
             if (formatter.FormatType == SerializationFormat.Binary)
             {
-                if (!IsRoot) formatter.BeginMember(name);
+                formatter.BeginMember(name);
                 formatter.FormatGenericPrimitive(ref data);
             }
             else

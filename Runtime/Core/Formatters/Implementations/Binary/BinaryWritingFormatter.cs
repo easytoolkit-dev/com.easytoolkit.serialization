@@ -46,6 +46,19 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         private BinaryFormatterOptions Options =>
             ((BinaryFormatterSettings)Settings)?.Options ?? BinaryFormatterOptions.Default;
 
+        /// <summary>
+        /// Writes a tag when IncludeTypeTags option is enabled.
+        /// </summary>
+        /// <param name="tag">The tag value to write.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void WriteTypeTag(BinaryFormatterTag tag)
+        {
+            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
+            {
+                WriteByte((byte)tag);
+            }
+        }
+
         /// <inheritdoc />
         public override byte[] GetBuffer() => _buffer;
 
@@ -74,14 +87,8 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         }
 
         /// <inheritdoc />
-        protected override void BeginMember(string name, bool isInArrayContext)
+        protected override void BeginMember(string name)
         {
-            // Skip writing member data in Array context
-            if (isInArrayContext)
-            {
-                return;
-            }
-
             if ((Options & BinaryFormatterOptions.IncludeMemberNames) != 0)
             {
                 WriteByte((byte)BinaryFormatterTag.MemberBegin);
@@ -126,10 +133,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref int value)
         {
-            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
-            {
-                WriteByte((byte)BinaryFormatterTag.Int32);
-            }
+            WriteTypeTag(BinaryFormatterTag.Int32);
             // Use zigzag encoding to handle negative numbers
             uint encoded = (uint)((value << 1) ^ (value >> 31));
 
@@ -146,10 +150,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref sbyte value)
         {
-            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
-            {
-                WriteByte((byte)BinaryFormatterTag.Int8);
-            }
+            WriteTypeTag(BinaryFormatterTag.Int8);
             // Use zigzag encoding to handle negative numbers
             int encoded = (value << 1) ^ (value >> 7);
             WriteByte((byte)encoded);
@@ -158,10 +159,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref short value)
         {
-            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
-            {
-                WriteByte((byte)BinaryFormatterTag.Int16);
-            }
+            WriteTypeTag(BinaryFormatterTag.Int16);
             // Use zigzag encoding to handle negative numbers
             uint encoded = (uint)((value << 1) ^ (value >> 15));
 
@@ -178,10 +176,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref long value)
         {
-            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
-            {
-                WriteByte((byte)BinaryFormatterTag.Int64);
-            }
+            WriteTypeTag(BinaryFormatterTag.Int64);
             // Use zigzag encoding to handle negative numbers
             ulong encoded = ((ulong)value << 1) ^ (ulong)(value >> 63);
 
@@ -198,20 +193,14 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref byte value)
         {
-            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
-            {
-                WriteByte((byte)BinaryFormatterTag.UInt8);
-            }
+            WriteTypeTag(BinaryFormatterTag.UInt8);
             WriteByte(value);
         }
 
         /// <inheritdoc />
         public override void Format(ref ushort value)
         {
-            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
-            {
-                WriteByte((byte)BinaryFormatterTag.UInt16);
-            }
+            WriteTypeTag(BinaryFormatterTag.UInt16);
 
             if ((Options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
             {
@@ -226,10 +215,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref uint value)
         {
-            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
-            {
-                WriteByte((byte)BinaryFormatterTag.UInt32);
-            }
+            WriteTypeTag(BinaryFormatterTag.UInt32);
 
             if ((Options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
             {
@@ -244,10 +230,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref ulong value)
         {
-            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
-            {
-                WriteByte((byte)BinaryFormatterTag.UInt64);
-            }
+            WriteTypeTag(BinaryFormatterTag.UInt64);
 
             if ((Options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
             {
@@ -262,50 +245,35 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref bool value)
         {
-            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
-            {
-                WriteByte((byte)BinaryFormatterTag.Boolean);
-            }
+            WriteTypeTag(BinaryFormatterTag.Boolean);
             WriteByte(value ? (byte)1 : (byte)0);
         }
 
         /// <inheritdoc />
         public override void Format(ref float value)
         {
-            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
-            {
-                WriteByte((byte)BinaryFormatterTag.Single);
-            }
+            WriteTypeTag(BinaryFormatterTag.Single);
             WriteSingle(value);
         }
 
         /// <inheritdoc />
         public override void Format(ref double value)
         {
-            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
-            {
-                WriteByte((byte)BinaryFormatterTag.Double);
-            }
+            WriteTypeTag(BinaryFormatterTag.Double);
             WriteDouble(value);
         }
 
         /// <inheritdoc />
         public override void Format(ref string str)
         {
-            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
-            {
-                WriteByte((byte)BinaryFormatterTag.String);
-            }
+            WriteTypeTag(BinaryFormatterTag.String);
             WriteBytes(str);
         }
 
         /// <inheritdoc />
         public override void Format(ref byte[] data)
         {
-            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
-            {
-                WriteByte((byte)BinaryFormatterTag.ByteArray);
-            }
+            WriteTypeTag(BinaryFormatterTag.ByteArray);
             if (data == null)
             {
                 WriteVarint32(0);
@@ -319,10 +287,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref sbyte[] data)
         {
-            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
-            {
-                WriteByte((byte)BinaryFormatterTag.SByteArray);
-            }
+            WriteTypeTag(BinaryFormatterTag.SByteArray);
             if (data == null)
             {
                 WriteVarint32(0);
@@ -336,10 +301,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref short[] data)
         {
-            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
-            {
-                WriteByte((byte)BinaryFormatterTag.Int16Array);
-            }
+            WriteTypeTag(BinaryFormatterTag.Int16Array);
             if (data == null)
             {
                 WriteVarint32(0);
@@ -353,10 +315,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref int[] data)
         {
-            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
-            {
-                WriteByte((byte)BinaryFormatterTag.Int32Array);
-            }
+            WriteTypeTag(BinaryFormatterTag.Int32Array);
             if (data == null)
             {
                 WriteVarint32(0);
@@ -370,10 +329,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref long[] data)
         {
-            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
-            {
-                WriteByte((byte)BinaryFormatterTag.Int64Array);
-            }
+            WriteTypeTag(BinaryFormatterTag.Int64Array);
             if (data == null)
             {
                 WriteVarint32(0);
@@ -387,10 +343,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref ushort[] data)
         {
-            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
-            {
-                WriteByte((byte)BinaryFormatterTag.UInt16Array);
-            }
+            WriteTypeTag(BinaryFormatterTag.UInt16Array);
             if (data == null)
             {
                 WriteVarint32(0);
@@ -404,10 +357,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref uint[] data)
         {
-            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
-            {
-                WriteByte((byte)BinaryFormatterTag.UInt32Array);
-            }
+            WriteTypeTag(BinaryFormatterTag.UInt32Array);
             if (data == null)
             {
                 WriteVarint32(0);
@@ -421,10 +371,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref ulong[] data)
         {
-            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
-            {
-                WriteByte((byte)BinaryFormatterTag.UInt64Array);
-            }
+            WriteTypeTag(BinaryFormatterTag.UInt64Array);
             if (data == null)
             {
                 WriteVarint32(0);
@@ -438,10 +385,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref UnityEngine.Object unityObject)
         {
-            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
-            {
-                WriteByte((byte)BinaryFormatterTag.UnityObjectRef);
-            }
+            WriteTypeTag(BinaryFormatterTag.UnityObjectRef);
             var index = RegisterReference(unityObject);
             WriteVarint32((uint)index);
         }
@@ -449,20 +393,14 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void FormatGenericPrimitive<T>(ref T value)
         {
-            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
-            {
-                WriteByte((byte)BinaryFormatterTag.UnmanagedValue);
-            }
+            WriteTypeTag(BinaryFormatterTag.UnmanagedValue);
             WritePrimitiveValue(value);
         }
 
         /// <inheritdoc />
         public override void FormatGenericPrimitive<T>(ref T[] data)
         {
-            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
-            {
-                WriteByte((byte)BinaryFormatterTag.UnmanagedArray);
-            }
+            WriteTypeTag(BinaryFormatterTag.UnmanagedArray);
             if (data == null || data.Length == 0)
             {
                 WriteVarint32(0);
