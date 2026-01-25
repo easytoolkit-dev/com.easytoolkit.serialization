@@ -10,6 +10,8 @@ namespace EasyToolKit.Serialization.Processors
 
         public override void Process(string name, ref Vector3 value, IDataFormatter formatter)
         {
+            if (!IsRoot) formatter.BeginMember(name);
+            using var objectScope = formatter.EnterObject();
             _floatSerializer.Process("x", ref value.x, formatter);
             _floatSerializer.Process("y", ref value.y, formatter);
             _floatSerializer.Process("z", ref value.z, formatter);

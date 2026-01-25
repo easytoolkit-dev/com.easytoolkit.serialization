@@ -30,7 +30,7 @@ namespace EasyToolKit.Serialization.Processors
 
         public override void Process(string name, ref T value, IDataFormatter formatter)
         {
-            formatter.BeginMember(name);
+            if (!IsRoot) formatter.BeginMember(name);
             using var objectScope = formatter.EnterObject();
 
             var members = _node.Members;

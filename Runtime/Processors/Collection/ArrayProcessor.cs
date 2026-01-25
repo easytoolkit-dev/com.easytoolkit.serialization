@@ -10,7 +10,7 @@ namespace EasyToolKit.Serialization.Processors
 
         public override void Process(string name, ref T[] value, IDataFormatter formatter)
         {
-            formatter.BeginMember(name);
+            if (!IsRoot) formatter.BeginMember(name);
 
             int size;
             if (formatter.Operation == FormatterOperation.Write)
