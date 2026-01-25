@@ -104,28 +104,100 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         public abstract void Format(ref string str);
 
         /// <inheritdoc />
-        public abstract void Format(ref byte[] data);
+        public virtual void Format(ref byte[] data)
+        {
+            var length = data.Length;
+            using var scope = this.EnterArray(ref length);
+            for (int i = 0; i < length; i++)
+            {
+                var item = data[i];
+                Format(ref item);
+            }
+        }
 
         /// <inheritdoc />
-        public abstract void Format(ref sbyte[] data);
+        public virtual void Format(ref sbyte[] data)
+        {
+            var length = data.Length;
+            using var scope = this.EnterArray(ref length);
+            for (int i = 0; i < length; i++)
+            {
+                var item = data[i];
+                Format(ref item);
+            }
+        }
 
         /// <inheritdoc />
-        public abstract void Format(ref short[] data);
+        public virtual void Format(ref short[] data)
+        {
+            var length = data.Length;
+            using var scope = this.EnterArray(ref length);
+            for (int i = 0; i < length; i++)
+            {
+                var item = data[i];
+                Format(ref item);
+            }
+        }
 
         /// <inheritdoc />
-        public abstract void Format(ref int[] data);
+        public virtual void Format(ref int[] data)
+        {
+            var length = data.Length;
+            using var scope = this.EnterArray(ref length);
+            for (int i = 0; i < length; i++)
+            {
+                var item = data[i];
+                Format(ref item);
+            }
+        }
 
         /// <inheritdoc />
-        public abstract void Format(ref long[] data);
+        public virtual void Format(ref long[] data)
+        {
+            var length = data.Length;
+            using var scope = this.EnterArray(ref length);
+            for (int i = 0; i < length; i++)
+            {
+                var item = data[i];
+                Format(ref item);
+            }
+        }
 
         /// <inheritdoc />
-        public abstract void Format(ref ushort[] data);
+        public virtual void Format(ref ushort[] data)
+        {
+            var length = data.Length;
+            using var scope = this.EnterArray(ref length);
+            for (int i = 0; i < length; i++)
+            {
+                var item = data[i];
+                Format(ref item);
+            }
+        }
 
         /// <inheritdoc />
-        public abstract void Format(ref uint[] data);
+        public virtual void Format(ref uint[] data)
+        {
+            var length = data.Length;
+            using var scope = this.EnterArray(ref length);
+            for (int i = 0; i < length; i++)
+            {
+                var item = data[i];
+                Format(ref item);
+            }
+        }
 
         /// <inheritdoc />
-        public abstract void Format(ref ulong[] data);
+        public virtual void Format(ref ulong[] data)
+        {
+            var length = data.Length;
+            using var scope = this.EnterArray(ref length);
+            for (int i = 0; i < length; i++)
+            {
+                var item = data[i];
+                Format(ref item);
+            }
+        }
 
         /// <inheritdoc />
         public abstract void Format(ref UnityEngine.Object unityObject);
