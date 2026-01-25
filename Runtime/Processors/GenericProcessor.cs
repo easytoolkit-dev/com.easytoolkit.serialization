@@ -1,6 +1,8 @@
 using System;
+using EasyToolKit.Core.Reflection;
 using EasyToolKit.Serialization.Formatters;
 using EasyToolKit.Serialization.Resolvers;
+using EasyToolKit.Serialization.Utilities;
 
 namespace EasyToolKit.Serialization.Processors
 {
@@ -11,7 +13,9 @@ namespace EasyToolKit.Serialization.Processors
 
         public override bool CanProcess(Type valueType)
         {
-            return SerializationStructureResolverFactory.GetResolver(valueType) != null;
+            return SerializationStructureResolverFactory.GetResolver(valueType) != null &&
+                   (valueType.IsDefined<SerializableAttribute>() ||
+                    SerializedTypeUtility.GetDefinedEasySerializableAttribute(valueType) != null);
         }
 
         protected override void Initialize()

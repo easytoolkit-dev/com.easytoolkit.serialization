@@ -4,7 +4,7 @@ using EasyToolKit.Serialization.Formatters;
 
 namespace EasyToolKit.Serialization.Processors
 {
-    [ProcessorConfiguration(ProcessorPriorityLevel.SystemBasic)]
+    [ProcessorConfiguration(ProcessorPriorityLevel.System)]
     public class TypeProcessor : SerializationProcessor<Type>
     {
         public override void Process(string name, ref Type value, IDataFormatter formatter)

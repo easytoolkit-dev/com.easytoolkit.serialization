@@ -38,7 +38,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         }
 
         /// <inheritdoc />
-        public override SerializationFormat Type => SerializationFormat.Binary;
+        public override SerializationFormat FormatType => SerializationFormat.Binary;
 
         /// <summary>
         /// Gets the formatter options from settings, or Default if settings is not a BinaryFormatterSettings.
@@ -444,6 +444,33 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             }
             var index = RegisterReference(unityObject);
             WriteVarint32((uint)index);
+        }
+
+        /// <inheritdoc />
+        public override void FormatGenericPrimitive<T>(ref T value)
+        {
+            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
+            {
+                WriteByte((byte)BinaryFormatterTag.UnmanagedValue);
+            }
+            WritePrimitiveValue(value);
+        }
+
+        /// <inheritdoc />
+        public override void FormatGenericPrimitive<T>(ref T[] data)
+        {
+            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
+            {
+                WriteByte((byte)BinaryFormatterTag.UnmanagedArray);
+            }
+            if (data == null || data.Length == 0)
+            {
+                WriteVarint32(0);
+                return;
+            }
+
+            WriteVarint32((uint)data.Length);
+            WritePrimitiveArray(data);
         }
 
         /// <summary>Writes a single byte to the buffer.</summary>

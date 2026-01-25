@@ -3,7 +3,7 @@ using EasyToolKit.Serialization.Formatters;
 
 namespace EasyToolKit.Serialization.Processors
 {
-    [ProcessorConfiguration(ProcessorPriorityLevel.SystemBasic)]
+    [ProcessorConfiguration(ProcessorPriorityLevel.System)]
     public class EnumProcessor<T> : SerializationProcessor<T>
         where T : struct, Enum
     {
@@ -11,7 +11,7 @@ namespace EasyToolKit.Serialization.Processors
         {
             if (!IsRoot) formatter.BeginMember(name);
 
-            if (formatter.Type != SerializationFormat.Binary)
+            if (formatter.FormatType != SerializationFormat.Binary)
             {
                 var str = string.Empty;
                 if (formatter.Operation == FormatterOperation.Write)

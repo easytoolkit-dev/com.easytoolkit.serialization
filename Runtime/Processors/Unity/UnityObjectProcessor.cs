@@ -3,7 +3,7 @@ using EasyToolKit.Serialization.Formatters;
 
 namespace EasyToolKit.Serialization.Processors
 {
-    [ProcessorConfiguration(ProcessorPriorityLevel.UnityObject)]
+    [ProcessorConfiguration(ProcessorPriorityLevel.Unity)]
     public class UnityObjectProcessor<T> : SerializationProcessor<T>
         where T : UnityEngine.Object
     {

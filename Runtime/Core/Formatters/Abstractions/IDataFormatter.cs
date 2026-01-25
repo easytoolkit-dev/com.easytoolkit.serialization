@@ -26,7 +26,7 @@ namespace EasyToolKit.Serialization.Formatters
         /// <summary>
         /// Gets the serialization format type supported by this formatter.
         /// </summary>
-        SerializationFormat Type { get; }
+        SerializationFormat FormatType { get; }
 
         /// <summary>
         /// Gets or sets the formatter-specific settings for this formatter.
@@ -248,5 +248,40 @@ namespace EasyToolKit.Serialization.Formatters
         /// is resolved back to the object reference via an object table.
         /// </remarks>
         void Format(ref UnityEngine.Object unityObject);
+
+        /// <summary>
+        /// Serializes or deserializes a generic primitive value using direct memory operations.
+        /// </summary>
+        /// <typeparam name="T">The generic primitive type to format.</typeparam>
+        /// <param name="value">The generic primitive value to read or write.</param>
+        /// <remarks>
+        /// This method provides optimized serialization for generic primitive types (primitives, enums, structs)
+        /// using direct memory copy. This is only supported in Binary format mode for high-performance
+        /// serialization without per-type encoding logic. This is particularly useful for custom structs and enums.
+        ///
+        /// For other serialization formats (JSON, XML, etc.), use the typed Format methods
+        /// (e.g., <see cref="Format(ref int)"/>, <see cref="Format(ref string)"/>).
+        ///
+        /// Calling this method on non-Binary formatters will throw a <see cref="NotSupportedException"/>.
+        /// </remarks>
+        void FormatGenericPrimitive<T>(ref T value) where T : unmanaged;
+
+        /// <summary>
+        /// Serializes or deserializes an array of generic primitive values using direct memory operations.
+        /// </summary>
+        /// <typeparam name="T">The generic primitive element type to format.</typeparam>
+        /// <param name="data">The array of generic primitive values to read or write.</param>
+        /// <remarks>
+        /// This method provides optimized serialization for arrays of generic primitive types (primitives, enums, structs)
+        /// using direct memory copy. This is only supported in Binary format mode for high-performance
+        /// serialization without per-element encoding logic. This is particularly useful for arrays of custom structs and enums.
+        ///
+        /// For other serialization formats (JSON, XML, etc.), use the typed Format methods
+        /// (e.g., <see cref="Format(ref int[])"/>, <see cref="Format(ref long[])"/>).
+        ///
+        /// Calling this method on non-Binary formatters will throw a <see cref="NotSupportedException"/>.
+        /// Null arrays are supported and will be serialized as a zero-length array.
+        /// </remarks>
+        void FormatGenericPrimitive<T>(ref T[] data) where T : unmanaged;
     }
 }

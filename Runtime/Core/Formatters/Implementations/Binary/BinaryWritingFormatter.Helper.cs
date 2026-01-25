@@ -262,5 +262,25 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             if (_position > _length)
                 _length = _position;
         }
+
+        /// <summary>Writes an unmanaged value to the buffer using direct memory copy.</summary>
+        /// <typeparam name="T">The unmanaged type to write.</typeparam>
+        /// <param name="value">The value to write.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private unsafe void WritePrimitiveValue<T>(T value) where T : unmanaged
+        {
+            int byteCount = sizeof(T);
+            EnsureCapacity(byteCount);
+
+            fixed (byte* destPtr = &_buffer[_position])
+            {
+                T* srcPtr = &value;
+                MemoryUtility.FastMemoryCopy(srcPtr, destPtr, byteCount);
+            }
+
+            _position += byteCount;
+            if (_position > _length)
+                _length = _position;
+        }
     }
 }

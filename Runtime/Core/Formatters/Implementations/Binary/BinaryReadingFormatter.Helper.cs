@@ -258,5 +258,27 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             _position += byteCount;
             return result;
         }
+
+        /// <summary>Reads an unmanaged value from the buffer using direct memory copy.</summary>
+        /// <typeparam name="T">The unmanaged type to read.</typeparam>
+        /// <returns>The value read from the buffer.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private unsafe T ReadPrimitiveValue<T>() where T : unmanaged
+        {
+            int byteCount = sizeof(T);
+            if (_position + byteCount > _buffer.Length)
+                throw new EndOfStreamException(
+                    $"Attempted to read {byteCount} bytes but only {_buffer.Length - _position} bytes available.");
+
+            T result;
+            fixed (byte* srcPtr = &_buffer[_position])
+            {
+                T* resultPtr = &result;
+                MemoryUtility.FastMemoryCopy(srcPtr, resultPtr, byteCount);
+            }
+
+            _position += byteCount;
+            return result;
+        }
     }
 }

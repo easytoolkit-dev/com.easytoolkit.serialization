@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 using JetBrains.Annotations;
 
 namespace EasyToolKit.Serialization.Formatters.Implementations
@@ -24,7 +23,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         private DataFormatterSettings _settings;
 
         /// <inheritdoc />
-        public abstract SerializationFormat Type { get; }
+        public abstract SerializationFormat FormatType { get; }
 
         /// <inheritdoc />
         public DataFormatterSettings Settings
@@ -222,6 +221,24 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
 
         /// <inheritdoc />
         public abstract void Format(ref UnityEngine.Object unityObject);
+
+        /// <inheritdoc />
+        public virtual void FormatGenericPrimitive<T>(ref T value) where T : unmanaged
+        {
+            throw new NotSupportedException(
+                $"FormatGenericPrimitive is only supported in Binary format mode. " +
+                $"Current format: '{FormatType}'. " +
+                $"Use the typed Format methods (e.g., Format(ref int value)) for non-Binary formatters.");
+        }
+
+        /// <inheritdoc />
+        public virtual void FormatGenericPrimitive<T>(ref T[] data) where T : unmanaged
+        {
+            throw new NotSupportedException(
+                $"FormatGenericPrimitive array is only supported in Binary format mode. " +
+                $"Current format: '{FormatType}'. " +
+                $"Use the typed Format methods (e.g., Format(ref int[] data)) for non-Binary formatters.");
+        }
 
         /// <inheritdoc />
         void IDataFormatter.BeginMember(string name)
