@@ -21,9 +21,17 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         [CanBeNull] private IReadOnlyList<UnityEngine.Object> _objectTable;
         private readonly Stack<OperationType> _operationStack = new();
         private int _anonymousMemberId;
+        private DataFormatterSettings _settings;
 
         /// <inheritdoc />
         public abstract SerializationFormat Type { get; }
+
+        /// <inheritdoc />
+        public DataFormatterSettings Settings
+        {
+            get => _settings;
+            set => _settings = value;
+        }
 
         /// <inheritdoc />
         public FormatterOperation Operation => FormatterOperation.Read;
@@ -114,8 +122,9 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
 
             if (!isInArrayContext && string.IsNullOrEmpty(name))
             {
-                // Generate auto-generated name for anonymous members
-                name = $"${_anonymousMemberId++}";
+                // Generate auto-generated name for anonymous members using configured format
+                string nameFormat = _settings?.AnonymousMemberNameFormat ?? "${0}";
+                name = string.Format(nameFormat, _anonymousMemberId++);
             }
 
             BeginMember(name, isInArrayContext);
