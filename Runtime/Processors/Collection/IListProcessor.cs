@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using EasyToolKit.Serialization.Formatters;
 
 namespace EasyToolKit.Serialization.Processors
 {

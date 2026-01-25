@@ -1,7 +1,7 @@
 using System;
 using EasyToolKit.Core.Pooling;
 
-namespace EasyToolKit.Serialization
+namespace EasyToolKit.Serialization.Formatters
 {
     /// <summary>
     /// Manages the scope of an array serialization operation, ensuring proper cleanup.

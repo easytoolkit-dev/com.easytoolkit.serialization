@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using EasyToolKit.Core.Reflection;
+using EasyToolKit.Serialization.Processors;
 using EasyToolKit.Serialization.Utilities;
 
-namespace EasyToolKit.Serialization.Implementations
+namespace EasyToolKit.Serialization.Resolvers.Implementations
 {
     /// <summary>
     /// Resolves serialization structure for types marked with [Serializable] attribute.
@@ -13,21 +14,23 @@ namespace EasyToolKit.Serialization.Implementations
     [SerializationResolverPriority(10.0)]
     public sealed class GenericSerializationStructureResolver : ISerializationStructureResolver
     {
-        public bool CanResolve(Type type)
+        public bool CanResolve(Type valueType)
         {
-            return !type.IsBasicValueType() &&
-                   !type.IsSubclassOf(typeof(UnityEngine.Object));
+            return !valueType.IsBasicValueType() &&
+                   !valueType.IsSubclassOf(typeof(UnityEngine.Object)) &&
+                   (valueType.IsDefined<SerializableAttribute>() ||
+                    SerializedTypeUtility.GetDefinedEasySerializableAttribute(valueType) != null);
         }
 
-        public SerializationMemberDefinition[] Resolve(Type type)
+        public SerializationMemberDefinition[] Resolve(Type valueType)
         {
-            var attribute = SerializedTypeUtility.GetDefinedEasySerializableAttribute(type);
+            var attribute = SerializedTypeUtility.GetDefinedEasySerializableAttribute(valueType);
             var memberFlags = attribute?.MemberFlags ?? SerializableMemberFlags.Default;
             var requireSerializeFieldOnNonPublic = attribute?.RequireSerializeFieldOnNonPublic ?? false;
 
             var members = new List<SerializationMemberDefinition>();
 
-            var memberInfos = type.GetMembers(MemberAccessFlags.AllInstance)
+            var memberInfos = valueType.GetMembers(MemberAccessFlags.AllInstance)
                 .Where(memberInfo => memberInfo is FieldInfo || memberInfo is PropertyInfo)
                 .Where(memberInfo => ShouldIncludeMember(memberInfo, memberFlags, requireSerializeFieldOnNonPublic))
                 .ToList();
@@ -43,7 +46,10 @@ namespace EasyToolKit.Serialization.Implementations
                     MemberType = memberType,
                     MemberInfo = memberInfo,
                     IsRequired = false,
-                    DefaultValue = null
+                    DefaultValue = null,
+                    ValueGetter = CreateValueGetter(memberInfo),
+                    ValueSetter = CreateValueSetter(memberInfo),
+                    Processor = SerializationProcessorFactory.GetProcessor(memberType)
                 };
 
                 members.Add(memberDefinition);
@@ -55,7 +61,8 @@ namespace EasyToolKit.Serialization.Implementations
         /// <summary>
         /// Determines whether a member should be included based on the specified flags.
         /// </summary>
-        private static bool ShouldIncludeMember(MemberInfo memberInfo, SerializableMemberFlags flags, bool requireSerializeFieldOnNonPublic)
+        private static bool ShouldIncludeMember(MemberInfo memberInfo, SerializableMemberFlags flags,
+            bool requireSerializeFieldOnNonPublic)
         {
             // Check member type (Field vs Property)
             bool isField = memberInfo is FieldInfo;
@@ -90,7 +97,8 @@ namespace EasyToolKit.Serialization.Implementations
             if (!isPublic && isField && requireSerializeFieldOnNonPublic)
             {
                 var fieldInfo = (FieldInfo)memberInfo;
-                var serializeFieldAttributes = fieldInfo.GetCustomAttributes(typeof(UnityEngine.SerializeField), inherit: true);
+                var serializeFieldAttributes =
+                    fieldInfo.GetCustomAttributes(typeof(UnityEngine.SerializeField), inherit: true);
                 if (serializeFieldAttributes.Length == 0)
                 {
                     return false;
@@ -130,6 +138,26 @@ namespace EasyToolKit.Serialization.Implementations
             {
                 MemberTypes.Field => ((FieldInfo)memberInfo).FieldType,
                 MemberTypes.Property => ((PropertyInfo)memberInfo).PropertyType,
+                _ => throw new ArgumentException($"Unsupported member type: {memberInfo.MemberType}")
+            };
+        }
+
+        private InstanceGetter CreateValueGetter(MemberInfo memberInfo)
+        {
+            return memberInfo.MemberType switch
+            {
+                MemberTypes.Field => ReflectionCompiler.CreateInstanceFieldGetter((FieldInfo)memberInfo),
+                MemberTypes.Property => ReflectionCompiler.CreateInstancePropertyGetter((PropertyInfo)memberInfo),
+                _ => throw new ArgumentException($"Unsupported member type: {memberInfo.MemberType}")
+            };
+        }
+
+        private InstanceSetter CreateValueSetter(MemberInfo memberInfo)
+        {
+            return memberInfo.MemberType switch
+            {
+                MemberTypes.Field => ReflectionCompiler.CreateInstanceFieldSetter((FieldInfo)memberInfo),
+                MemberTypes.Property => ReflectionCompiler.CreateInstancePropertySetter((PropertyInfo)memberInfo),
                 _ => throw new ArgumentException($"Unsupported member type: {memberInfo.MemberType}")
             };
         }

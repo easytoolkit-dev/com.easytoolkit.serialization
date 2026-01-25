@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace EasyToolKit.Serialization.Implementations
+namespace EasyToolKit.Serialization.Formatters.Implementations
 {
     /// <summary>
     /// Abstract base class for writing formatters.

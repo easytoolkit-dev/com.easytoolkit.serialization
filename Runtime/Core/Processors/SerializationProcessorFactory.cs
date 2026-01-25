@@ -7,13 +7,13 @@ using System.Runtime.Serialization;
 using EasyToolKit.Core.Reflection;
 using JetBrains.Annotations;
 
-namespace EasyToolKit.Serialization.Implementations
+namespace EasyToolKit.Serialization.Processors
 {
-    public sealed class SerializationProcessorFactory : ISerializationProcessorFactory
+    public static class SerializationProcessorFactory
     {
         private static Type[] s_processorTypes;
 
-        public static Type[] ProcessorTypes
+        private static Type[] ProcessorTypes
         {
             get
             {
@@ -28,21 +28,21 @@ namespace EasyToolKit.Serialization.Implementations
             }
         }
 
-        private readonly ITypeMatcher _typeMatcher;
-        private readonly ConcurrentDictionary<Type, ISerializationProcessor> _processorCache;
-        private readonly ConcurrentDictionary<Type, bool> _instantiableCache;
+        private static readonly ITypeMatcher TypeMatcher;
+        private static readonly ConcurrentDictionary<Type, ISerializationProcessor> ProcessorCache;
+        private static readonly ConcurrentDictionary<Type, bool> InstantiableCache;
 
-        public SerializationProcessorFactory()
+        static SerializationProcessorFactory()
         {
-            _typeMatcher = TypeMatcherFactory.CreateDefault();
-            _processorCache = new ConcurrentDictionary<Type, ISerializationProcessor>();
-            _instantiableCache = new ConcurrentDictionary<Type, bool>();
+            TypeMatcher = TypeMatcherFactory.CreateDefault();
+            ProcessorCache = new ConcurrentDictionary<Type, ISerializationProcessor>();
+            InstantiableCache = new ConcurrentDictionary<Type, bool>();
             InitializeTypeMatcher();
         }
 
-        private void InitializeTypeMatcher()
+        private static void InitializeTypeMatcher()
         {
-            _typeMatcher.SetTypeMatchCandidates(ProcessorTypes.Select(type =>
+            TypeMatcher.SetTypeMatchCandidates(ProcessorTypes.Select(type =>
             {
                 var config = type.GetCustomAttribute<ProcessorConfigurationAttribute>();
                 config ??= ProcessorConfigurationAttribute.Default;
@@ -52,9 +52,9 @@ namespace EasyToolKit.Serialization.Implementations
             }));
         }
 
-        public ISerializationProcessor GetProcessor(Type valueType)
+        public static ISerializationProcessor GetProcessor(Type valueType)
         {
-            var isInstantiable = _instantiableCache.GetOrAdd(valueType,
+            var isInstantiable = InstantiableCache.GetOrAdd(valueType,
                 type => type.IsInstantiable(allowLenient: true) || type.IsArray || type == typeof(string));
 
             if (!isInstantiable)
@@ -62,7 +62,7 @@ namespace EasyToolKit.Serialization.Implementations
                 throw new InvalidOperationException($"Type '{valueType.FullName}' is not instantiable.");
             }
 
-            return _processorCache.GetOrAdd(valueType, type =>
+            return ProcessorCache.GetOrAdd(valueType, type =>
             {
                 var processor = CreateProcessor(type);
                 if (processor == null)
@@ -77,7 +77,7 @@ namespace EasyToolKit.Serialization.Implementations
                         throw new InvalidOperationException(
                             $"Type '{type.FullName}' is not derived from '{baseValueType.FullName}'.");
                     }
-                    var processorWrapperType = typeof(SerializationProcessorWrapper<,>).MakeGenericType(type, baseValueType);
+                    var processorWrapperType = typeof(Implementations.SerializationProcessorWrapper<,>).MakeGenericType(type, baseValueType);
                     return processorWrapperType.CreateInstance<ISerializationProcessor>(processor);
                 }
 
@@ -85,7 +85,7 @@ namespace EasyToolKit.Serialization.Implementations
             });
         }
 
-        private void InjectDependencyToProcessor([NotNull] ISerializationProcessor processor)
+        private static void InjectDependencyToProcessor([NotNull] ISerializationProcessor processor)
         {
             if (processor == null)
                 throw new ArgumentNullException(nameof(processor));
@@ -121,14 +121,14 @@ namespace EasyToolKit.Serialization.Implementations
         }
 
         [CanBeNull]
-        private ISerializationProcessor CreateProcessor(Type valueType)
+        private static ISerializationProcessor CreateProcessor(Type valueType)
         {
             var resultsList = new List<TypeMatchResult[]>
             {
-                _typeMatcher.GetMatches(Type.EmptyTypes),
-                _typeMatcher.GetMatches(valueType)
+                TypeMatcher.GetMatches(Type.EmptyTypes),
+                TypeMatcher.GetMatches(valueType)
             };
-            var results = _typeMatcher.GetMergedResults(resultsList);
+            var results = TypeMatcher.GetMergedResults(resultsList);
             foreach (var result in results)
             {
                 if (result.Constraints[0] != valueType)

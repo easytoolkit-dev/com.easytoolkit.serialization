@@ -1,6 +1,6 @@
 using System;
 
-namespace EasyToolKit.Serialization
+namespace EasyToolKit.Serialization.Resolvers
 {
     /// <summary>
     /// Specifies the priority of a serialization structure resolver.

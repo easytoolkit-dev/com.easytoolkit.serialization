@@ -2,7 +2,7 @@ using System;
 using System.Runtime.CompilerServices;
 using EasyToolKit.Core.Pooling;
 
-namespace EasyToolKit.Serialization.Implementations
+namespace EasyToolKit.Serialization.Formatters.Implementations
 {
     /// <summary>
     /// Binary writing formatter implementation. Serializes data to a binary format

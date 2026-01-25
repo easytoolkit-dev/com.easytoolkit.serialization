@@ -1,4 +1,6 @@
-﻿namespace EasyToolKit.Serialization.Implementations
+﻿using EasyToolKit.Serialization.Formatters;
+
+namespace EasyToolKit.Serialization.Processors.Implementations
 {
     public class SerializationProcessorWrapper<T, TBase> : SerializationProcessor<T>
         where T : TBase

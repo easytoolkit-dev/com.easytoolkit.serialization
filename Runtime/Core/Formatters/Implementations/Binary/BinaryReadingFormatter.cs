@@ -1,7 +1,7 @@
 using System;
 using EasyToolKit.Core.Pooling;
 
-namespace EasyToolKit.Serialization.Implementations
+namespace EasyToolKit.Serialization.Formatters.Implementations
 {
     /// <summary>
     /// Binary reading formatter implementation. Deserializes data from a binary format
