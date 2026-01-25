@@ -3,7 +3,7 @@ using EasyToolKit.Serialization.Formatters;
 
 namespace EasyToolKit.Serialization.Processors
 {
-    [ProcessorConfiguration(ProcessorPriorityLevel.System)]
+    [ProcessorConfiguration(ProcessorPriorityLevel.Primitive)]
     public class EnumProcessor<T> : SerializationProcessor<T>
         where T : struct, Enum
     {
