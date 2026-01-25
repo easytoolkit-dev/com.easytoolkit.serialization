@@ -1,6 +1,6 @@
 using System;
 
-namespace EasyToolKit.Serialization
+namespace EasyToolKit.Serialization.Formatters
 {
     /// <summary>
     /// Provides extension methods for <see cref="IDataFormatter"/> to create scope-based serialization operations.

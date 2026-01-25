@@ -1,4 +1,4 @@
-namespace EasyToolKit.Serialization
+namespace EasyToolKit.Serialization.Processors
 {
     public enum ProcessorPriorityLevel
     {

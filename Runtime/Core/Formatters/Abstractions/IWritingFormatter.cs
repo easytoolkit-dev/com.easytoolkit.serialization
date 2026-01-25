@@ -1,4 +1,4 @@
-namespace EasyToolKit.Serialization
+namespace EasyToolKit.Serialization.Formatters
 {
     /// <summary>
     /// Defines the contract for writing formatters that serialize data to a byte buffer.

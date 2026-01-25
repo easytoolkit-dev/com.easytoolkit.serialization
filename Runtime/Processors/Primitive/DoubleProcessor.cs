@@ -1,3 +1,5 @@
+using EasyToolKit.Serialization.Formatters;
+
 namespace EasyToolKit.Serialization.Processors
 {
     [ProcessorConfiguration(ProcessorPriorityLevel.Primitive)]

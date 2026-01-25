@@ -1,6 +1,7 @@
 using System;
+using EasyToolKit.Serialization.Formatters;
 
-namespace EasyToolKit.Serialization
+namespace EasyToolKit.Serialization.Processors
 {
     public interface ISerializationProcessor
     {

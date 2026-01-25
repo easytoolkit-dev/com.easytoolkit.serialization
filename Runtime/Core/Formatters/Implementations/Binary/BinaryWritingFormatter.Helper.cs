@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using EasyToolKit.Serialization.Utilities;
 
-namespace EasyToolKit.Serialization.Implementations
+namespace EasyToolKit.Serialization.Formatters.Implementations
 {
     public sealed partial class BinaryWritingFormatter
     {

@@ -1,6 +1,6 @@
 using System;
 
-namespace EasyToolKit.Serialization
+namespace EasyToolKit.Serialization.Resolvers
 {
     /// <summary>
     /// Defines the base contract for serialization resolvers.
@@ -10,8 +10,8 @@ namespace EasyToolKit.Serialization
         /// <summary>
         /// Determines whether this resolver can handle the specified type.
         /// </summary>
-        /// <param name="type">The type to check.</param>
+        /// <param name="valueType">The type to check.</param>
         /// <returns>true if this resolver can handle the type; otherwise, false.</returns>
-        bool CanResolve(Type type);
+        bool CanResolve(Type valueType);
     }
 }

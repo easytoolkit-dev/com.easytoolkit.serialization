@@ -1,6 +1,6 @@
 using System;
 
-namespace EasyToolKit.Serialization
+namespace EasyToolKit.Serialization.Formatters
 {
     /// <summary>
     /// Defines the contract for reading formatters that deserialize data from a byte buffer.

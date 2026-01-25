@@ -1,8 +1,9 @@
 using System;
 using EasyToolKit.Core.Reflection;
+using EasyToolKit.Serialization.Formatters;
 using JetBrains.Annotations;
 
-namespace EasyToolKit.Serialization
+namespace EasyToolKit.Serialization.Processors
 {
     public abstract class SerializationProcessor<T> : ISerializationProcessor<T>
     {
@@ -30,11 +31,6 @@ namespace EasyToolKit.Serialization
                 }
             }
         }
-
-        /// <summary>
-        /// Gets the shared serialization context for accessing services.
-        /// </summary>
-        protected static SerializationEnvironment Environment => SerializationEnvironment.Instance;
 
         private bool _isInitialized;
         private bool _isRoot;

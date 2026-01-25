@@ -1,6 +1,6 @@
 using System;
 
-namespace EasyToolKit.Serialization
+namespace EasyToolKit.Serialization.Resolvers
 {
     /// <summary>
     /// Defines the contract for resolving serialization structure of types.
@@ -10,8 +10,8 @@ namespace EasyToolKit.Serialization
         /// <summary>
         /// Resolves the serialization structure of the specified type.
         /// </summary>
-        /// <param name="type">The type to resolve.</param>
+        /// <param name="valueType">The type to resolve.</param>
         /// <returns>An array of member definitions. Returns empty array for atomic types.</returns>
-        SerializationMemberDefinition[] Resolve(Type type);
+        SerializationMemberDefinition[] Resolve(Type valueType);
     }
 }

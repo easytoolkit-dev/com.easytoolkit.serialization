@@ -1,4 +1,4 @@
-namespace EasyToolKit.Serialization.Implementations
+namespace EasyToolKit.Serialization.Formatters.Implementations
 {
     /// <summary>
     /// Defines tag bytes used in binary serialization format to mark structure boundaries and value types.

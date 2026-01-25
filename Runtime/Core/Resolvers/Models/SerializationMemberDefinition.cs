@@ -1,7 +1,9 @@
 using System;
 using System.Reflection;
+using EasyToolKit.Core.Reflection;
+using EasyToolKit.Serialization.Processors;
 
-namespace EasyToolKit.Serialization
+namespace EasyToolKit.Serialization.Resolvers
 {
     /// <summary>
     /// Defines the metadata for a serializable member.
@@ -33,5 +35,10 @@ namespace EasyToolKit.Serialization
         /// Gets or sets the default value for the member.
         /// </summary>
         public object DefaultValue { get; set; }
+
+        public InstanceGetter ValueGetter { get; set; }
+        public InstanceSetter ValueSetter { get; set; }
+
+        public ISerializationProcessor Processor { get; set; }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using EasyToolKit.Core.Reflection;
+using EasyToolKit.Serialization.Formatters;
 
 namespace EasyToolKit.Serialization.Processors
 {

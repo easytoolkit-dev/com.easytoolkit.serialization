@@ -6,7 +6,7 @@ using System.Runtime.Serialization;
 using EasyToolKit.Core.Reflection;
 using JetBrains.Annotations;
 
-namespace EasyToolKit.Serialization
+namespace EasyToolKit.Serialization.Resolvers
 {
     /// <summary>
     /// Utility class for discovering and matching serialization resolvers.

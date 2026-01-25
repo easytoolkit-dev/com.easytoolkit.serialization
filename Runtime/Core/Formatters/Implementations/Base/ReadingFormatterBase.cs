@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using JetBrains.Annotations;
 
-namespace EasyToolKit.Serialization.Implementations
+namespace EasyToolKit.Serialization.Formatters.Implementations
 {
     /// <summary>
     /// Abstract base class for reading formatters.

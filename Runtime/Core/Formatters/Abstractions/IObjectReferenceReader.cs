@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using JetBrains.Annotations;
 using UnityEngine;
 
-namespace EasyToolKit.Serialization
+namespace EasyToolKit.Serialization.Formatters
 {
     /// <summary>
     /// Interface for reading Unity object references during deserialization.

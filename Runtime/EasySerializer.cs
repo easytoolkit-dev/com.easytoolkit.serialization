@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using EasyToolKit.Serialization.Formatters;
+using EasyToolKit.Serialization.Processors;
 
 namespace EasyToolKit.Serialization
 {
@@ -31,16 +33,14 @@ namespace EasyToolKit.Serialization
 
             var valueType = value.GetType();
             // Create writing formatter with internal buffer
-            using var formatter = SerializationEnvironment.Instance.GetFactory<IFormatterFactory>()
-                .GetWriter(format);
+            using var formatter = FormatterFactory.GetWriter(format);
             if (formatter == null)
             {
                 throw new SerializationException(
                     $"Failed to create writer for format '{format}'. The format may not be supported.");
             }
 
-            var processor = SerializationEnvironment.Instance.GetFactory<ISerializationProcessorFactory>()
-                .GetProcessor(valueType);
+            var processor = SerializationProcessorFactory.GetProcessor(valueType);
             if (processor == null)
             {
                 throw new SerializationException(
@@ -123,8 +123,7 @@ namespace EasyToolKit.Serialization
             }
 
             object result = null;
-            using var formatter = SerializationEnvironment.Instance.GetFactory<IFormatterFactory>()
-                .GetReader(format);
+            using var formatter = FormatterFactory.GetReader(format);
             if (formatter == null)
             {
                 throw new SerializationException(
@@ -136,8 +135,7 @@ namespace EasyToolKit.Serialization
 
             formatter.SetObjectTable(serializationData.ReferencedUnityObjects);
 
-            var processor = SerializationEnvironment.Instance.GetFactory<ISerializationProcessorFactory>()
-                .GetProcessor(type);
+            var processor = SerializationProcessorFactory.GetProcessor(type);
             if (processor == null)
             {
                 throw new SerializationException(
