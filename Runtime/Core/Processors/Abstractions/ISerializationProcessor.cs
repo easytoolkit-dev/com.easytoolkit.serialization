@@ -8,6 +8,7 @@ namespace EasyToolKit.Serialization
         /// Gets the value type this serializer is designed for.
         /// </summary>
         Type ValueType { get; }
+        bool IsRoot { get; internal set; }
 
         bool CanProcess(Type valueType);
 
