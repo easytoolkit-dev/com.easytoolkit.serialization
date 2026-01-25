@@ -107,6 +107,27 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         public abstract void Format(ref byte[] data);
 
         /// <inheritdoc />
+        public abstract void Format(ref sbyte[] data);
+
+        /// <inheritdoc />
+        public abstract void Format(ref short[] data);
+
+        /// <inheritdoc />
+        public abstract void Format(ref int[] data);
+
+        /// <inheritdoc />
+        public abstract void Format(ref long[] data);
+
+        /// <inheritdoc />
+        public abstract void Format(ref ushort[] data);
+
+        /// <inheritdoc />
+        public abstract void Format(ref uint[] data);
+
+        /// <inheritdoc />
+        public abstract void Format(ref ulong[] data);
+
+        /// <inheritdoc />
         public abstract void Format(ref UnityEngine.Object unityObject);
 
         /// <inheritdoc />

@@ -227,5 +227,36 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
                 return *(double*)&value;
             }
         }
+
+        /// <summary>Reads a primitive array from the buffer using direct memory copy.</summary>
+        /// <typeparam name="T">The primitive type (sbyte, short, int, long, ushort, uint, ulong).</typeparam>
+        /// <param name="length">The number of elements to read.</param>
+        /// <returns>The primitive array read from the buffer.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private unsafe T[] ReadPrimitiveArray<T>(int length) where T : unmanaged
+        {
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), "Length cannot be negative.");
+
+            if (length == 0)
+                return Array.Empty<T>();
+
+            var result = new T[length];
+            int elementSize = sizeof(T);
+            int byteCount = length * elementSize;
+
+            if (_position + byteCount > _buffer.Length)
+                throw new EndOfStreamException(
+                    $"Attempted to read {byteCount} bytes but only {_buffer.Length - _position} bytes available.");
+
+            fixed (T* resultPtr = result)
+            fixed (byte* srcPtr = &_buffer[_position])
+            {
+                MemoryUtility.FastMemoryCopy(srcPtr, resultPtr, byteCount);
+            }
+
+            _position += byteCount;
+            return result;
+        }
     }
 }

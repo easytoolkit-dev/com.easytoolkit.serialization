@@ -239,5 +239,28 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             if (_position > _length)
                 _length = _position;
         }
+
+        /// <summary>Writes a primitive array to the buffer using direct memory copy.</summary>
+        /// <typeparam name="T">The unmanaged type of elements in the array.</typeparam>
+        /// <param name="data">The array to write.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private unsafe void WritePrimitiveArray<T>(T[] data) where T : unmanaged
+        {
+            if (data.Length == 0)
+                return;
+
+            int byteCount = data.Length * sizeof(T);
+            EnsureCapacity(byteCount);
+
+            fixed (T* srcPtr = data)
+            fixed (byte* destPtr = &_buffer[_position])
+            {
+                MemoryUtility.FastMemoryCopy(srcPtr, destPtr, byteCount);
+            }
+
+            _position += byteCount;
+            if (_position > _length)
+                _length = _position;
+        }
     }
 }
