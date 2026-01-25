@@ -42,6 +42,10 @@ namespace EasyToolKit.Serialization.Formatters
         /// Begins serialization of a member with an optional name.
         /// </summary>
         /// <param name="name">The member name, or null/empty for unnamed members.</param>
+        /// <remarks>
+        /// This method is only effective within an Object scope (after calling <see cref="BeginObject"/>).
+        /// When called outside of an Object scope, this operation is skipped by the formatter.
+        /// </remarks>
         void BeginMember(string name);
 
         /// <summary>

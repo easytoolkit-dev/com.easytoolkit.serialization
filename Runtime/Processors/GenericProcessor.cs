@@ -25,7 +25,7 @@ namespace EasyToolKit.Serialization.Processors
 
         public override void Process(string name, ref T value, IDataFormatter formatter)
         {
-            if (!IsRoot) formatter.BeginMember(name);
+            formatter.BeginMember(name);
             using var objectScope = formatter.EnterObject();
 
             foreach (var memberDefinition in _memberDefinitions)
