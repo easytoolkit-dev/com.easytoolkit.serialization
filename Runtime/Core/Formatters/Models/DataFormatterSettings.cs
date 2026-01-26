@@ -26,5 +26,11 @@ namespace EasyToolKit.Serialization.Formatters
         }
 
         private string _anonymousMemberNameFormat = "${0}";
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to return a default value instead of throwing
+        /// an exception when the reading formatter reaches the end of the stream.
+        /// </summary>
+        public bool ReturnDefaultOnStreamEnd { get; set; } = true;
     }
 }

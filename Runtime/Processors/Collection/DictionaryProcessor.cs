@@ -1,18 +1,18 @@
+﻿using System;
 using System.Collections.Generic;
 using EasyToolKit.Serialization.Formatters;
 
 namespace EasyToolKit.Serialization.Processors
 {
-    [ProcessorConfiguration(ProcessorPriorityLevel.Collection - 1, AllowTypeArgumentInheritance = true)]
-    public class IListProcessor<T> : SerializationProcessor<IList<T>>
+    [ProcessorConfiguration(ProcessorPriorityLevel.Collection)]
+    public class DictionaryProcessor<TKey, TValue> : SerializationProcessor<IDictionary<TKey, TValue>>
     {
         [DependencyProcessor]
-        private ISerializationProcessor<T> _serializer;
+        private ISerializationProcessor<KeyValuePair<TKey, TValue>> _keyValuePairProcessor;
 
-        protected override void Process(string name, ref IList<T> value, IDataFormatter formatter)
+        protected override void Process(string name, ref IDictionary<TKey, TValue> value, IDataFormatter formatter)
         {
             formatter.BeginMember(name);
-
             int size;
             if (formatter.Operation == FormatterOperation.Write)
             {
@@ -32,11 +32,10 @@ namespace EasyToolKit.Serialization.Processors
                     return;
                 }
 
-                var count = value.Count;
-                for (int i = 0; i < count; i++)
+                foreach (var item in value)
                 {
-                    var item = value[i];
-                    _serializer.Process(ref item, formatter);
+                    var refItem = item;
+                    _keyValuePairProcessor.Process(ref refItem, formatter);
                 }
             }
             else
@@ -48,12 +47,11 @@ namespace EasyToolKit.Serialization.Processors
                     return;
                 }
 
-                value = new List<T>(size);
                 for (int i = 0; i < size; i++)
                 {
-                    T item = default;
-                    _serializer.Process(ref item, formatter);
-                    value.Add(item);
+                    var item = new KeyValuePair<TKey, TValue>();
+                    _keyValuePairProcessor.Process(ref item, formatter);
+                    value!.Add(item);
                 }
             }
         }

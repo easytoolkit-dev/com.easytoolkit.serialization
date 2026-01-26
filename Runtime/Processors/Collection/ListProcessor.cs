@@ -1,22 +1,22 @@
-using System;
+using System.Collections.Generic;
 using EasyToolKit.Serialization.Formatters;
 
 namespace EasyToolKit.Serialization.Processors
 {
-    [ProcessorConfiguration(ProcessorPriorityLevel.Collection)]
-    public class ArrayProcessor<T> : SerializationProcessor<T[]>
+    [ProcessorConfiguration(ProcessorPriorityLevel.Collection - 1, AllowTypeArgumentInheritance = true)]
+    public class ListProcessor<T> : SerializationProcessor<IList<T>>
     {
         [DependencyProcessor]
         private ISerializationProcessor<T> _serializer;
 
-        protected override void Process(string name, ref T[] value, IDataFormatter formatter)
+        protected override void Process(string name, ref IList<T> value, IDataFormatter formatter)
         {
             formatter.BeginMember(name);
 
             int size;
             if (formatter.Operation == FormatterOperation.Write)
             {
-                size = value?.Length ?? 0;
+                size = value?.Count ?? 0;
             }
             else
             {
@@ -28,9 +28,12 @@ namespace EasyToolKit.Serialization.Processors
             if (formatter.Operation == FormatterOperation.Write)
             {
                 if (value == null)
+                {
                     return;
+                }
 
-                for (var i = 0; i < value.Length; i++)
+                var count = value.Count;
+                for (int i = 0; i < count; i++)
                 {
                     var item = value[i];
                     _serializer.Process(ref item, formatter);
@@ -38,22 +41,19 @@ namespace EasyToolKit.Serialization.Processors
             }
             else
             {
-                // Empty array (either was null or empty)
+                // Empty list (either was null or empty, keep as null)
                 if (size == 0)
                 {
-                    value = Array.Empty<T>();
+                    value = null;
                     return;
                 }
 
-                var total = new T[size];
                 for (int i = 0; i < size; i++)
                 {
                     T item = default;
                     _serializer.Process(ref item, formatter);
-                    total[i] = item;
+                    value!.Add(item);
                 }
-
-                value = total;
             }
         }
     }

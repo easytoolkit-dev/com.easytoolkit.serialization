@@ -30,13 +30,11 @@ namespace EasyToolKit.Serialization.Processors
 
         private static readonly ITypeMatcher TypeMatcher;
         private static readonly ConcurrentDictionary<Type, ISerializationProcessor> ProcessorCache;
-        private static readonly ConcurrentDictionary<Type, bool> InstantiableCache;
 
         static SerializationProcessorFactory()
         {
             TypeMatcher = TypeMatcherFactory.CreateDefault();
             ProcessorCache = new ConcurrentDictionary<Type, ISerializationProcessor>();
-            InstantiableCache = new ConcurrentDictionary<Type, bool>();
             InitializeTypeMatcher();
         }
 
@@ -54,14 +52,6 @@ namespace EasyToolKit.Serialization.Processors
 
         public static ISerializationProcessor GetProcessor(Type valueType)
         {
-            var isInstantiable = InstantiableCache.GetOrAdd(valueType,
-                type => type.IsInstantiable(allowLenient: true) || type.IsArray || type == typeof(string));
-
-            if (!isInstantiable)
-            {
-                throw new InvalidOperationException($"Type '{valueType.FullName}' is not instantiable.");
-            }
-
             return ProcessorCache.GetOrAdd(valueType, type =>
             {
                 var processor = CreateProcessor(type);
