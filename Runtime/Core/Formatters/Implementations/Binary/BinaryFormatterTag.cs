@@ -139,6 +139,12 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         ObjectBegin = 0x81,
 
         /// <summary>
+        /// Marks the beginning of an object with type information.
+        /// Followed by the object's type full name string, then the object content.
+        /// </summary>
+        TypedObjectBegin = 0x85,
+
+        /// <summary>
         /// Marks the end of an object.
         /// </summary>
         ObjectEnd = 0x82,

@@ -46,19 +46,6 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         private BinaryFormatterOptions Options =>
             ((BinaryFormatterSettings)Settings)?.Options ?? BinaryFormatterOptions.Default;
 
-        /// <summary>
-        /// Writes a tag when IncludeTypeTags option is enabled.
-        /// </summary>
-        /// <param name="tag">The tag value to write.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void WriteTypeTag(BinaryFormatterTag tag)
-        {
-            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
-            {
-                WriteByte((byte)tag);
-            }
-        }
-
         /// <inheritdoc />
         public override byte[] GetBuffer() => _buffer;
 
@@ -98,10 +85,19 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         }
 
         /// <inheritdoc />
-        protected override void BeginObject()
+        protected override void BeginObject(Type type)
         {
-            WriteByte((byte)BinaryFormatterTag.ObjectBegin);
-            WriteVarint32((uint)_nodeDepth);
+            if (type != null && (Options & BinaryFormatterOptions.IncludeObjectType) != 0)
+            {
+                WriteByte((byte)BinaryFormatterTag.TypedObjectBegin);
+                WriteBytes(type.AssemblyQualifiedName ?? type.FullName ?? type.Name);
+            }
+            else
+            {
+                WriteByte((byte)BinaryFormatterTag.ObjectBegin);
+            }
+
+            WriteUInt32Optimized((uint)_nodeDepth);
             _nodeDepth++;
         }
 
@@ -109,7 +105,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         protected override void EndObject()
         {
             _nodeDepth--;
-            WriteVarint32((uint)_nodeDepth);
+            WriteUInt32Optimized((uint)_nodeDepth);
             WriteByte((byte)BinaryFormatterTag.ObjectEnd);
         }
 
@@ -117,8 +113,8 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         protected override void BeginArray(ref int length)
         {
             WriteByte((byte)BinaryFormatterTag.ArrayBegin);
-            WriteVarint32((uint)length);
-            WriteVarint32((uint)_nodeDepth);
+            WriteUInt32Optimized((uint)length);
+            WriteUInt32Optimized((uint)_nodeDepth);
             _nodeDepth++;
         }
 
@@ -126,7 +122,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         protected override void EndArray()
         {
             _nodeDepth--;
-            WriteVarint32((uint)_nodeDepth);
+            WriteUInt32Optimized((uint)_nodeDepth);
             WriteByte((byte)BinaryFormatterTag.ArrayEnd);
         }
 

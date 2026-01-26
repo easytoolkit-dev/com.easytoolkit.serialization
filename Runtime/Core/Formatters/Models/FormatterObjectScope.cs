@@ -1,5 +1,6 @@
 using System;
 using EasyToolKit.Core.Pooling;
+using JetBrains.Annotations;
 
 namespace EasyToolKit.Serialization.Formatters
 {
@@ -20,14 +21,14 @@ namespace EasyToolKit.Serialization.Formatters
         /// Creates a new instance of the <see cref="FormatterObjectScope"/> class from the object pool.
         /// </summary>
         /// <param name="formatter">The data formatter to manage the object scope for.</param>
+        /// <param name="type">The type of the object, or null if type information is not needed.</param>
         /// <returns>A new or reused instance of <see cref="FormatterObjectScope"/>.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when formatter is null.</exception>
-        public static FormatterObjectScope Create(IDataFormatter formatter)
+        public static FormatterObjectScope Create(IDataFormatter formatter, [CanBeNull] Type type = null)
         {
             var scope = PoolUtility.RentObject<FormatterObjectScope>();
             scope._formatter = formatter ?? throw new ArgumentNullException(nameof(formatter));
             scope._disposed = false;
-            scope._formatter.BeginObject();
+            scope._formatter.BeginObject(type);
             return scope;
         }
 

@@ -1,4 +1,5 @@
 using System;
+using JetBrains.Annotations;
 
 namespace EasyToolKit.Serialization.Formatters
 {
@@ -11,15 +12,16 @@ namespace EasyToolKit.Serialization.Formatters
         /// Creates an object scope that automatically manages the BeginObject/EndObject calls.
         /// </summary>
         /// <param name="formatter">The data formatter to create the scope for.</param>
+        /// <param name="type">The type of the object, or null if type information is not needed.</param>
         /// <returns>A <see cref="FormatterObjectScope"/> that will automatically end the object when disposed.</returns>
-        public static FormatterObjectScope EnterObject(this IDataFormatter formatter)
+        public static FormatterObjectScope EnterObject(this IDataFormatter formatter, [CanBeNull] Type type = null)
         {
             if (formatter == null)
             {
                 throw new ArgumentNullException(nameof(formatter));
             }
 
-            return FormatterObjectScope.Create(formatter);
+            return FormatterObjectScope.Create(formatter, type);
         }
 
         /// <summary>

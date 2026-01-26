@@ -59,7 +59,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
 
         protected abstract void BeginMember(string name);
 
-        protected abstract void BeginObject();
+        protected abstract void BeginObject(Type type);
 
         protected abstract void EndObject();
 
@@ -239,10 +239,10 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         }
 
         /// <inheritdoc />
-        void IDataFormatter.BeginObject()
+        void IDataFormatter.BeginObject(Type type)
         {
             _operationStack.Push(OperationType.Object);
-            BeginObject();
+            BeginObject(type);
         }
 
         /// <inheritdoc />

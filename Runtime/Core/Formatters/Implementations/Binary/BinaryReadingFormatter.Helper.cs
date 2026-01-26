@@ -155,6 +155,23 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             return value;
         }
 
+        /// <summary>
+        /// Reads a 32-bit unsigned integer using varint or fixed encoding based on formatter options.
+        /// </summary>
+        /// <returns>The read value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private uint ReadUInt32Optimized()
+        {
+            if ((Options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
+            {
+                return ReadVarint32();
+            }
+            else
+            {
+                return ReadUInt32Fixed();
+            }
+        }
+
         /// <summary>Reads a 64-bit unsigned integer using fixed-width encoding (8 bytes).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ulong ReadUInt64Fixed()
@@ -279,6 +296,24 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
 
             _position += byteCount;
             return result;
+        }
+
+        /// <summary>
+        /// Reads and validates a tag when IncludeTypeTags option is enabled.
+        /// </summary>
+        /// <param name="expectedTag">The expected tag value.</param>
+        /// <param name="context">Context description for error messages.</param>
+        private void ReadAndValidateTypeTag(BinaryFormatterTag expectedTag, string context)
+        {
+            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
+            {
+                var tag = (BinaryFormatterTag)ReadByte();
+                if (tag != expectedTag)
+                {
+                    throw new DataFormatException(
+                        $"Invalid type tag for {context}. Expected {expectedTag}, found {tag}.");
+                }
+            }
         }
     }
 }
