@@ -11,10 +11,10 @@ namespace EasyToolKit.Serialization.Processors
     public class GenericPrimitiveArrayProcessor<T> : SerializationProcessor<T[]>
         where T : unmanaged
     {
-        private GenericProcessor<T[]> _genericProcessor;
+        private ISerializationProcessor<T[]> _genericProcessor;
 
         /// <inheritdoc />
-        public override void Process(string name, ref T[] data, IDataFormatter formatter)
+        protected override void Process(string name, ref T[] data, IDataFormatter formatter)
         {
             if (formatter.FormatType == SerializationFormat.Binary)
             {

@@ -15,6 +15,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         private byte[] _buffer;
         private int _nodeDepth;
         private readonly Dictionary<int, Type> _typeById;
+        private BinaryFormatterOptions _options;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BinaryReadingFormatter"/> class
@@ -30,12 +31,6 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
 
         /// <inheritdoc />
         public override SerializationFormat FormatType => SerializationFormat.Binary;
-
-        /// <summary>
-        /// Gets the formatter options from settings, or Default if settings is not a BinaryFormatterSettings.
-        /// </summary>
-        private BinaryFormatterOptions Options =>
-            ((BinaryFormatterSettings)Settings)?.Options ?? BinaryFormatterOptions.Default;
 
         /// <inheritdoc />
         public override void SetBuffer(ReadOnlySpan<byte> buffer)
@@ -59,7 +54,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         protected override void BeginMember(string name)
         {
             ReadAndValidateOptionTag(BinaryFormatterTag.MemberBegin, "begin member");
-            if ((Options & BinaryFormatterOptions.IncludeMemberNames) != 0)
+            if ((_options & BinaryFormatterOptions.IncludeMemberNames) != 0)
             {
                 var length = ReadUInt32Optimized();
                 if (length > 0)
@@ -80,7 +75,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         {
             ReadAndValidateOptionTag(BinaryFormatterTag.ObjectBegin, "begin object");
 
-            if ((Options & BinaryFormatterOptions.IncludeObjectType) != 0)
+            if ((_options & BinaryFormatterOptions.IncludeObjectType) != 0)
             {
                 var typeTag = ReadTag();
                 switch (typeTag)
@@ -167,7 +162,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             ReadAndValidateOptionTag(BinaryFormatterTag.Int32, "int");
             // Decode zigzag encoding to recover signed integer
             uint encoded;
-            if ((Options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
+            if ((_options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
             {
                 encoded = ReadVarint32();
             }
@@ -194,7 +189,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             ReadAndValidateOptionTag(BinaryFormatterTag.Int16, "short");
             // Decode zigzag encoding to recover signed short
             uint encoded;
-            if ((Options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
+            if ((_options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
             {
                 encoded = ReadVarint32();
             }
@@ -212,7 +207,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             ReadAndValidateOptionTag(BinaryFormatterTag.Int64, "long");
             // Decode zigzag encoding to recover signed long
             ulong encoded;
-            if ((Options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
+            if ((_options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
             {
                 encoded = ReadVarint64();
             }
@@ -239,7 +234,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         {
             ReadAndValidateOptionTag(BinaryFormatterTag.UInt16, "ushort");
 
-            if ((Options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
+            if ((_options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
             {
                 value = (ushort)ReadVarint32();
             }
@@ -254,7 +249,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         {
             ReadAndValidateOptionTag(BinaryFormatterTag.UInt32, "uint");
 
-            if ((Options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
+            if ((_options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
             {
                 value = ReadVarint32();
             }
@@ -269,7 +264,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         {
             ReadAndValidateOptionTag(BinaryFormatterTag.UInt64, "ulong");
 
-            if ((Options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
+            if ((_options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
             {
                 value = ReadVarint64();
             }
@@ -312,7 +307,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
                 return;
             }
 
-            if ((Options & BinaryFormatterOptions.EnableDirectMemoryCopy) != 0)
+            if ((_options & BinaryFormatterOptions.EnableDirectMemoryCopy) != 0)
             {
                 // Length is char count (current implementation)
                 str = ReadString((int)length);
@@ -475,6 +470,20 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             _typeById.Clear();
             PoolUtility.ReleaseObject(this);
             base.Dispose();
+        }
+
+        protected override void OnSettingsChanged(DataFormatterSettings settings)
+        {
+            if (settings is not BinaryFormatterSettings binaryFormatterSettings)
+            {
+                throw new ArgumentException(
+                    $"Settings must be of type {nameof(BinaryFormatterSettings)}. " +
+                    $"Received type: {settings}. " +
+                    $"Please provide a valid BinaryFormatterSettings instance.",
+                    nameof(settings));
+            }
+
+            _options = binaryFormatterSettings.Options;
         }
     }
 }

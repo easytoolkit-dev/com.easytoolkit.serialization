@@ -8,7 +8,7 @@ namespace EasyToolKit.Serialization.Processors
     [ProcessorConfiguration(ProcessorPriorityLevel.Primitive)]
     public class Int16Processor : SerializationProcessor<short>
     {
-        public override void Process(string name, ref short value, IDataFormatter formatter)
+        protected override void Process(string name, ref short value, IDataFormatter formatter)
         {
             formatter.BeginMember(name);
             formatter.Format(ref value);

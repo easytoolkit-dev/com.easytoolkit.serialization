@@ -23,7 +23,7 @@ namespace EasyToolKit.Serialization.Processors
             _memberDefinitions = SerializationStructureResolverFactory.GetResolver(typeof(T)).Resolve(typeof(T));
         }
 
-        public override void Process(string name, ref T value, IDataFormatter formatter)
+        protected override void Process(string name, ref T value, IDataFormatter formatter)
         {
             formatter.BeginMember(name);
             using var objectScope = formatter.EnterObject(typeof(T));

@@ -176,7 +176,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private uint ReadUInt32Optimized()
         {
-            if ((Options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
+            if ((_options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
             {
                 return ReadVarint32();
             }
@@ -329,7 +329,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <param name="context">Context description for error messages.</param>
         private void ReadAndValidateOptionTag(BinaryFormatterTag expectedTag, string context)
         {
-            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
+            if ((_options & BinaryFormatterOptions.IncludeTypeTags) != 0)
             {
                 var tag = ReadTag();
                 if (tag != expectedTag)

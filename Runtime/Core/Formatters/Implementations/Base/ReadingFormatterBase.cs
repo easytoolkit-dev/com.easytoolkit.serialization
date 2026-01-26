@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using EasyToolKit.Core.Pooling;
 using JetBrains.Annotations;
 
 namespace EasyToolKit.Serialization.Formatters.Implementations
@@ -29,7 +30,19 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         public DataFormatterSettings Settings
         {
             get => _settings;
-            set => _settings = value;
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
+                if (!ReferenceEquals(_settings, value))
+                {
+                    OnSettingsChanged(value);
+                    _settings = value;
+                }
+            }
         }
 
         /// <inheritdoc />
@@ -320,6 +333,10 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
                     $"Missing End{operation} call for the corresponding Begin{operation} operation.");
             }
             _operationStack.Clear();
+        }
+
+        protected virtual void OnSettingsChanged(DataFormatterSettings settings)
+        {
         }
     }
 }

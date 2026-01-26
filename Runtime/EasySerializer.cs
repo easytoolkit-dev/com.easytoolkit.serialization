@@ -15,16 +15,6 @@ namespace EasyToolKit.Serialization
         /// </summary>
         public static void Serialize<T>(ref T value, SerializationFormat format, ref SerializationData serializationData, SerializationSettings settings = null)
         {
-            var untypedValue = (object)value;
-            Serialize(untypedValue, format, ref serializationData, settings);
-            value = (T)untypedValue;
-        }
-
-        /// <summary>
-        /// Serializes the specified value using the specified format and populates the serialization data.
-        /// </summary>
-        public static void Serialize(object value, SerializationFormat format, ref SerializationData serializationData, SerializationSettings settings = null)
-        {
             if (value == null)
             {
                 serializationData.Clear();
@@ -33,6 +23,7 @@ namespace EasyToolKit.Serialization
 
             settings ??= SerializationSettings.Default;
             var valueType = value.GetType();
+
             // Create writing formatter with internal buffer
             using var formatter = FormatterFactory.GetWriter(format, settings);
             if (formatter == null)
@@ -50,7 +41,18 @@ namespace EasyToolKit.Serialization
             }
 
             processor.IsRoot = true;
-            processor.ProcessUntyped(ref value, formatter);
+
+            if (typeof(T) == valueType)
+            {
+                var castedProcessor = (ISerializationProcessor<T>)processor;
+                castedProcessor.Process(ref value, formatter);
+            }
+            else
+            {
+                object boxedValue = value;
+                processor.ProcessUntyped(ref boxedValue, formatter);
+                value = (T)boxedValue;
+            }
 
             var objectTable = formatter.GetObjectTable();
             if (objectTable.Count > 0)
@@ -62,6 +64,14 @@ namespace EasyToolKit.Serialization
                 serializationData.ReferencedUnityObjects = null;
             }
             serializationData.SetBuffer(format, formatter.ToArray());
+        }
+
+        /// <summary>
+        /// Serializes the specified value using the specified format and populates the serialization data.
+        /// </summary>
+        public static void Serialize(object value, SerializationFormat format, ref SerializationData serializationData, SerializationSettings settings = null)
+        {
+            Serialize(ref value, format, ref serializationData, settings);
         }
 
         /// <summary>
