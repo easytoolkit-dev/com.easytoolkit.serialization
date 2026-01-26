@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using EasyToolKit.Core.Pooling;
+using EasyToolKit.Serialization.Utilities;
 
 namespace EasyToolKit.Serialization.Formatters.Implementations
 {
@@ -12,6 +14,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         private int _position;
         private byte[] _buffer;
         private int _nodeDepth;
+        private readonly Dictionary<int, Type> _typeById;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BinaryReadingFormatter"/> class
@@ -22,6 +25,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             _buffer = Array.Empty<byte>();
             _nodeDepth = 0;
             _position = 0;
+            _typeById = new Dictionary<int, Type>();
         }
 
         /// <inheritdoc />
@@ -39,6 +43,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             _buffer = buffer.ToArray();
             _position = 0;
             _nodeDepth = 0;
+            _typeById.Clear();
         }
 
         /// <inheritdoc />
@@ -53,64 +58,79 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void BeginMember(string name)
         {
+            ReadAndValidateOptionTag(BinaryFormatterTag.MemberBegin, "begin member");
             if ((Options & BinaryFormatterOptions.IncludeMemberNames) != 0)
             {
-                var tag = (BinaryFormatterTag)ReadByte();
-                if (tag != BinaryFormatterTag.MemberBegin)
-                {
-                    throw new DataFormatException(
-                        $"Invalid tag at BeginMember. Expected {BinaryFormatterTag.MemberBegin}, found {tag}.");
-                }
-
-                var length = ReadVarint32();
+                var length = ReadUInt32Optimized();
                 if (length > 0)
                 {
                     var readName = ReadString((int)length);
                     // Verify name matches if provided (skip verification for auto-generated names starting with '$')
-                    if (!string.IsNullOrEmpty(name) && !name.StartsWith("$") && readName != name)
+                    if (!string.IsNullOrEmpty(name) && readName != name)
                     {
                         throw new DataFormatException(
                             $"Member name mismatch. Expected '{name}', found '{readName}'.");
                     }
                 }
             }
-            // When disabled, members are identified by position only
         }
 
         /// <inheritdoc />
         protected override void BeginObject(Type type)
         {
-            var tag = (BinaryFormatterTag)ReadByte();
+            ReadAndValidateOptionTag(BinaryFormatterTag.ObjectBegin, "begin object");
 
-            // Handle typed object - read type information but don't use it for validation
-            if (tag == BinaryFormatterTag.TypedObjectBegin)
+            if ((Options & BinaryFormatterOptions.IncludeObjectType) != 0)
             {
-                var typeNameLength = ReadVarint32();
-                if (typeNameLength > 0)
+                var typeTag = ReadTag();
+                switch (typeTag)
                 {
-                    var typeName = ReadString((int)typeNameLength);
-                    if (type.AssemblyQualifiedName != typeName &&
-                        type.FullName != typeName &&
-                        type.Name != typeName)
+                    case BinaryFormatterTag.NullType:
+                        if (type != null)
+                        {
+                            throw new DataFormatException(
+                                $"Type mismatch in binary data. Expected type '{type}', found null.");
+                        }
+
+                        break;
+                    case BinaryFormatterTag.TypeId:
                     {
-                        throw new DataFormatException(
-                            $"Type mismatch in binary data. Expected type '{type.AssemblyQualifiedName ?? type.FullName}', found '{typeName}'.");
+                        var typeId = (int)ReadUInt32Optimized();
+                        if (!_typeById.TryGetValue(typeId, out var foundType))
+                        {
+                            throw new DataFormatException(
+                                $"Type ID {typeId} not found in type dictionary.");
+                        }
+
+                        if (foundType != type)
+                        {
+                            throw new DataFormatException(
+                                $"Type mismatch in binary data. Expected type '{type}', found '{foundType}'.");
+                        }
+
+                        break;
                     }
+                    case BinaryFormatterTag.TypeName:
+                    {
+                        var typeNameLength = ReadUInt32Optimized();
+                        var typeName = ReadString((int)typeNameLength);
+                        var foundType = SerializedTypeUtility.NameToType(typeName);
+                        if (foundType != type)
+                        {
+                            throw new DataFormatException(
+                                $"Type mismatch in binary data. Expected type '{type}', found '{foundType}'.");
+                        }
+
+                        _typeById[_typeById.Count] = type;
+                        break;
+                    }
+                    default:
+                        throw new DataFormatException(
+                            $"Invalid type tag: {typeTag}. Expected NullType, TypeId, or TypeName.");
                 }
             }
-            else if (tag != BinaryFormatterTag.ObjectBegin)
-            {
-                throw new DataFormatException(
-                    $"Invalid tag at BeginObject. Expected {BinaryFormatterTag.ObjectBegin} or {BinaryFormatterTag.TypedObjectBegin}, found {tag}.");
-            }
 
-            var depth = (int)ReadUInt32Optimized();
-            if (depth != _nodeDepth)
-            {
-                throw new DataFormatException(
-                    $"Depth mismatch at BeginObject. Expected {_nodeDepth}, found {depth}.");
-            }
-
+            ReadAndValidateNodeDepth(nameof(BeginObject));
             _nodeDepth++;
         }
 
@@ -118,40 +138,17 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         protected override void EndObject()
         {
             _nodeDepth--;
-
-            var depth = (int)ReadUInt32Optimized();
-            if (depth != _nodeDepth)
-            {
-                throw new DataFormatException(
-                    $"Depth mismatch at EndObject. Expected {_nodeDepth}, found {depth}.");
-            }
-
-            var tag = (BinaryFormatterTag)ReadByte();
-            if (tag != BinaryFormatterTag.ObjectEnd)
-            {
-                throw new DataFormatException(
-                    $"Invalid tag at EndObject. Expected {BinaryFormatterTag.ObjectEnd}, found {tag}.");
-            }
+            ReadAndValidateNodeDepth(nameof(EndObject));
+            ReadAndValidateOptionTag(BinaryFormatterTag.ObjectEnd, "end object");
         }
 
         /// <inheritdoc />
         protected override void BeginArray(ref int length)
         {
-            var tag = (BinaryFormatterTag)ReadByte();
-            if (tag != BinaryFormatterTag.ArrayBegin)
-            {
-                throw new DataFormatException(
-                    $"Invalid tag at BeginArray. Expected {BinaryFormatterTag.ArrayBegin}, found {tag}.");
-            }
+            ReadAndValidateOptionTag(BinaryFormatterTag.ArrayBegin, "begin array");
 
             length = (int)ReadUInt32Optimized();
-
-            var depth = (int)ReadUInt32Optimized();
-            if (depth != _nodeDepth)
-            {
-                throw new DataFormatException(
-                    $"Depth mismatch at BeginArray. Expected {_nodeDepth}, found {depth}.");
-            }
+            ReadAndValidateNodeDepth(nameof(BeginArray));
 
             _nodeDepth++;
         }
@@ -160,26 +157,14 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         protected override void EndArray()
         {
             _nodeDepth--;
-
-            var depth = (int)ReadUInt32Optimized();
-            if (depth != _nodeDepth)
-            {
-                throw new DataFormatException(
-                    $"Depth mismatch at EndArray. Expected {_nodeDepth}, found {depth}.");
-            }
-
-            var tag = (BinaryFormatterTag)ReadByte();
-            if (tag != BinaryFormatterTag.ArrayEnd)
-            {
-                throw new DataFormatException(
-                    $"Invalid tag at EndArray. Expected {BinaryFormatterTag.ArrayEnd}, found {tag}.");
-            }
+            ReadAndValidateNodeDepth(nameof(EndArray));
+            ReadAndValidateOptionTag(BinaryFormatterTag.ArrayEnd, "end array");
         }
 
         /// <inheritdoc />
         public override void Format(ref int value)
         {
-            ReadAndValidateTypeTag(BinaryFormatterTag.Int32, "int");
+            ReadAndValidateOptionTag(BinaryFormatterTag.Int32, "int");
             // Decode zigzag encoding to recover signed integer
             uint encoded;
             if ((Options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
@@ -190,13 +175,14 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             {
                 encoded = ReadUInt32Fixed();
             }
+
             value = (int)((encoded >> 1) ^ -(int)(encoded & 1));
         }
 
         /// <inheritdoc />
         public override void Format(ref sbyte value)
         {
-            ReadAndValidateTypeTag(BinaryFormatterTag.Int8, "sbyte");
+            ReadAndValidateOptionTag(BinaryFormatterTag.Int8, "sbyte");
             // Decode zigzag encoding to recover signed byte
             int encoded = ReadByte();
             value = (sbyte)((encoded >> 1) ^ -(encoded & 1));
@@ -205,7 +191,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref short value)
         {
-            ReadAndValidateTypeTag(BinaryFormatterTag.Int16, "short");
+            ReadAndValidateOptionTag(BinaryFormatterTag.Int16, "short");
             // Decode zigzag encoding to recover signed short
             uint encoded;
             if ((Options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
@@ -216,13 +202,14 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             {
                 encoded = ReadUInt16Fixed();
             }
+
             value = (short)((encoded >> 1) ^ -(int)(encoded & 1));
         }
 
         /// <inheritdoc />
         public override void Format(ref long value)
         {
-            ReadAndValidateTypeTag(BinaryFormatterTag.Int64, "long");
+            ReadAndValidateOptionTag(BinaryFormatterTag.Int64, "long");
             // Decode zigzag encoding to recover signed long
             ulong encoded;
             if ((Options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
@@ -233,6 +220,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             {
                 encoded = ReadUInt64Fixed();
             }
+
             long decoded = (long)(encoded >> 1);
             if ((encoded & 1) == 1)
                 decoded = ~decoded;
@@ -242,14 +230,14 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref byte value)
         {
-            ReadAndValidateTypeTag(BinaryFormatterTag.UInt8, "byte");
+            ReadAndValidateOptionTag(BinaryFormatterTag.UInt8, "byte");
             value = ReadByte();
         }
 
         /// <inheritdoc />
         public override void Format(ref ushort value)
         {
-            ReadAndValidateTypeTag(BinaryFormatterTag.UInt16, "ushort");
+            ReadAndValidateOptionTag(BinaryFormatterTag.UInt16, "ushort");
 
             if ((Options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
             {
@@ -264,7 +252,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref uint value)
         {
-            ReadAndValidateTypeTag(BinaryFormatterTag.UInt32, "uint");
+            ReadAndValidateOptionTag(BinaryFormatterTag.UInt32, "uint");
 
             if ((Options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
             {
@@ -279,7 +267,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref ulong value)
         {
-            ReadAndValidateTypeTag(BinaryFormatterTag.UInt64, "ulong");
+            ReadAndValidateOptionTag(BinaryFormatterTag.UInt64, "ulong");
 
             if ((Options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
             {
@@ -294,7 +282,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref bool value)
         {
-            ReadAndValidateTypeTag(BinaryFormatterTag.Boolean, "bool");
+            ReadAndValidateOptionTag(BinaryFormatterTag.Boolean, "bool");
             var byteValue = ReadByte();
             value = byteValue != 0;
         }
@@ -302,22 +290,22 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref float value)
         {
-            ReadAndValidateTypeTag(BinaryFormatterTag.Single, "float");
+            ReadAndValidateOptionTag(BinaryFormatterTag.Single, "float");
             value = ReadSingle();
         }
 
         /// <inheritdoc />
         public override void Format(ref double value)
         {
-            ReadAndValidateTypeTag(BinaryFormatterTag.Double, "double");
+            ReadAndValidateOptionTag(BinaryFormatterTag.Double, "double");
             value = ReadDouble();
         }
 
         /// <inheritdoc />
         public override void Format(ref string str)
         {
-            ReadAndValidateTypeTag(BinaryFormatterTag.String, "string");
-            var length = ReadVarint32();
+            ReadAndValidateOptionTag(BinaryFormatterTag.String, "string");
+            var length = ReadUInt32Optimized();
             if (length == 0)
             {
                 str = string.Empty;
@@ -340,8 +328,8 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref byte[] data)
         {
-            ReadAndValidateTypeTag(BinaryFormatterTag.ByteArray, "byte array");
-            var length = ReadVarint32();
+            ReadAndValidateOptionTag(BinaryFormatterTag.ByteArray, "byte array");
+            var length = ReadUInt32Optimized();
             if (length == 0)
             {
                 data = Array.Empty<byte>();
@@ -354,8 +342,8 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref sbyte[] data)
         {
-            ReadAndValidateTypeTag(BinaryFormatterTag.SByteArray, "sbyte array");
-            var length = ReadVarint32();
+            ReadAndValidateOptionTag(BinaryFormatterTag.SByteArray, "sbyte array");
+            var length = ReadUInt32Optimized();
             if (length == 0)
             {
                 data = Array.Empty<sbyte>();
@@ -368,8 +356,8 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref short[] data)
         {
-            ReadAndValidateTypeTag(BinaryFormatterTag.Int16Array, "short array");
-            var length = ReadVarint32();
+            ReadAndValidateOptionTag(BinaryFormatterTag.Int16Array, "short array");
+            var length = ReadUInt32Optimized();
             if (length == 0)
             {
                 data = Array.Empty<short>();
@@ -382,8 +370,8 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref int[] data)
         {
-            ReadAndValidateTypeTag(BinaryFormatterTag.Int32Array, "int array");
-            var length = ReadVarint32();
+            ReadAndValidateOptionTag(BinaryFormatterTag.Int32Array, "int array");
+            var length = ReadUInt32Optimized();
             if (length == 0)
             {
                 data = Array.Empty<int>();
@@ -396,8 +384,8 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref long[] data)
         {
-            ReadAndValidateTypeTag(BinaryFormatterTag.Int64Array, "long array");
-            var length = ReadVarint32();
+            ReadAndValidateOptionTag(BinaryFormatterTag.Int64Array, "long array");
+            var length = ReadUInt32Optimized();
             if (length == 0)
             {
                 data = Array.Empty<long>();
@@ -410,8 +398,8 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref ushort[] data)
         {
-            ReadAndValidateTypeTag(BinaryFormatterTag.UInt16Array, "ushort array");
-            var length = ReadVarint32();
+            ReadAndValidateOptionTag(BinaryFormatterTag.UInt16Array, "ushort array");
+            var length = ReadUInt32Optimized();
             if (length == 0)
             {
                 data = Array.Empty<ushort>();
@@ -424,8 +412,8 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref uint[] data)
         {
-            ReadAndValidateTypeTag(BinaryFormatterTag.UInt32Array, "uint array");
-            var length = ReadVarint32();
+            ReadAndValidateOptionTag(BinaryFormatterTag.UInt32Array, "uint array");
+            var length = ReadUInt32Optimized();
             if (length == 0)
             {
                 data = Array.Empty<uint>();
@@ -438,8 +426,8 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref ulong[] data)
         {
-            ReadAndValidateTypeTag(BinaryFormatterTag.UInt64Array, "ulong array");
-            var length = ReadVarint32();
+            ReadAndValidateOptionTag(BinaryFormatterTag.UInt64Array, "ulong array");
+            var length = ReadUInt32Optimized();
             if (length == 0)
             {
                 data = Array.Empty<ulong>();
@@ -452,23 +440,23 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override void Format(ref UnityEngine.Object unityObject)
         {
-            ReadAndValidateTypeTag(BinaryFormatterTag.UnityObjectRef, "Unity object reference");
-            var index = ReadVarint32();
+            ReadAndValidateOptionTag(BinaryFormatterTag.UnityObjectRef, "Unity object reference");
+            var index = ReadUInt32Optimized();
             unityObject = ResolveReference((int)index);
         }
 
         /// <inheritdoc />
         public override void FormatGenericPrimitive<T>(ref T value)
         {
-            ReadAndValidateTypeTag(BinaryFormatterTag.UnmanagedValue, "unmanaged value");
+            ReadAndValidateOptionTag(BinaryFormatterTag.UnmanagedValue, "unmanaged value");
             value = ReadPrimitiveValue<T>();
         }
 
         /// <inheritdoc />
         public override void FormatGenericPrimitive<T>(ref T[] data)
         {
-            ReadAndValidateTypeTag(BinaryFormatterTag.UnmanagedArray, "unmanaged array");
-            var length = ReadVarint32();
+            ReadAndValidateOptionTag(BinaryFormatterTag.UnmanagedArray, "unmanaged array");
+            var length = ReadUInt32Optimized();
             if (length == 0)
             {
                 data = Array.Empty<T>();
@@ -484,6 +472,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             _position = 0;
             _nodeDepth = 0;
             _buffer = Array.Empty<byte>();
+            _typeById.Clear();
             PoolUtility.ReleaseObject(this);
             base.Dispose();
         }

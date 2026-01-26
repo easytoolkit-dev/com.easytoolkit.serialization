@@ -6,7 +6,9 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
 {
     public sealed partial class BinaryWritingFormatter
     {
-        /// <summary>Ensures the buffer has enough capacity for the specified number of bytes.</summary>
+        /// <summary>
+        /// Ensures the buffer has enough capacity for the specified number of bytes.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void EnsureCapacity(int required)
         {
@@ -18,7 +20,9 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             Array.Resize(ref _buffer, newCapacity);
         }
 
-        /// <summary>Writes a byte array to the buffer.</summary>
+        /// <summary>
+        /// Writes a byte array to the buffer.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe void WriteBytes(byte[] data)
         {
@@ -37,12 +41,14 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
                 _length = _position;
         }
 
-        /// <summary>Writes a string as raw char memory (2 bytes per char) to the buffer with a length prefix.</summary>
+        /// <summary>
+        /// Writes a string as raw char memory (2 bytes per char) to the buffer with a length prefix.
+        /// </summary>
         private unsafe void WriteBytes(string str)
         {
             if (string.IsNullOrEmpty(str))
             {
-                WriteVarint32(0);
+                WriteUInt32Optimized(0);
                 return;
             }
 
@@ -50,7 +56,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             {
                 // Current implementation: 2 bytes per char (UTF-16LE)
                 int charCount = str.Length;
-                WriteVarint32((uint)charCount);
+                WriteUInt32Optimized((uint)charCount);
                 int byteCount = charCount * sizeof(char);
                 EnsureCapacity(byteCount);
 
@@ -66,7 +72,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             {
                 // UTF-8 encoding (smaller for ASCII, but encoding overhead)
                 byte[] utf8Bytes = System.Text.Encoding.UTF8.GetBytes(str);
-                WriteVarint32((uint)utf8Bytes.Length);
+                WriteUInt32Optimized((uint)utf8Bytes.Length);
                 WriteBytes(utf8Bytes);
             }
 
@@ -74,7 +80,9 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
                 _length = _position;
         }
 
-        /// <summary>Writes a 32-bit unsigned integer using variable-length encoding.</summary>
+        /// <summary>
+        /// Writes a 32-bit unsigned integer using variable-length encoding.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe void WriteVarint32(uint value)
         {
@@ -99,6 +107,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
                 buffer[index++] = (byte)((value & 0x7F) | 0x80);
                 value >>= 7;
             }
+
             buffer[index] = (byte)value;
 
             int count = index + 1;
@@ -111,7 +120,9 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
                 _length = _position;
         }
 
-        /// <summary>Writes a 64-bit unsigned integer using variable-length encoding.</summary>
+        /// <summary>
+        /// Writes a 64-bit unsigned integer using variable-length encoding.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe void WriteVarint64(ulong value)
         {
@@ -136,6 +147,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
                 buffer[index++] = (byte)((value & 0x7F) | 0x80);
                 value >>= 7;
             }
+
             buffer[index] = (byte)value;
 
             int count = index + 1;
@@ -148,7 +160,9 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
                 _length = _position;
         }
 
-        /// <summary>Writes a 16-bit unsigned integer using fixed-width encoding (2 bytes).</summary>
+        /// <summary>
+        /// Writes a 16-bit unsigned integer using fixed-width encoding (2 bytes).
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void WriteUInt16Fixed(ushort value)
         {
@@ -160,7 +174,9 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
                 _length = _position;
         }
 
-        /// <summary>Writes a 32-bit unsigned integer using fixed-width encoding (4 bytes).</summary>
+        /// <summary>
+        /// Writes a 32-bit unsigned integer using fixed-width encoding (4 bytes).
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void WriteUInt32Fixed(uint value)
         {
@@ -191,7 +207,9 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             }
         }
 
-        /// <summary>Writes a 64-bit unsigned integer using fixed-width encoding (8 bytes).</summary>
+        /// <summary>
+        /// Writes a 64-bit unsigned integer using fixed-width encoding (8 bytes).
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void WriteUInt64Fixed(ulong value)
         {
@@ -209,7 +227,9 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
                 _length = _position;
         }
 
-        /// <summary>Writes a 32-bit float to the buffer.</summary>
+        /// <summary>
+        /// Writes a 32-bit float to the buffer.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void WriteSingle(float value)
         {
@@ -231,7 +251,9 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
                 _length = _position;
         }
 
-        /// <summary>Writes a 64-bit double to the buffer.</summary>
+        /// <summary>
+        /// Writes a 64-bit double to the buffer.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void WriteDouble(double value)
         {
@@ -257,7 +279,9 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
                 _length = _position;
         }
 
-        /// <summary>Writes a primitive array to the buffer using direct memory copy.</summary>
+        /// <summary>
+        /// Writes a primitive array to the buffer using direct memory copy.
+        /// </summary>
         /// <typeparam name="T">The unmanaged type of elements in the array.</typeparam>
         /// <param name="data">The array to write.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -280,7 +304,9 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
                 _length = _position;
         }
 
-        /// <summary>Writes an unmanaged value to the buffer using direct memory copy.</summary>
+        /// <summary>
+        /// Writes an unmanaged value to the buffer using direct memory copy.
+        /// </summary>
         /// <typeparam name="T">The unmanaged type to write.</typeparam>
         /// <param name="value">The value to write.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -305,12 +331,18 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// </summary>
         /// <param name="tag">The tag value to write.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void WriteTypeTag(BinaryFormatterTag tag)
+        private void WriteOptionTag(BinaryFormatterTag tag)
         {
             if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
             {
-                WriteByte((byte)tag);
+                WriteTag(tag);
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void WriteTag(BinaryFormatterTag tag)
+        {
+            WriteByte((byte)tag);
         }
     }
 }

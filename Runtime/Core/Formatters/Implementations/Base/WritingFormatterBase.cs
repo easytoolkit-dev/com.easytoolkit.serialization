@@ -248,7 +248,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         void IDataFormatter.EndObject()
         {
-            ValidateEndOperation(OperationType.Object);
+            PopAndValidateEndOperation(OperationType.Object);
             EndObject();
         }
 
@@ -262,7 +262,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         void IDataFormatter.EndArray()
         {
-            ValidateEndOperation(OperationType.Array);
+            PopAndValidateEndOperation(OperationType.Array);
             EndArray();
         }
 
@@ -271,7 +271,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// </summary>
         /// <param name="operationType">The type of operation being ended.</param>
         /// <exception cref="InvalidOperationException">Thrown when the operation type does not match the expected type.</exception>
-        private void ValidateEndOperation(OperationType operationType)
+        private void PopAndValidateEndOperation(OperationType operationType)
         {
             if (_operationStack.Count == 0)
             {
@@ -294,10 +294,12 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             if (_operationStack.Count > 0)
             {
                 var operation = _operationStack.Peek();
+                _operationStack.Clear();
                 throw new InvalidOperationException(
                     $"Formatter disposed with unbalanced Begin/End operations. " +
                     $"Missing End{operation} call for the corresponding Begin{operation} operation.");
             }
+            _operationStack.Clear();
         }
     }
 }

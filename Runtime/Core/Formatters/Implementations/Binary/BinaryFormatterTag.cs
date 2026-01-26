@@ -128,36 +128,45 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         #region Structure Marker Tags (0x80-0xFF)
 
         /// <summary>
+        /// Marks that the object type is null.
+        /// </summary>
+        NullType = 0x80,
+
+        /// <summary>
+        /// Marks that the following data is a type ID. Used for type deduplication.
+        /// </summary>
+        TypeId = 0x81,
+
+        /// <summary>
+        /// Marks that the following data is a type name string.
+        /// </summary>
+        TypeName = 0x82,
+
+        /// <summary>
         /// Marks the beginning of a member. Always followed by a length-prefixed name string.
         /// Anonymous members use auto-generated names like "$0", "$1", etc.
         /// </summary>
-        MemberBegin = 0x80,
+        MemberBegin = 0x83,
 
         /// <summary>
         /// Marks the beginning of an object.
         /// </summary>
-        ObjectBegin = 0x81,
-
-        /// <summary>
-        /// Marks the beginning of an object with type information.
-        /// Followed by the object's type full name string, then the object content.
-        /// </summary>
-        TypedObjectBegin = 0x85,
+        ObjectBegin = 0x84,
 
         /// <summary>
         /// Marks the end of an object.
         /// </summary>
-        ObjectEnd = 0x82,
+        ObjectEnd = 0x85,
 
         /// <summary>
         /// Marks the beginning of an array.
         /// </summary>
-        ArrayBegin = 0x83,
+        ArrayBegin = 0x86,
 
         /// <summary>
         /// Marks the end of an array.
         /// </summary>
-        ArrayEnd = 0x84,
+        ArrayEnd = 0x87,
 
         #endregion
     }

@@ -13,6 +13,8 @@ namespace EasyToolKit.Serialization.Processors
             if (formatter.FormatType == SerializationFormat.Binary)
             {
                 formatter.BeginMember(name);
+                using var scope = formatter.EnterObject(typeof(T));
+                formatter.BeginMember("_");
                 formatter.FormatGenericPrimitive(ref value);
             }
             else
