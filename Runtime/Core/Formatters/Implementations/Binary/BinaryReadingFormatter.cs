@@ -33,24 +33,6 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         private BinaryFormatterOptions Options =>
             ((BinaryFormatterSettings)Settings)?.Options ?? BinaryFormatterOptions.Default;
 
-        /// <summary>
-        /// Reads and validates a tag when IncludeTypeTags option is enabled.
-        /// </summary>
-        /// <param name="expectedTag">The expected tag value.</param>
-        /// <param name="context">Context description for error messages.</param>
-        private void ReadAndValidateTypeTag(BinaryFormatterTag expectedTag, string context)
-        {
-            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
-            {
-                var tag = (BinaryFormatterTag)ReadByte();
-                if (tag != expectedTag)
-                {
-                    throw new InvalidOperationException(
-                        $"Invalid type tag for {context}. Expected {expectedTag}, found {tag}.");
-                }
-            }
-        }
-
         /// <inheritdoc />
         public override void SetBuffer(ReadOnlySpan<byte> buffer)
         {
@@ -76,7 +58,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
                 var tag = (BinaryFormatterTag)ReadByte();
                 if (tag != BinaryFormatterTag.MemberBegin)
                 {
-                    throw new InvalidOperationException(
+                    throw new DataFormatException(
                         $"Invalid tag at BeginMember. Expected {BinaryFormatterTag.MemberBegin}, found {tag}.");
                 }
 
@@ -87,7 +69,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
                     // Verify name matches if provided (skip verification for auto-generated names starting with '$')
                     if (!string.IsNullOrEmpty(name) && !name.StartsWith("$") && readName != name)
                     {
-                        throw new InvalidOperationException(
+                        throw new DataFormatException(
                             $"Member name mismatch. Expected '{name}', found '{readName}'.");
                     }
                 }
@@ -96,19 +78,36 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         }
 
         /// <inheritdoc />
-        protected override void BeginObject()
+        protected override void BeginObject(Type type)
         {
             var tag = (BinaryFormatterTag)ReadByte();
-            if (tag != BinaryFormatterTag.ObjectBegin)
+
+            // Handle typed object - read type information but don't use it for validation
+            if (tag == BinaryFormatterTag.TypedObjectBegin)
             {
-                throw new InvalidOperationException(
-                    $"Invalid tag at BeginObject. Expected {BinaryFormatterTag.ObjectBegin}, found {tag}.");
+                var typeNameLength = ReadVarint32();
+                if (typeNameLength > 0)
+                {
+                    var typeName = ReadString((int)typeNameLength);
+                    if (type.AssemblyQualifiedName != typeName &&
+                        type.FullName != typeName &&
+                        type.Name != typeName)
+                    {
+                        throw new DataFormatException(
+                            $"Type mismatch in binary data. Expected type '{type.AssemblyQualifiedName ?? type.FullName}', found '{typeName}'.");
+                    }
+                }
+            }
+            else if (tag != BinaryFormatterTag.ObjectBegin)
+            {
+                throw new DataFormatException(
+                    $"Invalid tag at BeginObject. Expected {BinaryFormatterTag.ObjectBegin} or {BinaryFormatterTag.TypedObjectBegin}, found {tag}.");
             }
 
-            var depth = (int)ReadVarint32();
+            var depth = (int)ReadUInt32Optimized();
             if (depth != _nodeDepth)
             {
-                throw new InvalidOperationException(
+                throw new DataFormatException(
                     $"Depth mismatch at BeginObject. Expected {_nodeDepth}, found {depth}.");
             }
 
@@ -120,17 +119,17 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         {
             _nodeDepth--;
 
-            var depth = (int)ReadVarint32();
+            var depth = (int)ReadUInt32Optimized();
             if (depth != _nodeDepth)
             {
-                throw new InvalidOperationException(
+                throw new DataFormatException(
                     $"Depth mismatch at EndObject. Expected {_nodeDepth}, found {depth}.");
             }
 
             var tag = (BinaryFormatterTag)ReadByte();
             if (tag != BinaryFormatterTag.ObjectEnd)
             {
-                throw new InvalidOperationException(
+                throw new DataFormatException(
                     $"Invalid tag at EndObject. Expected {BinaryFormatterTag.ObjectEnd}, found {tag}.");
             }
         }
@@ -141,16 +140,16 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             var tag = (BinaryFormatterTag)ReadByte();
             if (tag != BinaryFormatterTag.ArrayBegin)
             {
-                throw new InvalidOperationException(
+                throw new DataFormatException(
                     $"Invalid tag at BeginArray. Expected {BinaryFormatterTag.ArrayBegin}, found {tag}.");
             }
 
-            length = (int)ReadVarint32();
+            length = (int)ReadUInt32Optimized();
 
-            var depth = (int)ReadVarint32();
+            var depth = (int)ReadUInt32Optimized();
             if (depth != _nodeDepth)
             {
-                throw new InvalidOperationException(
+                throw new DataFormatException(
                     $"Depth mismatch at BeginArray. Expected {_nodeDepth}, found {depth}.");
             }
 
@@ -162,17 +161,17 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         {
             _nodeDepth--;
 
-            var depth = (int)ReadVarint32();
+            var depth = (int)ReadUInt32Optimized();
             if (depth != _nodeDepth)
             {
-                throw new InvalidOperationException(
+                throw new DataFormatException(
                     $"Depth mismatch at EndArray. Expected {_nodeDepth}, found {depth}.");
             }
 
             var tag = (BinaryFormatterTag)ReadByte();
             if (tag != BinaryFormatterTag.ArrayEnd)
             {
-                throw new InvalidOperationException(
+                throw new DataFormatException(
                     $"Invalid tag at EndArray. Expected {BinaryFormatterTag.ArrayEnd}, found {tag}.");
             }
         }

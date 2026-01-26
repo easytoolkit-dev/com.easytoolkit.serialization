@@ -174,6 +174,23 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
                 _length = _position;
         }
 
+        /// <summary>
+        /// Writes a 32-bit unsigned integer using varint or fixed encoding based on formatter options.
+        /// </summary>
+        /// <param name="value">The value to write.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void WriteUInt32Optimized(uint value)
+        {
+            if ((Options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
+            {
+                WriteVarint32(value);
+            }
+            else
+            {
+                WriteUInt32Fixed(value);
+            }
+        }
+
         /// <summary>Writes a 64-bit unsigned integer using fixed-width encoding (8 bytes).</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void WriteUInt64Fixed(ulong value)
@@ -281,6 +298,19 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             _position += byteCount;
             if (_position > _length)
                 _length = _position;
+        }
+
+        /// <summary>
+        /// Writes a tag when IncludeTypeTags option is enabled.
+        /// </summary>
+        /// <param name="tag">The tag value to write.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void WriteTypeTag(BinaryFormatterTag tag)
+        {
+            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
+            {
+                WriteByte((byte)tag);
+            }
         }
     }
 }

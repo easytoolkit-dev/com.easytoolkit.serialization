@@ -1,4 +1,5 @@
 using System;
+using JetBrains.Annotations;
 
 namespace EasyToolKit.Serialization.Formatters
 {
@@ -49,13 +50,16 @@ namespace EasyToolKit.Serialization.Formatters
         void BeginMember(string name);
 
         /// <summary>
-        /// Begins serialization of a complex object.
+        /// Begins serialization of a complex object with optional type information.
         /// </summary>
+        /// <param name="type">The type of the object, or null if type information is not needed.</param>
         /// <remarks>
         /// Objects are complex types containing multiple members.
+        /// The type parameter is used by formatters that support polymorphic serialization
+        /// (e.g., Binary formatter can write type information when IncludeObjectType is enabled).
         /// Call <see cref="EndObject"/> to complete the object.
         /// </remarks>
-        void BeginObject();
+        void BeginObject([CanBeNull] Type type = null);
 
         /// <summary>
         /// Ends the current object serialization scope.

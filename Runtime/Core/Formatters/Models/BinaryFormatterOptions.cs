@@ -41,6 +41,13 @@ namespace EasyToolKit.Serialization.Formatters
         EnableDirectMemoryCopy = 1 << 3,
 
         /// <summary>
+        /// Enables writing type information before object begin markers.
+        /// When enabled, object type full name is serialized for polymorphic deserialization.
+        /// When disabled, objects are deserialized using the known type structure.
+        /// </summary>
+        IncludeObjectType = 1 << 4,
+
+        /// <summary>
         /// Default configuration with type tags, member names, and direct memory copy enabled.
         /// Provides a good balance between compatibility, functionality, and performance.
         /// </summary>

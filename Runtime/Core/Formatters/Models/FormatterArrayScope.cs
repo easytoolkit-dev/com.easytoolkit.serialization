@@ -22,7 +22,6 @@ namespace EasyToolKit.Serialization.Formatters
         /// <param name="formatter">The data formatter to manage the array scope for.</param>
         /// <param name="length">The array length to read or write.</param>
         /// <returns>A new or reused instance of <see cref="FormatterArrayScope"/>.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when formatter is null.</exception>
         public static FormatterArrayScope Create(IDataFormatter formatter, ref int length)
         {
             var scope = PoolUtility.RentObject<FormatterArrayScope>();
