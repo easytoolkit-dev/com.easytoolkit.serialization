@@ -34,5 +34,16 @@ namespace EasyToolKit.Serialization
         /// When <c>false</c>, non-public fields are serialized based on <c>MemberFlags</c> alone.
         /// </remarks>
         public bool RequireSerializeFieldOnNonPublic { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets whether to exclude members marked with <c>NonSerializedAttribute</c>
+        /// from serialization.
+        /// </summary>
+        /// <remarks>
+        /// When <c>true</c>, fields marked with <c>System.NonSerializedAttribute</c> are excluded
+        /// from serialization regardless of other settings. When <c>false</c>, the <c>NonSerialized</c>
+        /// attribute is ignored and members are serialized based on other flags.
+        /// </remarks>
+        public bool ExcludeNonSerialized { get; set; } = true;
     }
 }
