@@ -25,12 +25,13 @@ namespace EasyToolKit.Serialization.Resolvers.Implementations
             var attribute = SerializedTypeUtility.GetDefinedEasySerializableAttribute(valueType);
             var memberFlags = attribute?.MemberFlags ?? SerializableMemberFlags.Default;
             var requireSerializeFieldOnNonPublic = attribute?.RequireSerializeFieldOnNonPublic ?? false;
+            var excludeNonSerialized = attribute?.ExcludeNonSerialized ?? true;
 
             var members = new List<SerializationMemberDefinition>();
 
             var memberInfos = valueType.GetMembers(MemberAccessFlags.AllInstance)
                 .Where(memberInfo => memberInfo is FieldInfo || memberInfo is PropertyInfo)
-                .Where(memberInfo => ShouldIncludeMember(memberInfo, memberFlags, requireSerializeFieldOnNonPublic))
+                .Where(memberInfo => ShouldIncludeMember(memberInfo, memberFlags, requireSerializeFieldOnNonPublic, excludeNonSerialized))
                 .ToList();
 
             for (int i = 0; i < memberInfos.Count; i++)
@@ -38,9 +39,18 @@ namespace EasyToolKit.Serialization.Resolvers.Implementations
                 var memberInfo = memberInfos[i];
                 Type memberType = GetMemberType(memberInfo);
 
+                // Get custom serialization name from EasySerializeFieldAttribute
+                var serializeFieldAttribute = memberInfo.GetCustomAttributes(typeof(EasySerializeFieldAttribute), inherit: true)
+                    .FirstOrDefault() as EasySerializeFieldAttribute;
+                string serializedName = serializeFieldAttribute?.Name;
+                if (string.IsNullOrEmpty(serializedName))
+                {
+                    serializedName = memberInfo.Name;
+                }
+
                 var memberDefinition = new SerializationMemberDefinition
                 {
-                    Name = memberInfo.Name,
+                    Name = serializedName,
                     MemberType = memberType,
                     MemberInfo = memberInfo,
                     IsRequired = false,
@@ -60,11 +70,28 @@ namespace EasyToolKit.Serialization.Resolvers.Implementations
         /// Determines whether a member should be included based on the specified flags.
         /// </summary>
         private static bool ShouldIncludeMember(MemberInfo memberInfo, SerializableMemberFlags flags,
-            bool requireSerializeFieldOnNonPublic)
+            bool requireSerializeFieldOnNonPublic, bool excludeNonSerialized)
         {
+            // Check for EasySerializeFieldAttribute with Ignore flag
+            var serializeFieldAttribute = memberInfo.GetCustomAttribute<EasySerializeFieldAttribute>(inherit: true);
+            if (serializeFieldAttribute != null && serializeFieldAttribute.Ignore)
+            {
+                return false;
+            }
+
             // Check member type (Field vs Property)
             bool isField = memberInfo is FieldInfo;
             bool isProperty = memberInfo is PropertyInfo;
+
+            // Check for NonSerializedAttribute on fields
+            if (excludeNonSerialized && isField)
+            {
+                var nonSerializedAttributes = memberInfo.GetCustomAttributes(typeof(NonSerializedAttribute), inherit: true);
+                if (nonSerializedAttributes.Length > 0)
+                {
+                    return false;
+                }
+            }
 
             if (isField && !flags.HasFlag(SerializableMemberFlags.Field))
             {
