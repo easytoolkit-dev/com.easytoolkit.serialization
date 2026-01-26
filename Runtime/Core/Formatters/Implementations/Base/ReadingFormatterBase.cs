@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using EasyToolKit.Core.Pooling;
 using JetBrains.Annotations;
 
@@ -84,47 +85,38 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
 
         protected abstract void EndArray();
 
-        /// <inheritdoc />
-        public abstract void Format(ref int value);
+        protected abstract void Format(ref int value);
 
-        /// <inheritdoc />
-        public abstract void Format(ref sbyte value);
+        protected abstract void Format(ref sbyte value);
 
-        /// <inheritdoc />
-        public abstract void Format(ref short value);
+        protected abstract void Format(ref short value);
 
-        /// <inheritdoc />
-        public abstract void Format(ref long value);
+        protected abstract void Format(ref long value);
 
-        /// <inheritdoc />
-        public abstract void Format(ref byte value);
+        protected abstract void Format(ref byte value);
 
-        /// <inheritdoc />
-        public abstract void Format(ref ushort value);
+        protected abstract void Format(ref ushort value);
 
-        /// <inheritdoc />
-        public abstract void Format(ref uint value);
+        protected abstract void Format(ref uint value);
 
-        /// <inheritdoc />
-        public abstract void Format(ref ulong value);
+        protected abstract void Format(ref ulong value);
 
-        /// <inheritdoc />
-        public abstract void Format(ref bool value);
+        protected abstract void Format(ref bool value);
 
-        /// <inheritdoc />
-        public abstract void Format(ref float value);
+        protected abstract void Format(ref float value);
 
-        /// <inheritdoc />
-        public abstract void Format(ref double value);
+        protected abstract void Format(ref double value);
 
-        /// <inheritdoc />
-        public abstract void Format(ref string str);
+        protected abstract void Format(ref string str);
 
-        /// <inheritdoc />
-        public virtual void Format(ref byte[] data)
+        protected virtual void Format(ref byte[] data)
         {
             var length = 0;
             using var scope = this.EnterArray(ref length);
+            if (length == 0)
+            {
+                data = Array.Empty<byte>();
+            }
             data = new byte[length];
             for (int i = 0; i < length; i++)
             {
@@ -134,11 +126,15 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             }
         }
 
-        /// <inheritdoc />
-        public virtual void Format(ref sbyte[] data)
+        protected virtual void Format(ref sbyte[] data)
         {
             var length = 0;
             using var scope = this.EnterArray(ref length);
+            if (length == 0)
+            {
+                data = Array.Empty<sbyte>();
+                return;
+            }
             data = new sbyte[length];
             for (int i = 0; i < length; i++)
             {
@@ -148,11 +144,15 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             }
         }
 
-        /// <inheritdoc />
-        public virtual void Format(ref short[] data)
+        protected virtual void Format(ref short[] data)
         {
             var length = 0;
             using var scope = this.EnterArray(ref length);
+            if (length == 0)
+            {
+                data = Array.Empty<short>();
+                return;
+            }
             data = new short[length];
             for (int i = 0; i < length; i++)
             {
@@ -162,11 +162,15 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             }
         }
 
-        /// <inheritdoc />
-        public virtual void Format(ref int[] data)
+        protected virtual void Format(ref int[] data)
         {
             var length = 0;
             using var scope = this.EnterArray(ref length);
+            if (length == 0)
+            {
+                data = Array.Empty<int>();
+                return;
+            }
             data = new int[length];
             for (int i = 0; i < length; i++)
             {
@@ -176,11 +180,15 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             }
         }
 
-        /// <inheritdoc />
-        public virtual void Format(ref long[] data)
+        protected virtual void Format(ref long[] data)
         {
             var length = 0;
             using var scope = this.EnterArray(ref length);
+            if (length == 0)
+            {
+                data = Array.Empty<long>();
+                return;
+            }
             data = new long[length];
             for (int i = 0; i < length; i++)
             {
@@ -190,11 +198,15 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             }
         }
 
-        /// <inheritdoc />
-        public virtual void Format(ref ushort[] data)
+        protected virtual void Format(ref ushort[] data)
         {
             var length = 0;
             using var scope = this.EnterArray(ref length);
+            if (length == 0)
+            {
+                data = Array.Empty<ushort>();
+                return;
+            }
             data = new ushort[length];
             for (int i = 0; i < length; i++)
             {
@@ -204,11 +216,15 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             }
         }
 
-        /// <inheritdoc />
-        public virtual void Format(ref uint[] data)
+        protected virtual void Format(ref uint[] data)
         {
             var length = 0;
             using var scope = this.EnterArray(ref length);
+            if (length == 0)
+            {
+                data = Array.Empty<uint>();
+                return;
+            }
             data = new uint[length];
             for (int i = 0; i < length; i++)
             {
@@ -218,11 +234,15 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             }
         }
 
-        /// <inheritdoc />
-        public virtual void Format(ref ulong[] data)
+        protected virtual void Format(ref ulong[] data)
         {
             var length = 0;
             using var scope = this.EnterArray(ref length);
+            if (length == 0)
+            {
+                data = Array.Empty<ulong>();
+                return;
+            }
             data = new ulong[length];
             for (int i = 0; i < length; i++)
             {
@@ -232,11 +252,9 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             }
         }
 
-        /// <inheritdoc />
-        public abstract void Format(ref UnityEngine.Object unityObject);
+        protected abstract void Format(ref UnityEngine.Object unityObject);
 
-        /// <inheritdoc />
-        public virtual void FormatGenericPrimitive<T>(ref T value) where T : unmanaged
+        protected virtual void FormatGenericPrimitive<T>(ref T value) where T : unmanaged
         {
             throw new NotSupportedException(
                 $"FormatGenericPrimitive is only supported in Binary format mode. " +
@@ -244,8 +262,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
                 $"Use the typed Format methods (e.g., Format(ref int value)) for non-Binary formatters.");
         }
 
-        /// <inheritdoc />
-        public virtual void FormatGenericPrimitive<T>(ref T[] data) where T : unmanaged
+        protected virtual void FormatGenericPrimitive<T>(ref T[] data) where T : unmanaged
         {
             throw new NotSupportedException(
                 $"FormatGenericPrimitive array is only supported in Binary format mode. " +
@@ -297,6 +314,236 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         {
             PopAndValidateEndOperation(OperationType.Array);
             EndArray();
+        }
+
+        void IDataFormatter.Format(ref int value)
+        {
+            if (!ValidateStreamBeforeRead(ref value))
+            {
+                return;
+            }
+            Format(ref value);
+        }
+
+        void IDataFormatter.Format(ref sbyte value)
+        {
+            if (!ValidateStreamBeforeRead(ref value))
+            {
+                return;
+            }
+            Format(ref value);
+        }
+
+        void IDataFormatter.Format(ref short value)
+        {
+            if (!ValidateStreamBeforeRead(ref value))
+            {
+                return;
+            }
+            Format(ref value);
+        }
+
+        void IDataFormatter.Format(ref long value)
+        {
+            if (!ValidateStreamBeforeRead(ref value))
+            {
+                return;
+            }
+            Format(ref value);
+        }
+
+        void IDataFormatter.Format(ref byte value)
+        {
+            if (!ValidateStreamBeforeRead(ref value))
+            {
+                return;
+            }
+            Format(ref value);
+        }
+
+        void IDataFormatter.Format(ref ushort value)
+        {
+            if (!ValidateStreamBeforeRead(ref value))
+            {
+                return;
+            }
+            Format(ref value);
+        }
+
+        void IDataFormatter.Format(ref uint value)
+        {
+            if (!ValidateStreamBeforeRead(ref value))
+            {
+                return;
+            }
+            Format(ref value);
+        }
+
+        void IDataFormatter.Format(ref ulong value)
+        {
+            if (!ValidateStreamBeforeRead(ref value))
+            {
+                return;
+            }
+            Format(ref value);
+        }
+
+        void IDataFormatter.Format(ref bool value)
+        {
+            if (!ValidateStreamBeforeRead(ref value))
+            {
+                return;
+            }
+            Format(ref value);
+        }
+
+        void IDataFormatter.Format(ref float value)
+        {
+            if (!ValidateStreamBeforeRead(ref value))
+            {
+                return;
+            }
+            Format(ref value);
+        }
+
+        void IDataFormatter.Format(ref double value)
+        {
+            if (!ValidateStreamBeforeRead(ref value))
+            {
+                return;
+            }
+            Format(ref value);
+        }
+
+        void IDataFormatter.Format(ref string str)
+        {
+            if (!ValidateStreamBeforeRead(ref str))
+            {
+                return;
+            }
+            Format(ref str);
+        }
+
+        void IDataFormatter.Format(ref byte[] data)
+        {
+            if (!ValidateStreamBeforeRead(ref data))
+            {
+                return;
+            }
+            Format(ref data);
+        }
+
+        void IDataFormatter.Format(ref sbyte[] data)
+        {
+            if (!ValidateStreamBeforeRead(ref data))
+            {
+                return;
+            }
+            Format(ref data);
+        }
+
+        void IDataFormatter.Format(ref short[] data)
+        {
+            if (!ValidateStreamBeforeRead(ref data))
+            {
+                return;
+            }
+            Format(ref data);
+        }
+
+        void IDataFormatter.Format(ref int[] data)
+        {
+            if (!ValidateStreamBeforeRead(ref data))
+            {
+                return;
+            }
+            Format(ref data);
+        }
+
+        void IDataFormatter.Format(ref long[] data)
+        {
+            if (!ValidateStreamBeforeRead(ref data))
+            {
+                return;
+            }
+            Format(ref data);
+        }
+
+        void IDataFormatter.Format(ref ushort[] data)
+        {
+            if (!ValidateStreamBeforeRead(ref data))
+            {
+                return;
+            }
+            Format(ref data);
+        }
+
+        void IDataFormatter.Format(ref uint[] data)
+        {
+            if (!ValidateStreamBeforeRead(ref data))
+            {
+                return;
+            }
+            Format(ref data);
+        }
+
+        void IDataFormatter.Format(ref ulong[] data)
+        {
+            if (!ValidateStreamBeforeRead(ref data))
+            {
+                return;
+            }
+            Format(ref data);
+        }
+
+        void IDataFormatter.Format(ref UnityEngine.Object unityObject)
+        {
+            if (!ValidateStreamBeforeRead(ref unityObject))
+            {
+                return;
+            }
+            Format(ref unityObject);
+        }
+
+        void IDataFormatter.FormatGenericPrimitive<T>(ref T value)
+        {
+            if (!ValidateStreamBeforeRead(ref value))
+            {
+                return;
+            }
+            FormatGenericPrimitive(ref value);
+        }
+
+        void IDataFormatter.FormatGenericPrimitive<T>(ref T[] data)
+        {
+            if (!ValidateStreamBeforeRead(ref data))
+            {
+                return;
+            }
+            FormatGenericPrimitive(ref data);
+        }
+
+        /// <summary>
+        /// Validates the stream state before reading a value.
+        /// Sets the value to default and returns false if the stream has ended and ReturnDefaultOnStreamEnd is enabled.
+        /// Throws an exception if the stream has ended and ReturnDefaultOnStreamEnd is disabled.
+        /// </summary>
+        /// <typeparam name="T">The type of value to read.</typeparam>
+        /// <param name="value">The value to be read (output parameter).</param>
+        /// <returns>True if the caller should proceed with reading; false if default value was set.</returns>
+        /// <exception cref="EndOfStreamException">Thrown when the stream has ended and ReturnDefaultOnStreamEnd is false.</exception>
+        private bool ValidateStreamBeforeRead<T>(ref T value)
+        {
+            if (GetRemainingLength() == 0)
+            {
+                if (_settings.ReturnDefaultOnStreamEnd)
+                {
+                    value = default;
+                    return false;
+                }
+                throw new EndOfStreamException("Attempted to read past the end of the buffer.");
+            }
+            return true;
         }
 
         /// <summary>
