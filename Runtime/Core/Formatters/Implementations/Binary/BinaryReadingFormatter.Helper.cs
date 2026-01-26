@@ -7,7 +7,9 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
 {
     public sealed partial class BinaryReadingFormatter
     {
-        /// <summary>Reads a string from raw char memory (2 bytes per char) with the specified char count.</summary>
+        /// <summary>
+        /// Reads a string from raw char memory (2 bytes per char) with the specified char count.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe string ReadString(int charCount)
         {
@@ -26,7 +28,9 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             }
         }
 
-        /// <summary>Reads a single byte from the buffer.</summary>
+        /// <summary>
+        /// Reads a single byte from the buffer.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private byte ReadByte()
         {
@@ -35,7 +39,9 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             return _buffer[_position++];
         }
 
-        /// <summary>Reads the specified number of bytes from the buffer.</summary>
+        /// <summary>
+        /// Reads the specified number of bytes from the buffer.
+        /// </summary>
         private ReadOnlySpan<byte> ReadBytes(int count)
         {
             if (count < 0)
@@ -49,7 +55,9 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             return result;
         }
 
-        /// <summary>Reads a 32-bit unsigned integer using variable-length decoding.</summary>
+        /// <summary>
+        /// Reads a 32-bit unsigned integer using variable-length decoding.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private uint ReadVarint32()
         {
@@ -95,7 +103,9 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             throw new InvalidDataException("Invalid varint32: too many bytes.");
         }
 
-        /// <summary>Reads a 64-bit unsigned integer using variable-length decoding.</summary>
+        /// <summary>
+        /// Reads a 64-bit unsigned integer using variable-length decoding.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ulong ReadVarint64()
         {
@@ -121,7 +131,9 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             return value;
         }
 
-        /// <summary>Reads a 16-bit unsigned integer using fixed-width encoding (2 bytes).</summary>
+        /// <summary>
+        /// Reads a 16-bit unsigned integer using fixed-width encoding (2 bytes).
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ushort ReadUInt16Fixed()
         {
@@ -137,7 +149,9 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             return value;
         }
 
-        /// <summary>Reads a 32-bit unsigned integer using fixed-width encoding (4 bytes).</summary>
+        /// <summary>
+        /// Reads a 32-bit unsigned integer using fixed-width encoding (4 bytes).
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private uint ReadUInt32Fixed()
         {
@@ -172,7 +186,9 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             }
         }
 
-        /// <summary>Reads a 64-bit unsigned integer using fixed-width encoding (8 bytes).</summary>
+        /// <summary>
+        /// Reads a 64-bit unsigned integer using fixed-width encoding (8 bytes).
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ulong ReadUInt64Fixed()
         {
@@ -195,7 +211,9 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             return low | (high << 32);
         }
 
-        /// <summary>Reads a 32-bit float from the buffer.</summary>
+        /// <summary>
+        /// Reads a 32-bit float from the buffer.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private float ReadSingle()
         {
@@ -217,7 +235,9 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             }
         }
 
-        /// <summary>Reads a 64-bit double from the buffer.</summary>
+        /// <summary>
+        /// Reads a 64-bit double from the buffer.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private double ReadDouble()
         {
@@ -245,7 +265,9 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             }
         }
 
-        /// <summary>Reads a primitive array from the buffer using direct memory copy.</summary>
+        /// <summary>
+        /// Reads a primitive array from the buffer using direct memory copy.
+        /// </summary>
         /// <typeparam name="T">The primitive type (sbyte, short, int, long, ushort, uint, ulong).</typeparam>
         /// <param name="length">The number of elements to read.</param>
         /// <returns>The primitive array read from the buffer.</returns>
@@ -276,7 +298,9 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             return result;
         }
 
-        /// <summary>Reads an unmanaged value from the buffer using direct memory copy.</summary>
+        /// <summary>
+        /// Reads an unmanaged value from the buffer using direct memory copy.
+        /// </summary>
         /// <typeparam name="T">The unmanaged type to read.</typeparam>
         /// <returns>The value read from the buffer.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -303,16 +327,36 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         /// </summary>
         /// <param name="expectedTag">The expected tag value.</param>
         /// <param name="context">Context description for error messages.</param>
-        private void ReadAndValidateTypeTag(BinaryFormatterTag expectedTag, string context)
+        private void ReadAndValidateOptionTag(BinaryFormatterTag expectedTag, string context)
         {
             if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
             {
-                var tag = (BinaryFormatterTag)ReadByte();
+                var tag = ReadTag();
                 if (tag != expectedTag)
                 {
                     throw new DataFormatException(
                         $"Invalid type tag for {context}. Expected {expectedTag}, found {tag}.");
                 }
+            }
+        }
+
+        private BinaryFormatterTag ReadTag()
+        {
+            return (BinaryFormatterTag)ReadByte();
+        }
+
+        /// <summary>
+        /// Reads and validates the node depth from the stream.
+        /// </summary>
+        /// <param name="context">The context description for error messages (e.g., "BeginObject", "EndArray").</param>
+        /// <exception cref="DataFormatException">Thrown when the depth value does not match the expected node depth.</exception>
+        private void ReadAndValidateNodeDepth(string context)
+        {
+            var depth = (int)ReadUInt32Optimized();
+            if (depth != _nodeDepth)
+            {
+                throw new DataFormatException(
+                    $"Depth mismatch at {context}. Expected {_nodeDepth}, found {depth}.");
             }
         }
     }
