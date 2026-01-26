@@ -52,7 +52,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
                 return;
             }
 
-            if ((Options & BinaryFormatterOptions.EnableDirectMemoryCopy) != 0)
+            if ((_options & BinaryFormatterOptions.EnableDirectMemoryCopy) != 0)
             {
                 // Current implementation: 2 bytes per char (UTF-16LE)
                 int charCount = str.Length;
@@ -197,7 +197,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void WriteUInt32Optimized(uint value)
         {
-            if ((Options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
+            if ((_options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
             {
                 WriteVarint32(value);
             }
@@ -333,7 +333,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void WriteOptionTag(BinaryFormatterTag tag)
         {
-            if ((Options & BinaryFormatterOptions.IncludeTypeTags) != 0)
+            if ((_options & BinaryFormatterOptions.IncludeTypeTags) != 0)
             {
                 WriteTag(tag);
             }

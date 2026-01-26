@@ -17,6 +17,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         private byte[] _buffer;
         private int _nodeDepth;
         private readonly Dictionary<Type, int> _idByType;
+        private BinaryFormatterOptions _options;
         private const int DefaultInitialCapacity = 1024;
 
         public BinaryWritingFormatter()
@@ -43,12 +44,6 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
 
         /// <inheritdoc />
         public override SerializationFormat FormatType => SerializationFormat.Binary;
-
-        /// <summary>
-        /// Gets the formatter options from settings, or Default if settings is not a BinaryFormatterSettings.
-        /// </summary>
-        private BinaryFormatterOptions Options =>
-            ((BinaryFormatterSettings)Settings)?.Options ?? BinaryFormatterOptions.Default;
 
         /// <inheritdoc />
         public override byte[] GetBuffer() => _buffer;
@@ -82,7 +77,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         protected override void BeginMember(string name)
         {
             WriteOptionTag(BinaryFormatterTag.MemberBegin);
-            if ((Options & BinaryFormatterOptions.IncludeMemberNames) != 0)
+            if ((_options & BinaryFormatterOptions.IncludeMemberNames) != 0)
             {
                 WriteBytes(name);
             }
@@ -92,7 +87,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         protected override void BeginObject(Type type)
         {
             WriteOptionTag(BinaryFormatterTag.ObjectBegin);
-            if ((Options & BinaryFormatterOptions.IncludeObjectType) != 0)
+            if ((_options & BinaryFormatterOptions.IncludeObjectType) != 0)
             {
                 // Type deduplication: use tag + id/name for different type scenarios
                 if (type == null)
@@ -148,7 +143,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             // Use zigzag encoding to handle negative numbers
             uint encoded = (uint)((value << 1) ^ (value >> 31));
 
-            if ((Options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
+            if ((_options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
             {
                 WriteVarint32(encoded);
             }
@@ -174,7 +169,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             // Use zigzag encoding to handle negative numbers
             uint encoded = (uint)((value << 1) ^ (value >> 15));
 
-            if ((Options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
+            if ((_options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
             {
                 WriteVarint32(encoded);
             }
@@ -191,7 +186,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             // Use zigzag encoding to handle negative numbers
             ulong encoded = ((ulong)value << 1) ^ (ulong)(value >> 63);
 
-            if ((Options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
+            if ((_options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
             {
                 WriteVarint64(encoded);
             }
@@ -213,7 +208,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         {
             WriteOptionTag(BinaryFormatterTag.UInt16);
 
-            if ((Options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
+            if ((_options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
             {
                 WriteVarint32(value);
             }
@@ -228,7 +223,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         {
             WriteOptionTag(BinaryFormatterTag.UInt32);
 
-            if ((Options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
+            if ((_options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
             {
                 WriteVarint32(value);
             }
@@ -243,7 +238,7 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
         {
             WriteOptionTag(BinaryFormatterTag.UInt64);
 
-            if ((Options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
+            if ((_options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
             {
                 WriteVarint64(value);
             }
@@ -441,6 +436,20 @@ namespace EasyToolKit.Serialization.Formatters.Implementations
             Array.Clear(_buffer, 0, _buffer.Length);
             PoolUtility.ReleaseObject(this);
             base.Dispose();
+        }
+
+        protected override void OnSettingsChanged(DataFormatterSettings settings)
+        {
+            if (settings is not BinaryFormatterSettings binaryFormatterSettings)
+            {
+                throw new ArgumentException(
+                    $"Settings must be of type {nameof(BinaryFormatterSettings)}. " +
+                    $"Received type: {settings}. " +
+                    $"Please provide a valid BinaryFormatterSettings instance.",
+                    nameof(settings));
+            }
+
+            _options = binaryFormatterSettings.Options;
         }
     }
 }

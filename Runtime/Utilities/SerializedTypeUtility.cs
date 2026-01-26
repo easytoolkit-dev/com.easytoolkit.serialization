@@ -35,7 +35,7 @@ namespace EasyToolKit.Serialization.Utilities
 
         public static string TypeToName(Type type)
         {
-            return type.AssemblyQualifiedName ?? type.FullName ?? type.Name;
+            return TypeUtility.GetTypeName(type);
         }
 
         public static Type NameToType(string typeName)

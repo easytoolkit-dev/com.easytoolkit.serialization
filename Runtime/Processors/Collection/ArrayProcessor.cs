@@ -9,7 +9,7 @@ namespace EasyToolKit.Serialization.Processors
         [DependencyProcessor]
         private ISerializationProcessor<T> _serializer;
 
-        public override void Process(string name, ref T[] value, IDataFormatter formatter)
+        protected override void Process(string name, ref T[] value, IDataFormatter formatter)
         {
             formatter.BeginMember(name);
 

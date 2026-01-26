@@ -6,9 +6,9 @@ namespace EasyToolKit.Serialization.Processors
     public class GenericPrimitiveProcessor<T> : SerializationProcessor<T>
         where T : unmanaged
     {
-        private GenericProcessor<T> _genericProcessor;
+        private ISerializationProcessor<T> _genericProcessor;
 
-        public override void Process(string name, ref T value, IDataFormatter formatter)
+        protected override void Process(string name, ref T value, IDataFormatter formatter)
         {
             if (formatter.FormatType == SerializationFormat.Binary)
             {

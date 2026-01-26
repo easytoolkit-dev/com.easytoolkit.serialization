@@ -55,7 +55,7 @@ namespace EasyToolKit.Serialization.Processors
         /// </summary>
         /// <param name="value">The value to process.</param>
         /// <param name="formatter">The data formatter to use for processing.</param>
-        public virtual void Process(ref T value, IDataFormatter formatter)
+        protected virtual void Process(ref T value, IDataFormatter formatter)
         {
             Process(null, ref value, formatter);
         }
@@ -66,7 +66,7 @@ namespace EasyToolKit.Serialization.Processors
         /// <param name="name">The member name being processed.</param>
         /// <param name="value">The value to process.</param>
         /// <param name="formatter">The data formatter to use for processing.</param>
-        public abstract void Process(string name, ref T value, IDataFormatter formatter);
+        protected abstract void Process(string name, ref T value, IDataFormatter formatter);
 
         protected virtual void Initialize()
         {
@@ -85,6 +85,26 @@ namespace EasyToolKit.Serialization.Processors
         {
             get => _isRoot;
             set => _isRoot = value;
+        }
+
+        void ISerializationProcessor<T>.Process(ref T value, IDataFormatter formatter)
+        {
+            EnsureInitialize();
+            if (value == null && ConstructorInvoker != null && formatter.Operation == FormatterOperation.Read)
+            {
+                value = ConstructorInvoker();
+            }
+            Process(ref value, formatter);
+        }
+
+        void ISerializationProcessor<T>.Process(string name, ref T value, IDataFormatter formatter)
+        {
+            EnsureInitialize();
+            if (value == null && ConstructorInvoker != null && formatter.Operation == FormatterOperation.Read)
+            {
+                value = ConstructorInvoker();
+            }
+            Process(name, ref value, formatter);
         }
 
         void ISerializationProcessor.ProcessUntyped(ref object value, IDataFormatter formatter)
