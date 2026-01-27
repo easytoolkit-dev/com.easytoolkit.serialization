@@ -2,7 +2,7 @@
 
 namespace EasyToolKit.Serialization.Processors
 {
-    [ProcessorConfiguration(ProcessorPriorityLevel.Primitive - 1)]
+    [ProcessorConfiguration(ProcessorPriorityLevel.Primitive - 0.1)]
     public class GenericPrimitiveProcessor<T> : SerializationProcessor<T>
         where T : unmanaged
     {

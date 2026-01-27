@@ -3,7 +3,7 @@ using EasyToolKit.Serialization.Formatters;
 
 namespace EasyToolKit.Serialization.Processors
 {
-    [ProcessorConfiguration(ProcessorPriorityLevel.Collection - 1, AllowTypeArgumentInheritance = true)]
+    [ProcessorConfiguration(ProcessorPriorityLevel.Collection - 0.1, AllowTypeArgumentInheritance = true)]
     public class ListProcessor<T> : SerializationProcessor<IList<T>>
     {
         [DependencyProcessor]

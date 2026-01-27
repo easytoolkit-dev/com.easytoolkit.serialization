@@ -1,4 +1,5 @@
 using System;
+using EasyToolKit.Core.Mathematics;
 
 namespace EasyToolKit.Serialization.Processors
 {
@@ -16,7 +17,7 @@ namespace EasyToolKit.Serialization.Processors
         /// Gets the priority level for this serializer.
         /// Higher priority serializers are evaluated first during type matching.
         /// </summary>
-        public int Priority { get; }
+        public OrderPriority Priority { get; }
 
         public bool AllowTypeArgumentInheritance { get; set; }
 
@@ -29,19 +30,11 @@ namespace EasyToolKit.Serialization.Processors
         }
 
         /// <summary>
-        /// Initializes a new instance with the specified priority level.
-        /// </summary>
-        public ProcessorConfigurationAttribute(ProcessorPriorityLevel priority)
-            : this((int)priority)
-        {
-        }
-
-        /// <summary>
         /// Initializes a new instance with the specified priority and inheritance behavior.
         /// </summary>
-        public ProcessorConfigurationAttribute(int priority)
+        public ProcessorConfigurationAttribute(double priority)
         {
-            Priority = priority;
+            Priority = new OrderPriority(priority);
         }
     }
 }
