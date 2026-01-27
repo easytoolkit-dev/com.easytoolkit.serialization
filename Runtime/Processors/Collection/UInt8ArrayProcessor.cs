@@ -2,7 +2,7 @@
 
 namespace EasyToolKit.Serialization.Processors
 {
-    [ProcessorConfiguration(ProcessorPriorityLevel.Collection + 2)]
+    [ProcessorConfiguration(ProcessorPriorityLevel.Collection + 0.2)]
     public class UInt8ArrayProcessor : SerializationProcessor<byte[]>
     {
         protected override void Process(string name, ref byte[] value, IDataFormatter formatter)

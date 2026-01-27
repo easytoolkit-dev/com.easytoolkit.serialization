@@ -7,7 +7,7 @@ namespace EasyToolKit.Serialization.Processors
     /// Uses optimized binary serialization when available, falling back to generic processor for other formats.
     /// </summary>
     /// <typeparam name="T">The unmanaged element type of the array.</typeparam>
-    [ProcessorConfiguration(ProcessorPriorityLevel.Collection + 1)]
+    [ProcessorConfiguration(ProcessorPriorityLevel.Collection + 0.1)]
     public class GenericPrimitiveArrayProcessor<T> : SerializationProcessor<T[]>
         where T : unmanaged
     {

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using EasyToolKit.Core.Mathematics;
 using EasyToolKit.Core.Reflection;
 using JetBrains.Annotations;
 
@@ -24,6 +25,7 @@ namespace EasyToolKit.Serialization.Processors
                                        type.IsDerivedFrom<ISerializationProcessor>())
                         .ToArray();
                 }
+
                 return s_processorTypes;
             }
         }
@@ -40,14 +42,13 @@ namespace EasyToolKit.Serialization.Processors
 
         private static void InitializeTypeMatcher()
         {
-            TypeMatcher.SetTypeMatchCandidates(ProcessorTypes.Select(type =>
-            {
-                var config = type.GetCustomAttribute<ProcessorConfigurationAttribute>();
-                config ??= ProcessorConfigurationAttribute.Default;
-
-                var argType = type.GetGenericArgumentsRelativeTo(typeof(ISerializationProcessor<>));
-                return new TypeMatchCandidate(type, config.Priority, argType);
-            }));
+            TypeMatcher.SetTypeMatchCandidates(ProcessorTypes
+                .OrderByDescending(GetProcessorPriority)
+                .Select((type, i) =>
+                {
+                    var argType = type.GetGenericArgumentsRelativeTo(typeof(ISerializationProcessor<>));
+                    return new TypeMatchCandidate(type, ProcessorTypes.Length - i, argType);
+                }));
         }
 
         public static ISerializationProcessor GetProcessor(Type valueType)
@@ -59,7 +60,8 @@ namespace EasyToolKit.Serialization.Processors
                     return null;
                 InjectDependencyToProcessor(processor);
 
-                var baseValueType = processor.GetType().GetGenericArgumentsRelativeTo(typeof(ISerializationProcessor<>))[0];
+                var baseValueType =
+                    processor.GetType().GetGenericArgumentsRelativeTo(typeof(ISerializationProcessor<>))[0];
                 if (baseValueType != type)
                 {
                     if (!type.IsDerivedFrom(baseValueType))
@@ -67,7 +69,9 @@ namespace EasyToolKit.Serialization.Processors
                         throw new InvalidOperationException(
                             $"Type '{type.FullName}' is not derived from '{baseValueType.FullName}'.");
                     }
-                    var processorWrapperType = typeof(Implementations.SerializationProcessorWrapper<,>).MakeGenericType(type, baseValueType);
+
+                    var processorWrapperType =
+                        typeof(Implementations.SerializationProcessorWrapper<,>).MakeGenericType(type, baseValueType);
                     return processorWrapperType.CreateInstance<ISerializationProcessor>(processor);
                 }
 
@@ -89,6 +93,7 @@ namespace EasyToolKit.Serialization.Processors
                         throw new InvalidOperationException(
                             $"Member '{memberInfo.Name}' of type '{memberType.FullName}' is not a ISerializationProcessor<T>.");
                     }
+
                     var valueType = memberType.GetGenericArgumentsRelativeTo(typeof(ISerializationProcessor<>))[0];
 
                     if (memberInfo is FieldInfo fieldInfo)
@@ -133,6 +138,22 @@ namespace EasyToolKit.Serialization.Processors
             }
 
             return null;
+        }
+
+        private static OrderPriority GetProcessorPriority(Type processorType)
+        {
+            OrderPriority priority;
+
+            if (processorType.IsDefined<ProcessorConfigurationAttribute>())
+            {
+                priority = processorType.GetCustomAttribute<ProcessorConfigurationAttribute>().Priority;
+            }
+            else
+            {
+                priority = new OrderPriority(ProcessorPriorityLevel.Custom);
+            }
+
+            return priority;
         }
 
         private static bool CanProcessType(Type serializerType, Type valueType)

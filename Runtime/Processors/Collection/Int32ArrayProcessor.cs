@@ -2,7 +2,7 @@ using EasyToolKit.Serialization.Formatters;
 
 namespace EasyToolKit.Serialization.Processors
 {
-    [ProcessorConfiguration(ProcessorPriorityLevel.Collection + 2)]
+    [ProcessorConfiguration(ProcessorPriorityLevel.Collection + 0.2)]
     public class Int32ArrayProcessor : SerializationProcessor<int[]>
     {
         protected override void Process(string name, ref int[] value, IDataFormatter formatter)
