@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using EasyToolKit.Serialization.Formatters;
-using EasyToolKit.Serialization.Processors;
+using EasyToolkit.Serialization.Formatters;
+using EasyToolkit.Serialization.Processors;
 
-namespace EasyToolKit.Serialization
+namespace EasyToolkit.Serialization
 {
     /// <summary>
     /// Provides static methods for serializing and deserializing objects using different formats.

@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
-using EasyToolKit.Core.Mathematics;
-using EasyToolKit.Core.Reflection;
+using EasyToolkit.Core.Mathematics;
+using EasyToolkit.Core.Reflection;
 using JetBrains.Annotations;
 
-namespace EasyToolKit.Serialization.Processors
+namespace EasyToolkit.Serialization.Processors
 {
     public static class SerializationProcessorFactory
     {

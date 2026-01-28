@@ -1,4 +1,4 @@
-namespace EasyToolKit.Serialization.Formatters
+namespace EasyToolkit.Serialization.Formatters
 {
     /// <summary>
     /// Serves as the abstract base class for formatter-specific configuration settings.

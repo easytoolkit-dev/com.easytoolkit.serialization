@@ -1,9 +1,9 @@
 ﻿using System;
 
-namespace EasyToolKit.Serialization
+namespace EasyToolkit.Serialization
 {
     /// <summary>
-    /// Marks a type as serializable by the EasyToolKit serialization system.
+    /// Marks a type as serializable by the EasyToolkit serialization system.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
     public class EasySerializableAttribute : Attribute

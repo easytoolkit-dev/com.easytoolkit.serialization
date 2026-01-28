@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using EasyToolKit.Core.Pooling;
-using EasyToolKit.Serialization.Utilities;
+using EasyToolkit.Core.Pooling;
+using EasyToolkit.Serialization.Utilities;
 
-namespace EasyToolKit.Serialization.Formatters.Implementations
+namespace EasyToolkit.Serialization.Formatters.Implementations
 {
     /// <summary>
     /// Binary writing formatter implementation. Serializes data to a binary format

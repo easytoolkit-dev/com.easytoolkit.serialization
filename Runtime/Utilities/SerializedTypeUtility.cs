@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Reflection;
-using EasyToolKit.Core.Reflection;
+using EasyToolkit.Core.Reflection;
 
-namespace EasyToolKit.Serialization.Utilities
+namespace EasyToolkit.Serialization.Utilities
 {
     public static class SerializedTypeUtility
     {

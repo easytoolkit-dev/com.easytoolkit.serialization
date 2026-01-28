@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using EasyToolKit.Core.Pooling;
-using EasyToolKit.Serialization.Utilities;
+using EasyToolkit.Core.Pooling;
+using EasyToolkit.Serialization.Utilities;
 
-namespace EasyToolKit.Serialization.Formatters.Implementations
+namespace EasyToolkit.Serialization.Formatters.Implementations
 {
     /// <summary>
     /// Binary reading formatter implementation. Deserializes data from a binary format

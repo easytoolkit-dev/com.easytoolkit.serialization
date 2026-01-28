@@ -1,8 +1,8 @@
 using System;
-using EasyToolKit.Core.Reflection;
-using EasyToolKit.Serialization.Formatters;
+using EasyToolkit.Core.Reflection;
+using EasyToolkit.Serialization.Formatters;
 
-namespace EasyToolKit.Serialization.Processors
+namespace EasyToolkit.Serialization.Processors
 {
     [ProcessorConfiguration(ProcessorPriorityLevel.System)]
     public class TypeProcessor : SerializationProcessor<Type>

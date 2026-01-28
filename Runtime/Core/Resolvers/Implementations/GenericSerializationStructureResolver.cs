@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using EasyToolKit.Core.Reflection;
-using EasyToolKit.Serialization.Processors;
-using EasyToolKit.Serialization.Utilities;
+using EasyToolkit.Core.Reflection;
+using EasyToolkit.Serialization.Processors;
+using EasyToolkit.Serialization.Utilities;
 
-namespace EasyToolKit.Serialization.Resolvers.Implementations
+namespace EasyToolkit.Serialization.Resolvers.Implementations
 {
     /// <summary>
     /// Resolves serialization structure for types marked with [Serializable] attribute.

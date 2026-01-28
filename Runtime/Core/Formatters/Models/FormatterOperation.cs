@@ -1,4 +1,4 @@
-namespace EasyToolKit.Serialization.Formatters
+namespace EasyToolkit.Serialization.Formatters
 {
     public enum FormatterOperation
     {

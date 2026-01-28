@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 
-namespace EasyToolKit.Serialization.Utilities
+namespace EasyToolkit.Serialization.Utilities
 {
     /// <summary>
     /// Provides high-performance memory manipulation utilities with endianness support for serialization.

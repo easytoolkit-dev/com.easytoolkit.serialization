@@ -1,9 +1,9 @@
 using System;
-using EasyToolKit.Core.Reflection;
-using EasyToolKit.Serialization.Formatters;
+using EasyToolkit.Core.Reflection;
+using EasyToolkit.Serialization.Formatters;
 using JetBrains.Annotations;
 
-namespace EasyToolKit.Serialization.Processors
+namespace EasyToolkit.Serialization.Processors
 {
     public abstract class SerializationProcessor<T> : ISerializationProcessor<T>
     {

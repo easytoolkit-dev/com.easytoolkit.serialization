@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
-using EasyToolKit.Core.Reflection;
+using EasyToolkit.Core.Reflection;
 using JetBrains.Annotations;
 
-namespace EasyToolKit.Serialization.Resolvers
+namespace EasyToolkit.Serialization.Resolvers
 {
     /// <summary>
     /// Utility class for discovering and matching serialization resolvers.

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using EasyToolKit.Serialization.Formatters;
+using EasyToolkit.Serialization.Formatters;
 
-namespace EasyToolKit.Serialization.Processors
+namespace EasyToolkit.Serialization.Processors
 {
     [ProcessorConfiguration(ProcessorPriorityLevel.Collection - 0.1, AllowTypeArgumentInheritance = true)]
     public class ListProcessor<T> : SerializationProcessor<IList<T>>

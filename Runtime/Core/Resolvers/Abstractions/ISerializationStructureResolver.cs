@@ -1,6 +1,6 @@
 using System;
 
-namespace EasyToolKit.Serialization.Resolvers
+namespace EasyToolkit.Serialization.Resolvers
 {
     /// <summary>
     /// Defines the contract for resolving serialization structure of types.

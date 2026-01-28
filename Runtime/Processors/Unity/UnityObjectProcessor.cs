@@ -1,7 +1,7 @@
 using System;
-using EasyToolKit.Serialization.Formatters;
+using EasyToolkit.Serialization.Formatters;
 
-namespace EasyToolKit.Serialization.Processors
+namespace EasyToolkit.Serialization.Processors
 {
     [ProcessorConfiguration(ProcessorPriorityLevel.Unity)]
     public class UnityObjectProcessor<T> : SerializationProcessor<T>

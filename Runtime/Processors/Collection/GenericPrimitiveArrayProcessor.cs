@@ -1,6 +1,6 @@
-using EasyToolKit.Serialization.Formatters;
+using EasyToolkit.Serialization.Formatters;
 
-namespace EasyToolKit.Serialization.Processors
+namespace EasyToolkit.Serialization.Processors
 {
     /// <summary>
     /// Serialization processor for arrays of generic primitive types (unmanaged types).
