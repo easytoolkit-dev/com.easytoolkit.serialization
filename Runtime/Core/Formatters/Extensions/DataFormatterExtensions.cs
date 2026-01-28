@@ -1,7 +1,7 @@
 using System;
 using JetBrains.Annotations;
 
-namespace EasyToolKit.Serialization.Formatters
+namespace EasyToolkit.Serialization.Formatters
 {
     /// <summary>
     /// Provides extension methods for <see cref="IDataFormatter"/> to create scope-based serialization operations.

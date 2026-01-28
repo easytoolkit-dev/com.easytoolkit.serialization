@@ -1,8 +1,8 @@
 {
-    "name": "EasyToolKit.Serialization",
+    "name": "EasyToolkit.Serialization",
     "rootNamespace": "",
     "references": [
-        "EasyToolKit.Core"
+        "EasyToolkit.Core"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

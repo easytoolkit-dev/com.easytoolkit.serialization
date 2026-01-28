@@ -4,7 +4,7 @@ using System.Text;
 using JetBrains.Annotations;
 using UnityEngine;
 
-namespace EasyToolKit.Serialization
+namespace EasyToolkit.Serialization
 {
     [Serializable]
     public struct SerializationData

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace EasyToolKit.Serialization
+namespace EasyToolkit.Serialization
 {
     /// <summary>
     /// Defines flags for filtering which members should be serialized.

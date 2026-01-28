@@ -1,6 +1,6 @@
 using System;
 
-namespace EasyToolKit.Serialization.Formatters
+namespace EasyToolkit.Serialization.Formatters
 {
     /// <summary>
     /// Exception thrown when data format validation fails during serialization or deserialization.

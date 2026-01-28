@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.CompilerServices;
-using EasyToolKit.Serialization.Utilities;
+using EasyToolkit.Serialization.Utilities;
 
-namespace EasyToolKit.Serialization.Formatters.Implementations
+namespace EasyToolkit.Serialization.Formatters.Implementations
 {
     public sealed partial class BinaryReadingFormatter
     {

@@ -1,6 +1,6 @@
 using System;
 
-namespace EasyToolKit.Serialization.Resolvers
+namespace EasyToolkit.Serialization.Resolvers
 {
     public static class SerializationStructureResolverFactory
     {

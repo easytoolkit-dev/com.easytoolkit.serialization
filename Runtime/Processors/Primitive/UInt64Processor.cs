@@ -1,6 +1,6 @@
-using EasyToolKit.Serialization.Formatters;
+using EasyToolkit.Serialization.Formatters;
 
-namespace EasyToolKit.Serialization.Processors
+namespace EasyToolkit.Serialization.Processors
 {
     /// <summary>
     /// Handles serialization and deserialization of unsigned 64-bit integer values.

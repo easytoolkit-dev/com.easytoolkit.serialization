@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace EasyToolKit.Serialization.Formatters
+namespace EasyToolkit.Serialization.Formatters
 {
     /// <summary>
     /// Interface for writing Unity object references during serialization.

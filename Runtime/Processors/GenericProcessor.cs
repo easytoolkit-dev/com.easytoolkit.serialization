@@ -1,10 +1,10 @@
 using System;
-using EasyToolKit.Core.Reflection;
-using EasyToolKit.Serialization.Formatters;
-using EasyToolKit.Serialization.Resolvers;
-using EasyToolKit.Serialization.Utilities;
+using EasyToolkit.Core.Reflection;
+using EasyToolkit.Serialization.Formatters;
+using EasyToolkit.Serialization.Resolvers;
+using EasyToolkit.Serialization.Utilities;
 
-namespace EasyToolKit.Serialization.Processors
+namespace EasyToolkit.Serialization.Processors
 {
     [ProcessorConfiguration(ProcessorPriorityLevel.Generic)]
     public class GenericProcessor<T> : SerializationProcessor<T>

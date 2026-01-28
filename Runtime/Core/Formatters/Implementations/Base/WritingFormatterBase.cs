@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using EasyToolKit.Core.Pooling;
+using EasyToolkit.Core.Pooling;
 
-namespace EasyToolKit.Serialization.Formatters.Implementations
+namespace EasyToolkit.Serialization.Formatters.Implementations
 {
     /// <summary>
     /// Abstract base class for writing formatters.

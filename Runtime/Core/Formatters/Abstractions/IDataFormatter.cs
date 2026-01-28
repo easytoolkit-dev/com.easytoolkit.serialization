@@ -1,7 +1,7 @@
 using System;
 using JetBrains.Annotations;
 
-namespace EasyToolKit.Serialization.Formatters
+namespace EasyToolkit.Serialization.Formatters
 {
     /// <summary>
     /// Defines a contract for serializing and deserializing data to different formats.

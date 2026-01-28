@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using EasyToolKit.Serialization.Formatters;
+using EasyToolkit.Serialization.Formatters;
 
-namespace EasyToolKit.Serialization.Processors
+namespace EasyToolkit.Serialization.Processors
 {
     [ProcessorConfiguration(ProcessorPriorityLevel.System)]
     public class KeyValuePairProcessor<TKey, TValue> : SerializationProcessor<KeyValuePair<TKey, TValue>>

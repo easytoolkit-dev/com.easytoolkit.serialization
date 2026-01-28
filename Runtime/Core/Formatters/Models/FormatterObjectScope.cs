@@ -1,8 +1,8 @@
 using System;
-using EasyToolKit.Core.Pooling;
+using EasyToolkit.Core.Pooling;
 using JetBrains.Annotations;
 
-namespace EasyToolKit.Serialization.Formatters
+namespace EasyToolkit.Serialization.Formatters
 {
     /// <summary>
     /// Manages the scope of an object serialization operation, ensuring proper cleanup.

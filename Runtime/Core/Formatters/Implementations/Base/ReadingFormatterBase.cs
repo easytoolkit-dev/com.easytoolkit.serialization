@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using EasyToolKit.Core.Pooling;
+using EasyToolkit.Core.Pooling;
 using JetBrains.Annotations;
 
-namespace EasyToolKit.Serialization.Formatters.Implementations
+namespace EasyToolkit.Serialization.Formatters.Implementations
 {
     /// <summary>
     /// Abstract base class for reading formatters.

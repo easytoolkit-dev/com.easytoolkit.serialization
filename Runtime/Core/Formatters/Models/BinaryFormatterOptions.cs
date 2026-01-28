@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace EasyToolKit.Serialization.Formatters
+namespace EasyToolkit.Serialization.Formatters
 {
     /// <summary>
     /// Defines optimization options for binary serialization format.

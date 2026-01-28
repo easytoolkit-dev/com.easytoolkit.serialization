@@ -1,6 +1,6 @@
-﻿using EasyToolKit.Serialization.Formatters;
+﻿using EasyToolkit.Serialization.Formatters;
 
-namespace EasyToolKit.Serialization.Processors
+namespace EasyToolkit.Serialization.Processors
 {
     [ProcessorConfiguration(ProcessorPriorityLevel.Primitive - 0.1)]
     public class GenericPrimitiveProcessor<T> : SerializationProcessor<T>

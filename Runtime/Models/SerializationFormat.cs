@@ -1,4 +1,4 @@
-namespace EasyToolKit.Serialization
+namespace EasyToolkit.Serialization
 {
     public enum SerializationFormat
     {

@@ -1,6 +1,6 @@
 using System;
 
-namespace EasyToolKit.Serialization
+namespace EasyToolkit.Serialization
 {
     /// <summary>
     /// Exception thrown when serialization or deserialization fails.

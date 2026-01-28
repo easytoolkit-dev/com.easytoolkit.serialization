@@ -1,7 +1,7 @@
 using System;
-using EasyToolKit.Core.Mathematics;
+using EasyToolkit.Core.Mathematics;
 
-namespace EasyToolKit.Serialization.Processors
+namespace EasyToolkit.Serialization.Processors
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
     public sealed class ProcessorConfigurationAttribute : Attribute

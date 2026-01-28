@@ -1,6 +1,6 @@
 using System;
 
-namespace EasyToolKit.Serialization
+namespace EasyToolkit.Serialization
 {
     /// <summary>
     /// Provides configuration for individual field or property serialization behavior.

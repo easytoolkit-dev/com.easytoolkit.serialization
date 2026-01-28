@@ -1,6 +1,6 @@
-using EasyToolKit.Serialization.Formatters;
+using EasyToolkit.Serialization.Formatters;
 
-namespace EasyToolKit.Serialization
+namespace EasyToolkit.Serialization
 {
     /// <summary>
     /// Provides configuration settings for serialization operations.

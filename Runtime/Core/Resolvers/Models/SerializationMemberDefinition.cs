@@ -1,9 +1,9 @@
 using System;
 using System.Reflection;
-using EasyToolKit.Core.Reflection;
-using EasyToolKit.Serialization.Processors;
+using EasyToolkit.Core.Reflection;
+using EasyToolkit.Serialization.Processors;
 
-namespace EasyToolKit.Serialization.Resolvers
+namespace EasyToolkit.Serialization.Resolvers
 {
     /// <summary>
     /// Defines the metadata for a serializable member.
