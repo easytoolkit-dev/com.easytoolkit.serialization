@@ -5,12 +5,13 @@ using EasyToolkit.Serialization.Formatters;
 namespace EasyToolkit.Serialization.Processors
 {
     [ProcessorConfiguration(ProcessorPriorityLevel.Collection)]
-    public class DictionaryProcessor<TKey, TValue> : SerializationProcessor<IDictionary<TKey, TValue>>
+    public class DictionaryProcessor<TDictionary, TKey, TValue> : SerializationProcessor<TDictionary>
+        where TDictionary : class, IDictionary<TKey, TValue>
     {
         [DependencyProcessor]
         private ISerializationProcessor<KeyValuePair<TKey, TValue>> _keyValuePairProcessor;
 
-        protected override void Process(string name, ref IDictionary<TKey, TValue> value, IDataFormatter formatter)
+        protected override void Process(string name, ref TDictionary value, IDataFormatter formatter)
         {
             formatter.BeginMember(name);
             int size;
