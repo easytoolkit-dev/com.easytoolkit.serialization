@@ -1,4 +1,5 @@
-﻿using EasyToolkit.Serialization.Formatters;
+﻿using System;
+using EasyToolkit.Serialization.Formatters;
 
 namespace EasyToolkit.Serialization.Processors
 {
@@ -7,6 +8,11 @@ namespace EasyToolkit.Serialization.Processors
         where T : unmanaged
     {
         private ISerializationProcessor<T> _genericProcessor;
+
+        public override bool CanProcess(Type valueType)
+        {
+            return !valueType.IsGenericType;
+        }
 
         protected override void Process(string name, ref T value, IDataFormatter formatter)
         {

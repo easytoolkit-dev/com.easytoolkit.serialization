@@ -6,7 +6,7 @@ namespace EasyToolkit.Serialization.Processors
 {
     [ProcessorConfiguration(ProcessorPriorityLevel.Collection)]
     public class DictionaryProcessor<TDictionary, TKey, TValue> : SerializationProcessor<TDictionary>
-        where TDictionary : class, IDictionary<TKey, TValue>
+        where TDictionary : class, IDictionary<TKey, TValue>, new()
     {
         [DependencyProcessor]
         private ISerializationProcessor<KeyValuePair<TKey, TValue>> _keyValuePairProcessor;
@@ -48,11 +48,20 @@ namespace EasyToolkit.Serialization.Processors
                     return;
                 }
 
+                value = new TDictionary();
                 for (int i = 0; i < size; i++)
                 {
                     var item = new KeyValuePair<TKey, TValue>();
                     _keyValuePairProcessor.Process(ref item, formatter);
-                    value!.Add(item);
+                    if (item.Key == null)
+                    {
+                        throw new SerializationException(
+                            "Encountered null key while deserializing dictionary. " +
+                            "Dictionary keys cannot be null. " +
+                            "Check the serialized data source for integrity.");
+                    }
+
+                    value.Add(item);
                 }
             }
         }

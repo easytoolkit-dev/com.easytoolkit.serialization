@@ -43,6 +43,20 @@ namespace EasyToolkit.Serialization.Processors
         public bool IsRoot => _isRoot;
 
         /// <summary>
+        /// Gets whether null values should be automatically constructed during deserialization.
+        /// </summary>
+        /// <remarks>
+        /// When enabled and a null value is encountered during deserialization, the processor
+        /// attempts to create a new instance using an accessible parameterless constructor.
+        /// This behavior only applies during read operations.
+        /// </remarks>
+        /// <value>
+        /// <c>true</c> to automatically construct null values; <c>false</c> to keep null values as-is.
+        /// Default is <c>false</c>.
+        /// </value>
+        protected virtual bool AutoConstruct => false;
+
+        /// <summary>
         /// Determines whether the specified value type can be serialized.
         /// Default implementation uses exact type matching.
         /// </summary>
@@ -90,30 +104,21 @@ namespace EasyToolkit.Serialization.Processors
         void ISerializationProcessor<T>.Process(ref T value, IDataFormatter formatter)
         {
             EnsureInitialize();
-            if (value == null && ConstructorInvoker != null && formatter.Operation == FormatterOperation.Read)
-            {
-                value = ConstructorInvoker();
-            }
+            value = ConstructIfNecessary(value, formatter.Operation);
             Process(ref value, formatter);
         }
 
         void ISerializationProcessor<T>.Process(string name, ref T value, IDataFormatter formatter)
         {
             EnsureInitialize();
-            if (value == null && ConstructorInvoker != null && formatter.Operation == FormatterOperation.Read)
-            {
-                value = ConstructorInvoker();
-            }
+            value = ConstructIfNecessary(value, formatter.Operation);
             Process(name, ref value, formatter);
         }
 
         void ISerializationProcessor.ProcessUntyped(ref object value, IDataFormatter formatter)
         {
             EnsureInitialize();
-            if (value == null && ConstructorInvoker != null && formatter.Operation == FormatterOperation.Read)
-            {
-                value = ConstructorInvoker();
-            }
+            value = ConstructIfNecessary(value, formatter.Operation);
 
             T castedValue = default;
             if (value != null)
@@ -127,10 +132,7 @@ namespace EasyToolkit.Serialization.Processors
         void ISerializationProcessor.ProcessUntyped(string name, ref object value, IDataFormatter formatter)
         {
             EnsureInitialize();
-            if (value == null && ConstructorInvoker != null && formatter.Operation == FormatterOperation.Read)
-            {
-                value = ConstructorInvoker();
-            }
+            value = ConstructIfNecessary(value, formatter.Operation);
 
             T castedValue = default;
             if (value != null)
@@ -139,6 +141,44 @@ namespace EasyToolkit.Serialization.Processors
             }
             Process(name, ref castedValue, formatter);
             value = castedValue;
+        }
+
+
+        private T ConstructIfNecessary(object value, FormatterOperation operation)
+        {
+            return ConstructIfNecessary(value == null ? default : (T)value, operation);
+        }
+
+        private T ConstructIfNecessary(T value, FormatterOperation operation)
+        {
+            if (operation == FormatterOperation.Read)
+            {
+                if (value == null)
+                {
+                    // Check if auto-construction is enabled
+                    if (!AutoConstruct)
+                    {
+                        return default;
+                    }
+
+                    if (ConstructorInvoker != null)
+                    {
+                        return ConstructorInvoker();
+                    }
+
+                    if (typeof(T).IsStringType())
+                    {
+                        return (T)(object)string.Empty;
+                    }
+
+                    throw new SerializationException(
+                        $"Cannot construct instance of type '{typeof(T)}' during deserialization. " +
+                        $"The type does not have an accessible parameterless constructor. " +
+                        $"Ensure the type has a public parameterless constructor or mark fields with [SerializeField].");
+                }
+            }
+
+            return value;
         }
     }
 }

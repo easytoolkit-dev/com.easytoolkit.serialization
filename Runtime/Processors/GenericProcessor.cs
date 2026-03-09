@@ -11,6 +11,9 @@ namespace EasyToolkit.Serialization.Processors
     {
         private SerializationMemberDefinition[] _memberDefinitions;
 
+        /// <inheritdoc/>
+        protected override bool AutoConstruct => true;
+
         public override bool CanProcess(Type valueType)
         {
             return SerializationStructureResolverFactory.GetResolver(valueType) != null &&

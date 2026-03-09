@@ -1,5 +1,6 @@
 using System;
 using EasyToolkit.Core.Pooling;
+using UnityEngine;
 
 namespace EasyToolkit.Serialization.Formatters
 {
@@ -41,7 +42,14 @@ namespace EasyToolkit.Serialization.Formatters
                 return;
             }
 
-            _formatter?.EndArray();
+            try
+            {
+                _formatter?.EndArray();
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
             _disposed = true;
             PoolUtility.ReleaseObject(this);
         }

@@ -5,10 +5,10 @@ namespace EasyToolkit.Serialization.Processors
 {
     [ProcessorConfiguration(ProcessorPriorityLevel.Collection - 0.1, AllowTypeArgumentInheritance = true)]
     public class ListProcessor<TCollection, TItem> : SerializationProcessor<TCollection>
-        where TCollection : class, IList<TItem>
+        where TCollection : class, IList<TItem>, new()
     {
         [DependencyProcessor]
-        private ISerializationProcessor<TItem> _itemSerializer;
+        private ISerializationProcessor<TItem> _itemProcessor;
 
         protected override void Process(string name, ref TCollection value, IDataFormatter formatter)
         {
@@ -37,7 +37,7 @@ namespace EasyToolkit.Serialization.Processors
                 for (int i = 0; i < count; i++)
                 {
                     var item = value[i];
-                    _itemSerializer.Process(ref item, formatter);
+                    _itemProcessor.Process(ref item, formatter);
                 }
             }
             else
@@ -49,11 +49,12 @@ namespace EasyToolkit.Serialization.Processors
                     return;
                 }
 
+                value = new TCollection();
                 for (int i = 0; i < size; i++)
                 {
                     TItem item = default;
-                    _itemSerializer.Process(ref item, formatter);
-                    value!.Add(item);
+                    _itemProcessor.Process(ref item, formatter);
+                    value.Add(item);
                 }
             }
         }
