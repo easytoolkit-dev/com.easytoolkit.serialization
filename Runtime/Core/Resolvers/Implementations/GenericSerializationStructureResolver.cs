@@ -5,6 +5,7 @@ using System.Reflection;
 using EasyToolkit.Core.Reflection;
 using EasyToolkit.Serialization.Processors;
 using EasyToolkit.Serialization.Utilities;
+using UnityEngine;
 
 namespace EasyToolkit.Serialization.Resolvers.Implementations
 {
@@ -37,7 +38,7 @@ namespace EasyToolkit.Serialization.Resolvers.Implementations
             for (int i = 0; i < memberInfos.Count; i++)
             {
                 var memberInfo = memberInfos[i];
-                Type memberType = GetMemberType(memberInfo);
+                var memberType = GetMemberType(memberInfo);
 
                 // Get custom serialization name from EasySerializeFieldAttribute
                 var serializeFieldAttribute = memberInfo.GetCustomAttributes(typeof(EasySerializeFieldAttribute), inherit: true)
@@ -46,6 +47,16 @@ namespace EasyToolkit.Serialization.Resolvers.Implementations
                 if (string.IsNullOrEmpty(serializedName))
                 {
                     serializedName = memberInfo.Name;
+                }
+
+                var processor = SerializationProcessorFactory.GetProcessor(memberType);
+                if (processor == null)
+                {
+                    Debug.LogError(
+                        $"Failed to resolve serialization processor for member '{memberInfo}' of type {valueType}. " +
+                        $"Member type '{memberType}' is not supported. " +
+                        $"Create a custom processor by inheriting from SerializationProcessor<{memberType.Name}> or use a supported type.");
+                    continue;
                 }
 
                 var memberDefinition = new SerializationMemberDefinition
@@ -57,7 +68,7 @@ namespace EasyToolkit.Serialization.Resolvers.Implementations
                     DefaultValue = null,
                     ValueGetter = CreateValueGetter(memberInfo),
                     ValueSetter = CreateValueSetter(memberInfo),
-                    Processor = SerializationProcessorFactory.GetProcessor(memberType)
+                    Processor = processor
                 };
 
                 members.Add(memberDefinition);
