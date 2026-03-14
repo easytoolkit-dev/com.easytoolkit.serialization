@@ -42,6 +42,15 @@ namespace EasyToolkit.Serialization.Processors
 
         public bool IsRoot => _isRoot;
 
+        public SerializationContext Context { get; private set; }
+
+        /// <inheritdoc/>
+        SerializationContext ISerializationProcessor.Context
+        {
+            get => Context;
+            set => Context = value;
+        }
+
         /// <summary>
         /// Gets whether null values should be automatically constructed during deserialization.
         /// </summary>

@@ -284,17 +284,15 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         protected virtual void FormatGenericPrimitive<T>(ref T value) where T : unmanaged
         {
             throw new NotSupportedException(
-                $"FormatGenericPrimitive is only supported in Binary format mode. " +
-                $"Current format: '{FormatType}'. " +
-                $"Use the typed Format methods (e.g., Format(ref int value)) for non-Binary formatters.");
+                $"FormatGenericPrimitive is not supported in format type '{FormatType}'. " +
+                $"Use the typed Format methods (e.g., Format(ref int value)) instead.");
         }
 
         protected virtual void FormatGenericPrimitive<T>(ref T[] data) where T : unmanaged
         {
             throw new NotSupportedException(
-                $"FormatGenericPrimitive array is only supported in Binary format mode. " +
-                $"Current format: '{FormatType}'. " +
-                $"Use the typed Format methods (e.g., Format(ref int[] data)) for non-Binary formatters.");
+                $"FormatGenericPrimitive array is not supported in format type '{FormatType}'. " +
+                $"Use the typed Format methods (e.g., Format(ref int value)) instead.");
         }
 
         /// <inheritdoc />

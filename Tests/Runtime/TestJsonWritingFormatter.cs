@@ -795,7 +795,7 @@ namespace EasyToolkit.Serialization.Tests
             // Act & Assert
             var ex = Assert.Throws<NotSupportedException>(() =>
                 writeFormatter.FormatGenericPrimitive(ref value));
-            Assert.IsTrue(ex.Message.Contains("FormatGenericPrimitive is only supported in Binary format mode"));
+            Assert.IsTrue(ex.Message.Contains("FormatGenericPrimitive is not supported in format type"));
         }
 
         /// <summary>
@@ -811,7 +811,7 @@ namespace EasyToolkit.Serialization.Tests
             // Act & Assert
             var ex = Assert.Throws<NotSupportedException>(() =>
                 writeFormatter.FormatGenericPrimitive(ref value));
-            Assert.IsTrue(ex.Message.Contains("FormatGenericPrimitive array is only supported in Binary format mode"));
+            Assert.IsTrue(ex.Message.Contains("FormatGenericPrimitive array is not supported in format type"));
         }
 
         /// <summary>

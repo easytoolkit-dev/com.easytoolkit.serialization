@@ -21,18 +21,28 @@ namespace EasyToolkit.Serialization.Resolvers.Implementations
                    !valueType.IsSubclassOf(typeof(UnityEngine.Object));
         }
 
-        public SerializationMemberDefinition[] Resolve(Type valueType)
+        public SerializationMemberDefinition[] Resolve(Type valueType, SerializationContext context)
         {
             var attribute = SerializedTypeUtility.GetDefinedEasySerializableAttribute(valueType);
-            var memberFlags = attribute?.MemberFlags ?? SerializableMemberFlags.Default;
-            var requireSerializeFieldOnNonPublic = attribute?.RequireSerializeFieldOnNonPublic ?? false;
-            var excludeNonSerialized = attribute?.ExcludeNonSerialized ?? true;
+
+            // Priority: Attribute explicit setting > Context > Default
+            var memberFlags = attribute != null && attribute.IsDefinedMemberFlags
+                ? attribute.MemberFlags
+                : context.MemberFlags;
+
+            var requireSerializeField = attribute != null && attribute.IsDefinedRequireSerializeFieldOnNonPublic
+                ? attribute.RequireSerializeFieldOnNonPublic
+                : context.RequireSerializeFieldOnNonPublic;
+
+            var excludeNonSerialized = attribute != null && attribute.IsDefinedExcludeNonSerialized
+                ? attribute.ExcludeNonSerialized
+                : context.ExcludeNonSerialized;
 
             var members = new List<SerializationMemberDefinition>();
 
             var memberInfos = valueType.GetMembers(MemberAccessFlags.AllInstance)
                 .Where(memberInfo => memberInfo is FieldInfo || memberInfo is PropertyInfo)
-                .Where(memberInfo => ShouldIncludeMember(memberInfo, memberFlags, requireSerializeFieldOnNonPublic, excludeNonSerialized))
+                .Where(memberInfo => ShouldIncludeMember(memberInfo, memberFlags, requireSerializeField, excludeNonSerialized))
                 .ToList();
 
             for (int i = 0; i < memberInfos.Count; i++)
@@ -49,7 +59,8 @@ namespace EasyToolkit.Serialization.Resolvers.Implementations
                     serializedName = memberInfo.Name;
                 }
 
-                var processor = SerializationProcessorFactory.GetProcessor(memberType);
+                // Get Processor from Context (key change)
+                var processor = SerializationProcessorFactory.GetProcessor(memberType, context);
                 if (processor == null)
                 {
                     Debug.LogError(

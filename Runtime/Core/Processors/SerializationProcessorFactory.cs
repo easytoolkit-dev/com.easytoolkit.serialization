@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using EasyToolkit.Core.Mathematics;
 using EasyToolkit.Core.Reflection;
+using EasyToolkit.Core.Textual;
 using JetBrains.Annotations;
 
 namespace EasyToolkit.Serialization.Processors
@@ -51,72 +52,145 @@ namespace EasyToolkit.Serialization.Processors
                 }));
         }
 
+        /// <summary>
+        /// Gets the processor for the specified value type using the shared context.
+        /// </summary>
+        /// <param name="valueType">The type to get a processor for.</param>
+        /// <returns>The cached or newly created processor.</returns>
         public static ISerializationProcessor GetProcessor(Type valueType)
         {
-            return ProcessorCache.GetOrAdd(valueType, type =>
+            return GetProcessor(valueType, SerializationContext.Shared);
+        }
+
+        /// <summary>
+        /// Gets the processor for the specified value type using the specified context.
+        /// </summary>
+        /// <param name="valueType">The type to get a processor for.</param>
+        /// <param name="context">The serialization context to use for caching and configuration.</param>
+        /// <returns>The cached or newly created processor.</returns>
+        public static ISerializationProcessor GetProcessor(Type valueType, SerializationContext context)
+        {
+            return context.GetProcessor(valueType, type =>
             {
                 var processor = CreateProcessor(type);
                 if (processor == null)
                     return null;
-                InjectDependencyToProcessor(processor);
 
-                var baseValueType =
-                    processor.GetType().GetGenericArgumentsRelativeTo(typeof(ISerializationProcessor<>))[0];
-                if (baseValueType != type)
-                {
-                    if (!type.IsDerivedFrom(baseValueType))
-                    {
-                        throw new InvalidOperationException(
-                            $"Type '{type.FullName}' is not derived from '{baseValueType.FullName}'.");
-                    }
+                // Set Context (must be before dependency injection)
+                processor.Context = context;
 
-                    var processorWrapperType =
-                        typeof(Implementations.SerializationProcessorWrapper<,>).MakeGenericType(type, baseValueType);
-                    return processorWrapperType.CreateInstance<ISerializationProcessor>(processor);
-                }
+                // Dependency injection (pass context)
+                InjectDependencyToProcessor(processor, context);
 
-                return processor;
+                // Wrapping logic
+                return WrapProcessorIfNeeded(processor, type);
             });
         }
 
-        private static void InjectDependencyToProcessor([NotNull] ISerializationProcessor processor)
+        private static void InjectDependencyToProcessor([NotNull] ISerializationProcessor processor, SerializationContext context)
         {
             if (processor == null)
                 throw new ArgumentNullException(nameof(processor));
             foreach (var memberInfo in processor.GetType().GetMembers(MemberAccessFlags.All))
             {
-                if (memberInfo.GetCustomAttribute<DependencyProcessorAttribute>() != null)
+                var attribute = memberInfo.GetCustomAttribute<DependencyProcessorAttribute>();
+                if (attribute == null)
                 {
-                    var memberType = memberInfo.GetMemberType();
-                    if (!memberType.IsImplementsGenericDefinition(typeof(ISerializationProcessor<>)))
+                    continue;
+                }
+
+                var memberType = memberInfo.GetMemberType();
+                if (!memberType.IsImplementsGenericDefinition(typeof(ISerializationProcessor<>)))
+                {
+                    throw new InvalidOperationException(
+                        $"Member '{memberInfo.Name}' of type '{memberType.FullName}' is not a ISerializationProcessor<T>.");
+                }
+
+                var valueType = memberType.GetGenericArgumentsRelativeTo(typeof(ISerializationProcessor<>))[0];
+
+                // Get candidate and excluded types from attribute
+                var candidateTypes = GetTypesFromExpression(processor, attribute.CandidateTypesGetter, memberInfo.Name);
+                var excludedTypes = GetTypesFromExpression(processor, attribute.ExcludedTypesGetter, memberInfo.Name);
+
+                ISerializationProcessor dependency;
+
+                // If candidate types are specified, use filtered processor creation
+                if (candidateTypes != null || excludedTypes != null)
+                {
+                    var filteredTypes = FilterProcessorTypes(candidateTypes, excludedTypes);
+                    dependency = CreateProcessorFromCandidates(valueType, filteredTypes);
+
+                    if (dependency == null)
                     {
                         throw new InvalidOperationException(
-                            $"Member '{memberInfo.Name}' of type '{memberType.FullName}' is not a ISerializationProcessor<T>.");
+                            $"No suitable processor found for type '{valueType.FullName}' " +
+                            $"from candidates [{string.Join(", ", filteredTypes.Select(t => t.Name))}] " +
+                            $"for member '{memberInfo.Name}'.");
                     }
 
-                    var valueType = memberType.GetGenericArgumentsRelativeTo(typeof(ISerializationProcessor<>))[0];
+                    // Set Context (must be before dependency injection)
+                    dependency.Context = context;
 
-                    if (memberInfo is FieldInfo fieldInfo)
-                    {
-                        var dependency = GetProcessor(valueType);
-                        fieldInfo.SetValue(processor, dependency);
-                    }
-                    else if (memberInfo is PropertyInfo propertyInfo)
-                    {
-                        var dependency = GetProcessor(valueType);
-                        propertyInfo.GetSetMethod(true).Invoke(processor, new object[] { dependency });
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException(
-                            $"Member '{memberInfo.Name}' of type '{memberType.FullName}' is not a field or property.");
-                    }
+                    // Dependency injection for nested processors
+                    InjectDependencyToProcessor(dependency, context);
+
+                    // Handle wrapper logic
+                    dependency = WrapProcessorIfNeeded(dependency, valueType);
+                }
+                else
+                {
+                    // Use standard GetProcessor when no candidates specified
+                    dependency = GetProcessor(valueType, context);
+                }
+
+                // Set the dependency value
+                if (memberInfo is FieldInfo fieldInfo)
+                {
+                    fieldInfo.SetValue(processor, dependency);
+                }
+                else if (memberInfo is PropertyInfo propertyInfo)
+                {
+                    propertyInfo.GetSetMethod(true).Invoke(processor, new object[] { dependency });
+                }
+                else
+                {
+                    throw new InvalidOperationException(
+                        $"Member '{memberInfo.Name}' of type '{memberType.FullName}' is not a field or property.");
                 }
             }
         }
 
+        /// <summary>
+        /// Wraps the processor with a <see cref="Implementations.SerializationProcessorWrapper{TValue, TBase}"/>
+        /// if the processor's base value type differs from the requested value type.
+        /// </summary>
+        /// <param name="processor">The processor to potentially wrap.</param>
+        /// <param name="valueType">The requested value type.</param>
+        /// <returns>The wrapped processor if types differ, otherwise the original processor.</returns>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when <paramref name="valueType"/> is not derived from the processor's base value type.
+        /// </exception>
+        private static ISerializationProcessor WrapProcessorIfNeeded(ISerializationProcessor processor, Type valueType)
+        {
+            var baseValueType = processor.GetType().GetGenericArgumentsRelativeTo(typeof(ISerializationProcessor<>))[0];
+            if (baseValueType != valueType)
+            {
+                if (!valueType.IsDerivedFrom(baseValueType))
+                {
+                    throw new InvalidOperationException(
+                        $"Type '{valueType.FullName}' is not derived from '{baseValueType.FullName}'.");
+                }
+
+                var processorWrapperType =
+                    typeof(Implementations.SerializationProcessorWrapper<,>).MakeGenericType(valueType, baseValueType);
+                return processorWrapperType.CreateInstance<ISerializationProcessor>(processor);
+            }
+
+            return processor;
+        }
+
         [CanBeNull]
-        private static ISerializationProcessor CreateProcessor(Type valueType)
+        internal static ISerializationProcessor CreateProcessor(Type valueType)
         {
             var resultsList = new List<TypeMatchResult[]>
             {
@@ -160,6 +234,95 @@ namespace EasyToolkit.Serialization.Processors
         {
             var serializer = (ISerializationProcessor)FormatterServices.GetUninitializedObject(serializerType);
             return serializer.CanProcess(valueType);
+        }
+
+        /// <summary>
+        /// Gets the array of types from an expression path evaluated against the processor instance.
+        /// </summary>
+        /// <param name="processor">The processor instance to evaluate against.</param>
+        /// <param name="expressionPath">The expression path to evaluate.</param>
+        /// <param name="memberName">The member name for error messages.</param>
+        /// <returns>The array of types, or null if the expression path is null or empty.</returns>
+        private static Type[] GetTypesFromExpression(ISerializationProcessor processor, string expressionPath, string memberName)
+        {
+            if (expressionPath.IsNullOrWhiteSpace())
+            {
+                return null;
+            }
+
+            var evaluator = ExpressionEvaluatorFactory.CreateEvaluator(expressionPath, processor.GetType());
+            var result = evaluator.Evaluate(processor);
+
+            if (result == null)
+            {
+                return null;
+            }
+
+            if (result is IEnumerable<Type> types)
+            {
+                return types.ToArray();
+            }
+
+            throw new InvalidOperationException(
+                $"Expression '{expressionPath}' for member '{memberName}' must return IEnumerable<Type>, " +
+                $"but returned '{result.GetType().FullName}'.");
+        }
+
+        /// <summary>
+        /// Filters processor types based on candidate and excluded types.
+        /// </summary>
+        /// <param name="candidateTypes">The candidate types to include, or null for all.</param>
+        /// <param name="excludedTypes">The types to exclude, or null for none.</param>
+        /// <returns>The filtered list of processor types.</returns>
+        private static Type[] FilterProcessorTypes(Type[] candidateTypes, Type[] excludedTypes)
+        {
+            var candidates = candidateTypes ?? ProcessorTypes;
+            var excluded = excludedTypes?.ToHashSet() ?? new HashSet<Type>();
+
+            return candidates
+                .Where(type => excluded.All(excludedType => type != excludedType))
+                .ToArray();
+        }
+
+        /// <summary>
+        /// Creates a processor from the specified candidate types for the given value type.
+        /// </summary>
+        /// <param name="valueType">The type to get a processor for.</param>
+        /// <param name="candidateTypes">The candidate processor types.</param>
+        /// <returns>The created processor, or null if no suitable processor was found.</returns>
+        private static ISerializationProcessor CreateProcessorFromCandidates(Type valueType, Type[] candidateTypes)
+        {
+            var resultsList = new List<TypeMatchResult[]>
+            {
+                TypeMatcher.GetMatches(Type.EmptyTypes),
+                TypeMatcher.GetMatches(valueType)
+            };
+
+            var results = TypeMatcher.GetMergedResults(resultsList);
+
+            // Build a HashSet of candidate types for quick lookup
+            var candidateSet = candidateTypes.ToHashSet();
+
+            foreach (var result in results)
+            {
+                if (result.Constraints[0] != valueType)
+                {
+                    continue;
+                }
+
+                // Check if the matched type is in the candidate set
+                if (!candidateSet.Contains(result.MatchedType))
+                {
+                    continue;
+                }
+
+                if (CanProcessType(result.MatchedType, valueType))
+                {
+                    return result.MatchedType.CreateInstance<ISerializationProcessor>();
+                }
+            }
+
+            return null;
         }
     }
 }

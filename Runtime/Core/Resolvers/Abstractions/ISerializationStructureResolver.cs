@@ -1,4 +1,5 @@
 using System;
+using EasyToolkit.Serialization;
 
 namespace EasyToolkit.Serialization.Resolvers
 {
@@ -8,10 +9,11 @@ namespace EasyToolkit.Serialization.Resolvers
     public interface ISerializationStructureResolver : ISerializationResolver
     {
         /// <summary>
-        /// Resolves the serialization structure of the specified type.
+        /// Resolves the serialization structure of the specified type using the specified context.
         /// </summary>
         /// <param name="valueType">The type to resolve.</param>
+        /// <param name="context">The serialization context providing reflection settings and processor cache.</param>
         /// <returns>An array of member definitions. Returns empty array for atomic types.</returns>
-        SerializationMemberDefinition[] Resolve(Type valueType);
+        SerializationMemberDefinition[] Resolve(Type valueType, SerializationContext context);
     }
 }

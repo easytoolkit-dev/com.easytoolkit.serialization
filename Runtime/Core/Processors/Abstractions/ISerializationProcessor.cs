@@ -11,6 +11,16 @@ namespace EasyToolkit.Serialization.Processors
         Type ValueType { get; }
         bool IsRoot { get; internal set; }
 
+        /// <summary>
+        /// Gets the serialization context associated with this processor.
+        /// </summary>
+        /// <remarks>
+        /// The context provides runtime configuration for serialization behavior,
+        /// including reflection settings and processor cache. Processors within
+        /// the same serialization hierarchy share the same context.
+        /// </remarks>
+        SerializationContext Context { get; internal set; }
+
         bool CanProcess(Type valueType);
 
         void ProcessUntyped(ref object value, IDataFormatter formatter);

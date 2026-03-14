@@ -1,3 +1,4 @@
+using System;
 using EasyToolkit.Serialization.Formatters;
 
 namespace EasyToolkit.Serialization.Processors
@@ -11,6 +12,9 @@ namespace EasyToolkit.Serialization.Processors
     public class GenericPrimitiveArrayProcessor<T> : SerializationProcessor<T[]>
         where T : unmanaged
     {
+        private static readonly Type[] CandidateTypes = { typeof(GenericProcessor<T[]>) };
+
+        [DependencyProcessor(CandidateTypesGetter = nameof(CandidateTypes))]
         private ISerializationProcessor<T[]> _genericProcessor;
 
         /// <inheritdoc />
@@ -25,7 +29,6 @@ namespace EasyToolkit.Serialization.Processors
             }
             else
             {
-                _genericProcessor ??= new GenericProcessor<T[]>();
                 _genericProcessor.Process(name, ref data, formatter);
             }
         }

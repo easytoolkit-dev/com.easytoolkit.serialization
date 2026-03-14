@@ -18,12 +18,13 @@ namespace EasyToolkit.Serialization.Processors
         {
             return SerializationStructureResolverFactory.GetResolver(valueType) != null &&
                    (valueType.IsDefined<SerializableAttribute>() ||
-                    SerializedTypeUtility.GetDefinedEasySerializableAttribute(valueType) != null);
+                    SerializedTypeUtility.GetDefinedEasySerializableAttribute(valueType) != null ||
+                    valueType.IsStructType());
         }
 
         protected override void Initialize()
         {
-            _memberDefinitions = SerializationStructureResolverFactory.GetResolver(typeof(T)).Resolve(typeof(T));
+            _memberDefinitions = SerializationStructureResolverFactory.GetResolver(typeof(T)).Resolve(typeof(T), Context);
         }
 
         protected override void Process(string name, ref T value, IDataFormatter formatter)
