@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using EasyToolkit.Serialization;
 
-namespace EasyToolkit.Serialization.Tests.Editor
+namespace EasyToolkit.Serialization.Tests
 {
     /// <summary>
     /// Unit tests for EasySerializableAttribute functionality.
     /// </summary>
     [TestFixture]
-    public class TestSerialization_EasySerializableAttribute
+    public class TestEasySerializableAttribute
     {
         #region Default MemberFlags (AllFields)
 

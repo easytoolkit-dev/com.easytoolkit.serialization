@@ -24,6 +24,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         private int _anonymousMemberId;
         private DataFormatterSettings _settings;
 
+        /// <summary>
+        /// Gets whether this formatter requires stream-based validation before reading.
+        /// Stream-based formats (like binary) should return true, while tree-based formats (like JSON) should return false.
+        /// </summary>
+        protected virtual bool RequiresStreamValidation => true;
+
         /// <inheritdoc />
         public abstract SerializationFormat FormatType { get; }
 
@@ -48,6 +54,9 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         /// <inheritdoc />
         public FormatterOperation Operation => FormatterOperation.Read;
+
+        public bool IsInObjectScope => _operationStack.Count > 0 && _operationStack.Peek() == OperationType.Object;
+        public bool IsInArrayScope => _operationStack.Count > 0 && _operationStack.Peek() == OperationType.Array;
 
         /// <inheritdoc />
         public void SetObjectTable(IReadOnlyList<UnityEngine.Object> objects)
@@ -102,6 +111,24 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         protected abstract void Format(ref ulong value);
 
         protected abstract void Format(ref bool value);
+
+        protected virtual void Format(ref bool[] data)
+        {
+            var length = 0;
+            using var scope = this.EnterArray(ref length);
+            if (length == 0)
+            {
+                data = Array.Empty<bool>();
+                return;
+            }
+            data = new bool[length];
+            for (int i = 0; i < length; i++)
+            {
+                bool item = false;
+                Format(ref item);
+                data[i] = item;
+            }
+        }
 
         protected abstract void Format(ref float value);
 
@@ -273,7 +300,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         void IDataFormatter.BeginMember(string name)
         {
-            if (_operationStack.Count == 0 || _operationStack.Peek() != OperationType.Object)
+            if (_operationStack.Count > 0 && _operationStack.Peek() != OperationType.Object)
             {
                 return;
             }
@@ -291,29 +318,31 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         void IDataFormatter.BeginObject(Type type)
         {
-            _operationStack.Push(OperationType.Object);
             BeginObject(type);
+            _operationStack.Push(OperationType.Object);
         }
 
         /// <inheritdoc />
         void IDataFormatter.EndObject()
         {
-            PopAndValidateEndOperation(OperationType.Object);
+            ValidateEndOperationType(OperationType.Object);
             EndObject();
+            _operationStack.Pop();
         }
 
         /// <inheritdoc />
         void IDataFormatter.BeginArray(ref int length)
         {
-            _operationStack.Push(OperationType.Array);
             BeginArray(ref length);
+            _operationStack.Push(OperationType.Array);
         }
 
         /// <inheritdoc />
         void IDataFormatter.EndArray()
         {
-            PopAndValidateEndOperation(OperationType.Array);
+            ValidateEndOperationType(OperationType.Array);
             EndArray();
+            _operationStack.Pop();
         }
 
         void IDataFormatter.Format(ref int value)
@@ -395,6 +424,15 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
                 return;
             }
             Format(ref value);
+        }
+
+        void IDataFormatter.Format(ref bool[] data)
+        {
+            if (!ValidateStreamBeforeRead(ref data))
+            {
+                return;
+            }
+            Format(ref data);
         }
 
         void IDataFormatter.Format(ref float value)
@@ -534,6 +572,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <exception cref="EndOfStreamException">Thrown when the stream has ended and ReturnDefaultOnStreamEnd is false.</exception>
         private bool ValidateStreamBeforeRead<T>(ref T value)
         {
+            // Skip stream validation for tree-based formats (like JSON)
+            if (!RequiresStreamValidation)
+            {
+                return true;
+            }
+
             if (GetRemainingLength() == 0)
             {
                 if (_settings.ReturnDefaultOnStreamEnd)
@@ -551,7 +595,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// </summary>
         /// <param name="operationType">The type of operation being ended.</param>
         /// <exception cref="InvalidOperationException">Thrown when the operation type does not match the expected type.</exception>
-        private void PopAndValidateEndOperation(OperationType operationType)
+        private void ValidateEndOperationType(OperationType operationType)
         {
             if (_operationStack.Count == 0)
             {
@@ -559,7 +603,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
                     $"Cannot end {operationType} operation: no matching Begin operation found. The operation stack is empty.");
             }
 
-            var expectedOperation = _operationStack.Pop();
+            var expectedOperation = _operationStack.Peek();
             if (expectedOperation != operationType)
             {
                 throw new InvalidOperationException(

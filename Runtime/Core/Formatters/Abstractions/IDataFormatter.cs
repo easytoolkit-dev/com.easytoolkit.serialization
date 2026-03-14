@@ -145,6 +145,19 @@ namespace EasyToolkit.Serialization.Formatters
         void Format(ref bool value);
 
         /// <summary>
+        /// Serializes or deserializes a boolean array.
+        /// </summary>
+        /// <param name="data">The boolean array to read or write.</param>
+        /// <remarks>
+        /// Null arrays are supported. The format determines how array length and
+        /// content are encoded.
+        ///
+        /// In Binary format, boolean arrays use bit packing optimization (8 bools per byte)
+        /// which reduces memory usage by 87.5% compared to per-element serialization.
+        /// </remarks>
+        void Format(ref bool[] data);
+
+        /// <summary>
         /// Serializes or deserializes a single-precision floating-point value.
         /// </summary>
         /// <param name="value">The float value to read or write.</param>
@@ -173,6 +186,9 @@ namespace EasyToolkit.Serialization.Formatters
         /// <remarks>
         /// Null arrays are supported. The format determines how array length and
         /// content are encoded.
+        ///
+        /// In Binary format, value type arrays use direct memory copy optimization
+        /// which avoids per-element serialization overhead for improved performance.
         /// </remarks>
         void Format(ref byte[] data);
 
@@ -183,6 +199,9 @@ namespace EasyToolkit.Serialization.Formatters
         /// <remarks>
         /// Null arrays are supported. The format determines how array length and
         /// content are encoded.
+        ///
+        /// In Binary format, value type arrays use direct memory copy optimization
+        /// which avoids per-element serialization overhead for improved performance.
         /// </remarks>
         void Format(ref sbyte[] data);
 
@@ -193,6 +212,9 @@ namespace EasyToolkit.Serialization.Formatters
         /// <remarks>
         /// Null arrays are supported. The format determines how array length and
         /// content are encoded.
+        ///
+        /// In Binary format, value type arrays use direct memory copy optimization
+        /// which avoids per-element serialization overhead for improved performance.
         /// </remarks>
         void Format(ref short[] data);
 
@@ -203,6 +225,9 @@ namespace EasyToolkit.Serialization.Formatters
         /// <remarks>
         /// Null arrays are supported. The format determines how array length and
         /// content are encoded.
+        ///
+        /// In Binary format, value type arrays use direct memory copy optimization
+        /// which avoids per-element serialization overhead for improved performance.
         /// </remarks>
         void Format(ref int[] data);
 
@@ -213,6 +238,9 @@ namespace EasyToolkit.Serialization.Formatters
         /// <remarks>
         /// Null arrays are supported. The format determines how array length and
         /// content are encoded.
+        ///
+        /// In Binary format, value type arrays use direct memory copy optimization
+        /// which avoids per-element serialization overhead for improved performance.
         /// </remarks>
         void Format(ref long[] data);
 
@@ -223,6 +251,9 @@ namespace EasyToolkit.Serialization.Formatters
         /// <remarks>
         /// Null arrays are supported. The format determines how array length and
         /// content are encoded.
+        ///
+        /// In Binary format, value type arrays use direct memory copy optimization
+        /// which avoids per-element serialization overhead for improved performance.
         /// </remarks>
         void Format(ref ushort[] data);
 
@@ -233,6 +264,9 @@ namespace EasyToolkit.Serialization.Formatters
         /// <remarks>
         /// Null arrays are supported. The format determines how array length and
         /// content are encoded.
+        ///
+        /// In Binary format, value type arrays use direct memory copy optimization
+        /// which avoids per-element serialization overhead for improved performance.
         /// </remarks>
         void Format(ref uint[] data);
 
@@ -243,6 +277,9 @@ namespace EasyToolkit.Serialization.Formatters
         /// <remarks>
         /// Null arrays are supported. The format determines how array length and
         /// content are encoded.
+        ///
+        /// In Binary format, value type arrays use direct memory copy optimization
+        /// which avoids per-element serialization overhead for improved performance.
         /// </remarks>
         void Format(ref ulong[] data);
 

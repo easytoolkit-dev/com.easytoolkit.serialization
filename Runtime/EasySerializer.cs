@@ -115,6 +115,46 @@ namespace EasyToolkit.Serialization
         }
 
         /// <summary>
+        /// Serializes the specified value to JSON format.
+        /// </summary>
+        public static string SerializeToJson(object value, SerializationSettings settings = null)
+        {
+            List<UnityEngine.Object> referencedUnityObjects = null;
+            return SerializeToJson(value, ref referencedUnityObjects, settings);
+        }
+
+        /// <summary>
+        /// Serializes the specified value to JSON format and captures referenced Unity objects.
+        /// </summary>
+        public static string SerializeToJson(object value, ref List<UnityEngine.Object> referencedUnityObjects, SerializationSettings settings = null)
+        {
+            var serializationData = new SerializationData(Array.Empty<byte>(), referencedUnityObjects);
+            Serialize(value, SerializationFormat.Json, ref serializationData, settings);
+            referencedUnityObjects = serializationData.ReferencedUnityObjects;
+            return serializationData.StringData;
+        }
+
+        /// <summary>
+        /// Serializes the specified value to JSON format.
+        /// </summary>
+        public static string SerializeToJson<T>(ref T value, SerializationSettings settings = null)
+        {
+            List<UnityEngine.Object> referencedUnityObjects = null;
+            return SerializeToJson(ref value, ref referencedUnityObjects, settings);
+        }
+
+        /// <summary>
+        /// Serializes the specified value to JSON format and captures referenced Unity objects.
+        /// </summary>
+        public static string SerializeToJson<T>(ref T value, ref List<UnityEngine.Object> referencedUnityObjects, SerializationSettings settings = null)
+        {
+            var serializationData = new SerializationData(Array.Empty<byte>(), referencedUnityObjects);
+            Serialize(ref value, SerializationFormat.Json, ref serializationData, settings);
+            referencedUnityObjects = serializationData.ReferencedUnityObjects;
+            return serializationData.StringData;
+        }
+
+        /// <summary>
         /// Deserializes a value of the specified type from the serialization data.
         /// </summary>
         public static T Deserialize<T>(SerializationFormat format, ref SerializationData serializationData, SerializationSettings settings = null)
@@ -193,6 +233,40 @@ namespace EasyToolkit.Serialization
         {
             var serializationData = new SerializationData(data, referencedUnityObjects);
             return Deserialize<T>(SerializationFormat.Binary, ref serializationData, settings);
+        }
+
+        /// <summary>
+        /// Deserializes a value of the specified type from JSON data.
+        /// </summary>
+        public static object DeserializeFromJson(Type type, string json, SerializationSettings settings = null)
+        {
+            return DeserializeFromJson(type, json, null, settings);
+        }
+
+        /// <summary>
+        /// Deserializes a value of the specified type from JSON data with referenced Unity objects.
+        /// </summary>
+        public static object DeserializeFromJson(Type type, string json, List<UnityEngine.Object> referencedUnityObjects, SerializationSettings settings = null)
+        {
+            var serializationData = new SerializationData(json, referencedUnityObjects);
+            return Deserialize(type, SerializationFormat.Json, ref serializationData, settings);
+        }
+
+        /// <summary>
+        /// Deserializes a value of type T from JSON data.
+        /// </summary>
+        public static T DeserializeFromJson<T>(string json, SerializationSettings settings = null)
+        {
+            return DeserializeFromJson<T>(json, null, settings);
+        }
+
+        /// <summary>
+        /// Deserializes a value of type T from JSON data with referenced Unity objects.
+        /// </summary>
+        public static T DeserializeFromJson<T>(string json, List<UnityEngine.Object> referencedUnityObjects, SerializationSettings settings = null)
+        {
+            var serializationData = new SerializationData(json, referencedUnityObjects);
+            return Deserialize<T>(SerializationFormat.Json, ref serializationData, settings);
         }
     }
 }

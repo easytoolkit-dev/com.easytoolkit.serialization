@@ -256,6 +256,45 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         }
 
         /// <inheritdoc />
+        public override void Format(ref bool[] data)
+        {
+            WriteOptionTag(BinaryFormatterTag.BooleanArray);
+            if (data == null)
+            {
+                WriteUInt32Optimized(0);
+                return;
+            }
+
+            WriteUInt32Optimized((uint)data.Length);
+
+            // Pack 8 bools into each byte for optimized storage
+            int byteCount = (data.Length + 7) / 8;
+            EnsureCapacity(byteCount);
+
+            int bitIndex = 0;
+            byte currentByte = 0;
+
+            for (int i = 0; i < data.Length; i++)
+            {
+                if (data[i])
+                {
+                    currentByte |= (byte)(1 << bitIndex);
+                }
+
+                bitIndex++;
+                if (bitIndex == 8 || i == data.Length - 1)
+                {
+                    _buffer[_position++] = currentByte;
+                    currentByte = 0;
+                    bitIndex = 0;
+                }
+            }
+
+            if (_position > _length)
+                _length = _position;
+        }
+
+        /// <inheritdoc />
         public override void Format(ref float value)
         {
             WriteOptionTag(BinaryFormatterTag.Single);

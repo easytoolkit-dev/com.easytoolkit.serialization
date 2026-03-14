@@ -24,7 +24,7 @@ namespace EasyToolkit.Serialization.Processors
                         );
                         break;
                     }
-                    catch (Exception e)
+                    catch
                     {
                         // ignored
                     }

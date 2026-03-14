@@ -18,6 +18,12 @@ namespace EasyToolkit.Serialization.Formatters
                     formatter.Settings = settings.BinaryFormatterSettings;
                     return formatter;
                 }
+                case SerializationFormat.Json:
+                {
+                    var formatter = PoolUtility.RentObject<Implementations.JsonReadingFormatter>();
+                    formatter.Settings = settings.JsonFormatterSettings;
+                    return formatter;
+                }
                 default:
                     throw new ArgumentException($"Unsupported formatter type: {type}");
             }
@@ -33,6 +39,10 @@ namespace EasyToolkit.Serialization.Formatters
                     var formatter = PoolUtility.RentObject<Implementations.BinaryWritingFormatter>();
                     formatter.Settings = settings.BinaryFormatterSettings;
                     return formatter;
+                case SerializationFormat.Json:
+                    var jsonFormatter = PoolUtility.RentObject<Implementations.JsonWritingFormatter>();
+                    jsonFormatter.Settings = settings.JsonFormatterSettings;
+                    return jsonFormatter;
                 default:
                     throw new ArgumentException($"Unsupported formatter type: {type}");
             }

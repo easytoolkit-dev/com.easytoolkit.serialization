@@ -108,6 +108,18 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         public abstract void Format(ref bool value);
 
         /// <inheritdoc />
+        public virtual void Format(ref bool[] data)
+        {
+            var length = data.Length;
+            using var scope = this.EnterArray(ref length);
+            for (int i = 0; i < length; i++)
+            {
+                var item = data[i];
+                Format(ref item);
+            }
+        }
+
+        /// <inheritdoc />
         public abstract void Format(ref float value);
 
         /// <inheritdoc />
@@ -119,7 +131,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public virtual void Format(ref byte[] data)
         {
-            var length = data.Length;
+            var length = data?.Length ?? 0;
             using var scope = this.EnterArray(ref length);
             for (int i = 0; i < length; i++)
             {
@@ -131,7 +143,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public virtual void Format(ref sbyte[] data)
         {
-            var length = data.Length;
+            var length = data?.Length ?? 0;
             using var scope = this.EnterArray(ref length);
             for (int i = 0; i < length; i++)
             {
@@ -143,7 +155,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public virtual void Format(ref short[] data)
         {
-            var length = data.Length;
+            var length = data?.Length ?? 0;
             using var scope = this.EnterArray(ref length);
             for (int i = 0; i < length; i++)
             {
@@ -155,7 +167,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public virtual void Format(ref int[] data)
         {
-            var length = data.Length;
+            var length = data?.Length ?? 0;
             using var scope = this.EnterArray(ref length);
             for (int i = 0; i < length; i++)
             {
@@ -167,7 +179,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public virtual void Format(ref long[] data)
         {
-            var length = data.Length;
+            var length = data?.Length ?? 0;
             using var scope = this.EnterArray(ref length);
             for (int i = 0; i < length; i++)
             {
@@ -179,7 +191,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public virtual void Format(ref ushort[] data)
         {
-            var length = data.Length;
+            var length = data?.Length ?? 0;
             using var scope = this.EnterArray(ref length);
             for (int i = 0; i < length; i++)
             {
@@ -191,7 +203,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public virtual void Format(ref uint[] data)
         {
-            var length = data.Length;
+            var length = data?.Length ?? 0;
             using var scope = this.EnterArray(ref length);
             for (int i = 0; i < length; i++)
             {
@@ -203,7 +215,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public virtual void Format(ref ulong[] data)
         {
-            var length = data.Length;
+            var length = data?.Length ?? 0;
             using var scope = this.EnterArray(ref length);
             for (int i = 0; i < length; i++)
             {
@@ -219,24 +231,22 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         public virtual void FormatGenericPrimitive<T>(ref T value) where T : unmanaged
         {
             throw new NotSupportedException(
-                $"FormatGenericPrimitive is only supported in Binary format mode. " +
-                $"Current format: '{FormatType}'. " +
-                $"Use the typed Format methods (e.g., Format(ref int value)) for non-Binary formatters.");
+                $"FormatGenericPrimitive is not supported in format type '{FormatType}'. " +
+                $"Use the typed Format methods (e.g., Format(ref int value)) instead.");
         }
 
         /// <inheritdoc />
         public virtual void FormatGenericPrimitive<T>(ref T[] data) where T : unmanaged
         {
             throw new NotSupportedException(
-                $"FormatGenericPrimitive array is only supported in Binary format mode. " +
-                $"Current format: '{FormatType}'. " +
-                $"Use the typed Format methods (e.g., Format(ref int[] data)) for non-Binary formatters.");
+                $"FormatGenericPrimitive array is not supported in format type '{FormatType}'. " +
+                $"Use the typed Format methods (e.g., Format(ref int value)) instead.");
         }
 
         /// <inheritdoc />
         void IDataFormatter.BeginMember(string name)
         {
-            if (_operationStack.Count == 0 || _operationStack.Peek() != OperationType.Object)
+            if (_operationStack.Count > 0 && _operationStack.Peek() != OperationType.Object)
             {
                 return;
             }
@@ -254,29 +264,31 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         void IDataFormatter.BeginObject(Type type)
         {
-            _operationStack.Push(OperationType.Object);
             BeginObject(type);
+            _operationStack.Push(OperationType.Object);
         }
 
         /// <inheritdoc />
         void IDataFormatter.EndObject()
         {
-            PopAndValidateEndOperation(OperationType.Object);
+            ValidateEndOperation(OperationType.Object);
             EndObject();
+            _operationStack.Pop();
         }
 
         /// <inheritdoc />
         void IDataFormatter.BeginArray(ref int length)
         {
-            _operationStack.Push(OperationType.Array);
             BeginArray(ref length);
+            _operationStack.Push(OperationType.Array);
         }
 
         /// <inheritdoc />
         void IDataFormatter.EndArray()
         {
-            PopAndValidateEndOperation(OperationType.Array);
+            ValidateEndOperation(OperationType.Array);
             EndArray();
+            _operationStack.Pop();
         }
 
         /// <summary>
@@ -284,7 +296,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// </summary>
         /// <param name="operationType">The type of operation being ended.</param>
         /// <exception cref="InvalidOperationException">Thrown when the operation type does not match the expected type.</exception>
-        private void PopAndValidateEndOperation(OperationType operationType)
+        private void ValidateEndOperation(OperationType operationType)
         {
             if (_operationStack.Count == 0)
             {
@@ -292,7 +304,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
                     $"Cannot end {operationType} operation: no matching Begin operation found. The operation stack is empty.");
             }
 
-            var expectedOperation = _operationStack.Pop();
+            var expectedOperation = _operationStack.Peek();
             if (expectedOperation != operationType)
             {
                 throw new InvalidOperationException(

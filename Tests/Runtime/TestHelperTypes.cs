@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using EasyToolkit.Serialization;
 
-namespace EasyToolkit.Serialization.Tests.Editor
+namespace EasyToolkit.Serialization.Tests
 {
     /// <summary>Test enum for serialization testing.</summary>
     public enum TestEnum

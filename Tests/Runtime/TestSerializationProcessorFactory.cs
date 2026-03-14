@@ -1,7 +1,7 @@
 using NUnit.Framework;
 using EasyToolkit.Serialization.Processors;
 
-namespace EasyToolkit.Serialization.Tests.Editor
+namespace EasyToolkit.Serialization.Tests
 {
     /// <summary>
     /// Unit tests for SerializationProcessorFactory to verify correct processor matching.

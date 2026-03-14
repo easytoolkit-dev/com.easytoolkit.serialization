@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using EasyToolkit.Serialization;
 
-namespace EasyToolkit.Serialization.Tests.Editor
+namespace EasyToolkit.Serialization.Tests
 {
     /// <summary>
     /// Unit tests for binary serialization functionality.
     /// </summary>
     [TestFixture]
-    public class TestSerialization_Binary
+    public class TestBinarySerializer
     {
         #region Primitive Types
 
@@ -460,6 +460,28 @@ namespace EasyToolkit.Serialization.Tests.Editor
             Assert.AreEqual(3, result[2]);
             Assert.AreEqual(4, result[3]);
             Assert.AreEqual(5, result[4]);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing an bool array produces the original value.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_BoolArray_ReturnsOriginalValue()
+        {
+            // Arrange
+            bool[] original = { true, false, true, false, true };
+
+            // Act
+            var data = EasySerializer.SerializeToBinary(ref original);
+            var result = EasySerializer.DeserializeFromBinary<bool[]>(data);
+
+            // Assert
+            Assert.AreEqual(5, result.Length);
+            Assert.AreEqual(true, result[0]);
+            Assert.AreEqual(false, result[1]);
+            Assert.AreEqual(true, result[2]);
+            Assert.AreEqual(false, result[3]);
+            Assert.AreEqual(true, result[4]);
         }
 
         /// <summary>

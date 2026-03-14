@@ -16,5 +16,10 @@ namespace EasyToolkit.Serialization
         /// Gets or sets the formatter settings for the binary serialization format.
         /// </summary>
         public BinaryFormatterSettings BinaryFormatterSettings { get; set; } = new();
+
+        /// <summary>
+        /// Gets or sets the formatter settings for the JSON serialization format.
+        /// </summary>
+        public JsonFormatterSettings JsonFormatterSettings { get; set; } = new();
     }
 }

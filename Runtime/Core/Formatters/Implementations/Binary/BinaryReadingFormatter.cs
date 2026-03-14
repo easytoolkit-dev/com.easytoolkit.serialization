@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using EasyToolkit.Core.Pooling;
 using EasyToolkit.Serialization.Utilities;
 
@@ -310,6 +311,38 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
             ReadAndValidateOptionTag(BinaryFormatterTag.Boolean, "bool");
             var byteValue = ReadByte();
             value = byteValue != 0;
+        }
+
+        /// <inheritdoc />
+        protected override void Format(ref bool[] data)
+        {
+            ReadAndValidateOptionTag(BinaryFormatterTag.BooleanArray, "bool array");
+            var length = ReadUInt32Optimized();
+            if (length == 0)
+            {
+                data = Array.Empty<bool>();
+                return;
+            }
+
+            data = new bool[length];
+
+            // Unpack bytes into bool array (8 bools per byte)
+            var byteCount = (length + 7) / 8;
+            if (_position + byteCount > _buffer.Length)
+            {
+                throw new EndOfStreamException(
+                    $"Attempted to read {byteCount} bytes but only {_buffer.Length - _position} bytes available.");
+            }
+
+            int boolIndex = 0;
+            for (int byteIndex = 0; byteIndex < byteCount && boolIndex < length; byteIndex++)
+            {
+                byte currentByte = _buffer[_position++];
+                for (int bitIndex = 0; bitIndex < 8 && boolIndex < length; bitIndex++)
+                {
+                    data[boolIndex++] = (currentByte & (1 << bitIndex)) != 0;
+                }
+            }
         }
 
         /// <inheritdoc />

@@ -62,7 +62,6 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         private uint ReadVarint32()
         {
             uint value = 0;
-            int shift = 0;
 
             // Unrolled loop for performance (handles up to 5 bytes inline)
             if (_position >= _buffer.Length)

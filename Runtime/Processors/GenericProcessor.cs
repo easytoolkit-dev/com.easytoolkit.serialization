@@ -28,8 +28,11 @@ namespace EasyToolkit.Serialization.Processors
 
         protected override void Process(string name, ref T value, IDataFormatter formatter)
         {
-            formatter.BeginMember(name);
-            using var scope = formatter.EnterObject(typeof(T));
+            if (formatter.FormatType != SerializationFormat.Json || !IsRoot)
+            {
+                formatter.BeginMember(name);
+                formatter.BeginObject();
+            }
 
             foreach (var memberDefinition in _memberDefinitions)
             {
@@ -56,8 +59,15 @@ namespace EasyToolkit.Serialization.Processors
                         throw new ArgumentException($"Member '{memberDefinition.Name}' is not writable!");
                     }
 
-                    setter(value, memberValue);
+                    object boxedValue = value;
+                    setter(ref boxedValue, memberValue);
+                    value = (T)boxedValue;
                 }
+            }
+
+            if (formatter.FormatType != SerializationFormat.Json || !IsRoot)
+            {
+                formatter.EndObject();
             }
         }
     }

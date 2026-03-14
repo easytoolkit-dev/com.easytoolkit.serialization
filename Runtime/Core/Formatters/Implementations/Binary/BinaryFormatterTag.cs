@@ -109,9 +109,14 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         UInt64Array = 0x23,
 
         /// <summary>
+        /// Tag for boolean array (bool[]) values. Followed by length-prefixed packed bytes (8 bools per byte).
+        /// </summary>
+        BooleanArray = 0x24,
+
+        /// <summary>
         /// Tag for Unity object reference values. Followed by varint32 reference index.
         /// </summary>
-        UnityObjectRef = 0x24,
+        UnityObjectRef = 0x25,
 
         /// <summary>
         /// Tag for generic unmanaged values (custom structs, enums). Followed by raw bytes.
