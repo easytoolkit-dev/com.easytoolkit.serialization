@@ -21,7 +21,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryReadingFormatter_Constructor_ReturnsBinaryFormat()
         {
             // Arrange
-            var formatter = new BinaryReadingFormatter();
+            IReadingFormatter formatter = new BinaryReadingFormatter();
 
             // Assert
             Assert.AreEqual(SerializationFormat.Binary, formatter.FormatType);
@@ -38,7 +38,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryReadingFormatter_SetBuffer_SetsBufferCorrectly()
         {
             // Arrange
-            var formatter = new BinaryReadingFormatter();
+            IReadingFormatter formatter = new BinaryReadingFormatter();
             byte[] buffer = { 1, 2, 3, 4, 5 };
 
             // Act
@@ -56,7 +56,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryReadingFormatter_GetBuffer_ReturnsSetBuffer()
         {
             // Arrange
-            var formatter = new BinaryReadingFormatter();
+            IReadingFormatter formatter = new BinaryReadingFormatter();
             byte[] buffer = { 10, 20, 30, 40, 50 };
             formatter.SetBuffer(buffer);
 
@@ -76,7 +76,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryReadingFormatter_GetPosition_ReturnsCurrentPosition()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             int value = 42;
             writeFormatter.Format(ref value);
@@ -97,7 +97,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryReadingFormatter_GetRemainingLength_ReturnsRemainingBytes()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             int value = 42;
             writeFormatter.Format(ref value);
@@ -125,7 +125,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryReadingFormatter_ReadInt_ReturnsCorrectValue()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             int original = 65535;
 
@@ -146,7 +146,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryReadingFormatter_ReadAllIntegerTypes_ReturnsCorrectValues()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
 
             byte byteValue = 255;

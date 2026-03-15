@@ -18,18 +18,17 @@ namespace EasyToolkit.Serialization.Processors
         private ISerializationProcessor<T[]> _genericProcessor;
 
         /// <inheritdoc />
-        protected override void Process(string name, ref T[] data, IDataFormatter formatter)
+        protected override void Process(ref T[] data, IDataFormatter formatter)
         {
             if (formatter.FormatType == SerializationFormat.Binary)
             {
-                formatter.BeginMember(name);
                 using var scope = formatter.EnterObject(typeof(T));
                 formatter.BeginMember("_");
                 formatter.FormatGenericPrimitive(ref data);
             }
             else
             {
-                _genericProcessor.Process(name, ref data, formatter);
+                _genericProcessor.Process(ref data, formatter);
             }
         }
     }

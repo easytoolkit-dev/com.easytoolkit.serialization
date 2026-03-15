@@ -8,9 +8,8 @@ namespace EasyToolkit.Serialization.Processors
     [ProcessorConfiguration(ProcessorPriorityLevel.Primitive)]
     public class Int64Processor : SerializationProcessor<long>
     {
-        protected override void Process(string name, ref long value, IDataFormatter formatter)
+        protected override void Process(ref long value, IDataFormatter formatter)
         {
-            formatter.BeginMember(name);
             formatter.Format(ref value);
         }
     }

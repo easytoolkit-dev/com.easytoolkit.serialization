@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using UnityEngine.Assertions;
 
 namespace EasyToolkit.Serialization.Formatters.Implementations
 {
@@ -12,15 +13,16 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
     {
         private readonly Stack<JSONNode> _nodeStack = new();
         private string _currentMemberName;
-        private JSONObject _root;
+        private JSONNode _root;
         private byte[] _cachedBuffer;
         private string _cachedJsonText;
+        private JsonFormatterSettings _jsonSettings;
 
         /// <inheritdoc />
         public override SerializationFormat FormatType => SerializationFormat.Json;
 
         /// <inheritdoc />
-        public override byte[] GetBuffer()
+        protected override byte[] GetBuffer()
         {
             if (_cachedBuffer == null)
             {
@@ -30,20 +32,20 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         }
 
         /// <inheritdoc />
-        public override int GetPosition()
+        protected override int GetPosition()
         {
             throw new NotSupportedException(
                 "GetPosition is not supported for JSON format. JSON is a tree-based format, not a stream-based format.");
         }
 
         /// <inheritdoc />
-        public override int GetLength()
+        protected override int GetLength()
         {
             return GetBuffer().Length;
         }
 
         /// <inheritdoc />
-        public override byte[] ToArray()
+        protected override byte[] ToArray()
         {
             return GetBuffer();
         }
@@ -107,80 +109,80 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         }
 
         /// <inheritdoc />
-        public override void Format(ref UnityEngine.Object unityObject)
+        protected override void Format(ref UnityEngine.Object unityObject)
         {
             var index = unityObject != null ? RegisterReference(unityObject) : 0;
             AddToCurrentNode(index);
         }
 
         /// <inheritdoc />
-        public override void Format(ref int value)
+        protected override void Format(ref int value)
         {
             AddToCurrentNode(value);
         }
 
         /// <inheritdoc />
-        public override void Format(ref sbyte value)
+        protected override void Format(ref sbyte value)
         {
             AddToCurrentNode((int)value);
         }
 
         /// <inheritdoc />
-        public override void Format(ref short value)
+        protected override void Format(ref short value)
         {
             AddToCurrentNode((int)value);
         }
 
         /// <inheritdoc />
-        public override void Format(ref long value)
+        protected override void Format(ref long value)
         {
             AddToCurrentNode(value);
         }
 
         /// <inheritdoc />
-        public override void Format(ref byte value)
+        protected override void Format(ref byte value)
         {
             AddToCurrentNode((int)value);
         }
 
         /// <inheritdoc />
-        public override void Format(ref ushort value)
+        protected override void Format(ref ushort value)
         {
             AddToCurrentNode((int)value);
         }
 
         /// <inheritdoc />
-        public override void Format(ref uint value)
+        protected override void Format(ref uint value)
         {
             AddToCurrentNode((long)value);
         }
 
         /// <inheritdoc />
-        public override void Format(ref ulong value)
+        protected override void Format(ref ulong value)
         {
             AddToCurrentNode(value);
         }
 
         /// <inheritdoc />
-        public override void Format(ref bool value)
+        protected override void Format(ref bool value)
         {
             AddToCurrentNode(value);
         }
 
         /// <inheritdoc />
-        public override void Format(ref float value)
+        protected override void Format(ref float value)
         {
             AddToCurrentNode(value);
         }
 
         /// <inheritdoc />
-        public override void Format(ref double value)
+        protected override void Format(ref double value)
         {
             AddToCurrentNode(value);
         }
 
         /// <inheritdoc />
-        public override void Format(ref string str)
+        protected override void Format(ref string str)
         {
             if (str == null)
             {
@@ -332,6 +334,13 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <param name="node">The JSON node to add.</param>
         private void AddToCurrentNode(JSONNode node)
         {
+            if (_root == null)
+            {
+                Assert.IsTrue(_nodeStack.Count == 0);
+                _root = node;
+                return;
+            }
+
             var current = GetCurrentNode();
             if (current.IsArray)
             {
@@ -355,25 +364,48 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
                 return _nodeStack.Peek();
             }
 
-            // Create root object if it doesn't exist
             if (_root == null)
             {
-                _root = new JSONObject();
-                _nodeStack.Push(_root);
+                EnsureRootNodeForAtomicValue();
+                if (_root == null)
+                {
+                    throw new InvalidOperationException(
+                        "Cannot write value without a root node. Call BeginArray() or BeginObject() first to create the root element.");
+                }
             }
 
             return _root;
         }
 
         /// <inheritdoc />
-        public override void Dispose()
+        protected override void OnSettingsChanged(DataFormatterSettings settings)
+        {
+            _jsonSettings = settings as JsonFormatterSettings;
+            base.OnSettingsChanged(settings);
+        }
+
+        /// <summary>
+        /// Automatically creates a root array for atomic values if enabled.
+        /// </summary>
+        private void EnsureRootNodeForAtomicValue()
+        {
+            if (_root == null && _jsonSettings?.AutoWrapAtomicValueInArray == true)
+            {
+                var array = new JSONArray();
+                _root = array;
+                _nodeStack.Push(array);
+            }
+        }
+
+        /// <inheritdoc />
+        protected override void Dispose()
         {
             _currentMemberName = null;
             _root = null;
             _nodeStack.Clear();
             _cachedBuffer = null;
             _cachedJsonText = null;
-            base.Dispose();
+            _jsonSettings = null;
         }
     }
 }

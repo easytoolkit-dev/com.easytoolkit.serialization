@@ -12,9 +12,8 @@ namespace EasyToolkit.Serialization.Processors
         [DependencyProcessor]
         private ISerializationProcessor<TValue> _valueProcessor;
 
-        protected override void Process(string name, ref KeyValuePair<TKey, TValue> keyValuePair, IDataFormatter formatter)
+        protected override void Process(ref KeyValuePair<TKey, TValue> keyValuePair, IDataFormatter formatter)
         {
-            formatter.BeginMember(name);
             using var scope = formatter.EnterObject(ValueType);
 
             var key = keyValuePair.Key;

@@ -22,7 +22,7 @@ namespace EasyToolkit.Serialization.Tests
         public void JsonWritingFormatter_Constructor_ReturnsJsonFormat()
         {
             // Arrange
-            var formatter = new JsonWritingFormatter();
+            IWritingFormatter formatter = new JsonWritingFormatter();
 
             // Assert
             Assert.AreEqual(SerializationFormat.Json, formatter.FormatType);
@@ -39,10 +39,12 @@ namespace EasyToolkit.Serialization.Tests
         public void JsonWritingFormatter_GetBuffer_ReturnsJsonBytes()
         {
             // Arrange
-            var formatter = new JsonWritingFormatter();
+            IWritingFormatter formatter = new JsonWritingFormatter();
             int value = 42;
-            ((IDataFormatter)formatter).BeginMember("test");
+            formatter.BeginObject();
+            formatter.BeginMember("test");
             formatter.Format(ref value);
+            formatter.EndObject();
 
             // Act
             byte[] buffer = formatter.GetBuffer();
@@ -60,10 +62,12 @@ namespace EasyToolkit.Serialization.Tests
         public void JsonWritingFormatter_ToArray_ReturnsSameAsGetBuffer()
         {
             // Arrange
-            var formatter = new JsonWritingFormatter();
+            IWritingFormatter formatter = new JsonWritingFormatter();
             int value = 42;
-            ((IDataFormatter)formatter).BeginMember("test");
+            formatter.BeginObject();
+            formatter.BeginMember("test");
             formatter.Format(ref value);
+            formatter.EndObject();
 
             // Act
             byte[] toArray = formatter.ToArray();
@@ -80,10 +84,12 @@ namespace EasyToolkit.Serialization.Tests
         public void JsonWritingFormatter_GetLength_ReturnsBufferLength()
         {
             // Arrange
-            var formatter = new JsonWritingFormatter();
+            IWritingFormatter formatter = new JsonWritingFormatter();
             int value = 42;
-            ((IDataFormatter)formatter).BeginMember("test");
+            formatter.BeginObject();
+            formatter.BeginMember("test");
             formatter.Format(ref value);
+            formatter.EndObject();
 
             // Act
             int length = formatter.GetLength();
@@ -99,7 +105,7 @@ namespace EasyToolkit.Serialization.Tests
         public void JsonWritingFormatter_GetPosition_ThrowsNotSupportedException()
         {
             // Arrange
-            var formatter = new JsonWritingFormatter();
+            IWritingFormatter formatter = new JsonWritingFormatter();
 
             // Act & Assert
             var ex = Assert.Throws<NotSupportedException>(() => formatter.GetPosition());
@@ -113,7 +119,7 @@ namespace EasyToolkit.Serialization.Tests
         public void JsonWritingFormatter_EmptyFormatter_ReturnsEmptyObject()
         {
             // Arrange
-            var formatter = new JsonWritingFormatter();
+            IWritingFormatter formatter = new JsonWritingFormatter();
 
             // Act
             byte[] buffer = formatter.GetBuffer();
@@ -138,13 +144,18 @@ namespace EasyToolkit.Serialization.Tests
             int original = 12345;
 
             // Act
+            writeFormatter.BeginObject();
             writeFormatter.BeginMember("value");
             writeFormatter.Format(ref original);
+            writeFormatter.EndObject();
+
             byte[] buffer = writeFormatter.GetBuffer();
             readFormatter.SetBuffer(buffer);
+            readFormatter.BeginObject();
             readFormatter.BeginMember("value");
             int result = 0;
             readFormatter.Format(ref result);
+            readFormatter.EndObject();
 
             // Assert
             Assert.AreEqual(12345, result);
@@ -162,13 +173,18 @@ namespace EasyToolkit.Serialization.Tests
             int original = -99999;
 
             // Act
+            writeFormatter.BeginObject();
             writeFormatter.BeginMember("value");
             writeFormatter.Format(ref original);
+            writeFormatter.EndObject();
+
             byte[] buffer = writeFormatter.GetBuffer();
             readFormatter.SetBuffer(buffer);
+            readFormatter.BeginObject();
             readFormatter.BeginMember("value");
             int result = 0;
             readFormatter.Format(ref result);
+            readFormatter.EndObject();
 
             // Assert
             Assert.AreEqual(-99999, result);
@@ -186,13 +202,18 @@ namespace EasyToolkit.Serialization.Tests
             long original = 98765432101234;
 
             // Act
+            writeFormatter.BeginObject();
             writeFormatter.BeginMember("value");
             writeFormatter.Format(ref original);
+            writeFormatter.EndObject();
+
             byte[] buffer = writeFormatter.GetBuffer();
             readFormatter.SetBuffer(buffer);
+            readFormatter.BeginObject();
             readFormatter.BeginMember("value");
             long result = 0;
             readFormatter.Format(ref result);
+            readFormatter.EndObject();
 
             // Assert
             Assert.AreEqual(98765432101234, result);
@@ -210,13 +231,18 @@ namespace EasyToolkit.Serialization.Tests
             float original = 3.14159f;
 
             // Act
+            writeFormatter.BeginObject();
             writeFormatter.BeginMember("value");
             writeFormatter.Format(ref original);
+            writeFormatter.EndObject();
+
             byte[] buffer = writeFormatter.GetBuffer();
             readFormatter.SetBuffer(buffer);
+            readFormatter.BeginObject();
             readFormatter.BeginMember("value");
             float result = 0f;
             readFormatter.Format(ref result);
+            readFormatter.EndObject();
 
             // Assert
             Assert.AreEqual(3.14159f, result, 0.00001f);
@@ -234,13 +260,18 @@ namespace EasyToolkit.Serialization.Tests
             double original = 123.45678901234;
 
             // Act
+            writeFormatter.BeginObject();
             writeFormatter.BeginMember("value");
             writeFormatter.Format(ref original);
+            writeFormatter.EndObject();
+
             byte[] buffer = writeFormatter.GetBuffer();
             readFormatter.SetBuffer(buffer);
+            readFormatter.BeginObject();
             readFormatter.BeginMember("value");
             double result = 0d;
             readFormatter.Format(ref result);
+            readFormatter.EndObject();
 
             // Assert
             Assert.AreEqual(123.45678901234, result, 0.00000001);
@@ -258,13 +289,18 @@ namespace EasyToolkit.Serialization.Tests
             bool original = true;
 
             // Act
+            writeFormatter.BeginObject();
             writeFormatter.BeginMember("value");
             writeFormatter.Format(ref original);
+            writeFormatter.EndObject();
+
             byte[] buffer = writeFormatter.GetBuffer();
             readFormatter.SetBuffer(buffer);
+            readFormatter.BeginObject();
             readFormatter.BeginMember("value");
             bool result = false;
             readFormatter.Format(ref result);
+            readFormatter.EndObject();
 
             // Assert
             Assert.IsTrue(result);
@@ -282,13 +318,18 @@ namespace EasyToolkit.Serialization.Tests
             bool original = false;
 
             // Act
+            writeFormatter.BeginObject();
             writeFormatter.BeginMember("value");
             writeFormatter.Format(ref original);
+            writeFormatter.EndObject();
+
             byte[] buffer = writeFormatter.GetBuffer();
             readFormatter.SetBuffer(buffer);
+            readFormatter.BeginObject();
             readFormatter.BeginMember("value");
             bool result = true;
             readFormatter.Format(ref result);
+            readFormatter.EndObject();
 
             // Assert
             Assert.IsFalse(result);
@@ -310,13 +351,18 @@ namespace EasyToolkit.Serialization.Tests
             string original = "Hello, World!";
 
             // Act
+            writeFormatter.BeginObject();
             writeFormatter.BeginMember("value");
             writeFormatter.Format(ref original);
+            writeFormatter.EndObject();
+
             byte[] buffer = writeFormatter.GetBuffer();
             readFormatter.SetBuffer(buffer);
+            readFormatter.BeginObject();
             readFormatter.BeginMember("value");
             string result = null;
             readFormatter.Format(ref result);
+            readFormatter.EndObject();
 
             // Assert
             Assert.AreEqual("Hello, World!", result);
@@ -334,13 +380,18 @@ namespace EasyToolkit.Serialization.Tests
             string original = string.Empty;
 
             // Act
+            writeFormatter.BeginObject();
             writeFormatter.BeginMember("value");
             writeFormatter.Format(ref original);
+            writeFormatter.EndObject();
+
             byte[] buffer = writeFormatter.GetBuffer();
             readFormatter.SetBuffer(buffer);
+            readFormatter.BeginObject();
             readFormatter.BeginMember("value");
             string result = "not empty";
             readFormatter.Format(ref result);
+            readFormatter.EndObject();
 
             // Assert
             Assert.AreEqual(string.Empty, result);
@@ -358,13 +409,18 @@ namespace EasyToolkit.Serialization.Tests
             string original = null;
 
             // Act
+            writeFormatter.BeginObject();
             writeFormatter.BeginMember("value");
             writeFormatter.Format(ref original);
+            writeFormatter.EndObject();
+
             byte[] buffer = writeFormatter.GetBuffer();
             readFormatter.SetBuffer(buffer);
+            readFormatter.BeginObject();
             readFormatter.BeginMember("value");
             string result = "not null";
             readFormatter.Format(ref result);
+            readFormatter.EndObject();
 
             // Assert
             Assert.IsNull(result);
@@ -382,13 +438,18 @@ namespace EasyToolkit.Serialization.Tests
             string original = "Hello 世界! 🌍";
 
             // Act
+            writeFormatter.BeginObject();
             writeFormatter.BeginMember("value");
             writeFormatter.Format(ref original);
+            writeFormatter.EndObject();
+
             byte[] buffer = writeFormatter.GetBuffer();
             readFormatter.SetBuffer(buffer);
+            readFormatter.BeginObject();
             readFormatter.BeginMember("value");
             string result = null;
             readFormatter.Format(ref result);
+            readFormatter.EndObject();
 
             // Assert
             Assert.AreEqual("Hello 世界! 🌍", result);
@@ -409,6 +470,8 @@ namespace EasyToolkit.Serialization.Tests
             IReadingFormatter readFormatter = new JsonReadingFormatter();
 
             // Act
+            writeFormatter.BeginObject();
+
             byte byteValue = 255;
             writeFormatter.BeginMember("byte");
             writeFormatter.Format(ref byteValue);
@@ -433,8 +496,11 @@ namespace EasyToolkit.Serialization.Tests
             writeFormatter.BeginMember("ulong");
             writeFormatter.Format(ref ulongValue);
 
+            writeFormatter.EndObject();
+
             byte[] buffer = writeFormatter.GetBuffer();
             readFormatter.SetBuffer(buffer);
+            readFormatter.BeginObject();
 
             byteValue = 0;
             readFormatter.BeginMember("byte");
@@ -459,6 +525,7 @@ namespace EasyToolkit.Serialization.Tests
             ulongValue = 0;
             readFormatter.BeginMember("ulong");
             readFormatter.Format(ref ulongValue);
+            readFormatter.EndObject();
 
             // Assert
             Assert.AreEqual((byte)255, byteValue);
@@ -485,13 +552,17 @@ namespace EasyToolkit.Serialization.Tests
             int[] original = { 1, 2, 3, 4, 5 };
 
             // Act
+            writeFormatter.BeginObject();
             writeFormatter.BeginMember("values");
             writeFormatter.Format(ref original);
+            writeFormatter.EndObject();
             byte[] buffer = writeFormatter.GetBuffer();
             readFormatter.SetBuffer(buffer);
+            readFormatter.BeginObject();
             readFormatter.BeginMember("values");
             int[] result = null;
             readFormatter.Format(ref result);
+            readFormatter.EndObject();
 
             // Assert
             Assert.IsNotNull(result);
@@ -513,13 +584,17 @@ namespace EasyToolkit.Serialization.Tests
             int[] original = Array.Empty<int>();
 
             // Act
+            writeFormatter.BeginObject();
             writeFormatter.BeginMember("values");
             writeFormatter.Format(ref original);
+            writeFormatter.EndObject();
             byte[] buffer = writeFormatter.GetBuffer();
             readFormatter.SetBuffer(buffer);
+            readFormatter.BeginObject();
             readFormatter.BeginMember("values");
             int[] result = null;
             readFormatter.Format(ref result);
+            readFormatter.EndObject();
 
             // Assert
             Assert.IsNotNull(result);
@@ -538,13 +613,17 @@ namespace EasyToolkit.Serialization.Tests
             bool[] original = { true, false, true, false, true };
 
             // Act
+            writeFormatter.BeginObject();
             writeFormatter.BeginMember("values");
             writeFormatter.Format(ref original);
+            writeFormatter.EndObject();
             byte[] buffer = writeFormatter.GetBuffer();
             readFormatter.SetBuffer(buffer);
+            readFormatter.BeginObject();
             readFormatter.BeginMember("values");
             bool[] result = null;
             readFormatter.Format(ref result);
+            readFormatter.EndObject();
 
             // Assert
             Assert.IsNotNull(result);
@@ -569,6 +648,7 @@ namespace EasyToolkit.Serialization.Tests
             IReadingFormatter readFormatter = new JsonReadingFormatter();
 
             // Act - Write nested object
+            writeFormatter.BeginObject();
             writeFormatter.BeginMember("inner");
             writeFormatter.BeginObject(typeof(TestDataClass));
 
@@ -581,13 +661,15 @@ namespace EasyToolkit.Serialization.Tests
             writeFormatter.Format(ref name);
 
             writeFormatter.EndObject();
+            writeFormatter.EndObject();
 
             // Read back
             byte[] buffer = writeFormatter.GetBuffer();
             readFormatter.SetBuffer(buffer);
+            readFormatter.BeginObject();
 
             readFormatter.BeginMember("inner");
-            readFormatter.BeginObject();
+            readFormatter.BeginObject(typeof(TestDataClass));
 
             id = 0;
             readFormatter.BeginMember("id");
@@ -597,6 +679,7 @@ namespace EasyToolkit.Serialization.Tests
             readFormatter.BeginMember("name");
             readFormatter.Format(ref name);
 
+            readFormatter.EndObject();
             readFormatter.EndObject();
 
             // Assert
@@ -615,6 +698,8 @@ namespace EasyToolkit.Serialization.Tests
             IReadingFormatter readFormatter = new JsonReadingFormatter();
 
             // Act
+            writeFormatter.BeginObject();
+
             int intValue = 42;
             writeFormatter.BeginMember("intValue");
             writeFormatter.Format(ref intValue);
@@ -631,8 +716,11 @@ namespace EasyToolkit.Serialization.Tests
             writeFormatter.BeginMember("boolValue");
             writeFormatter.Format(ref boolValue);
 
+            writeFormatter.EndObject();
+
             byte[] buffer = writeFormatter.GetBuffer();
             readFormatter.SetBuffer(buffer);
+            readFormatter.BeginObject();
 
             intValue = 0;
             readFormatter.BeginMember("intValue");
@@ -649,6 +737,7 @@ namespace EasyToolkit.Serialization.Tests
             boolValue = false;
             readFormatter.BeginMember("boolValue");
             readFormatter.Format(ref boolValue);
+            readFormatter.EndObject();
 
             // Assert
             Assert.AreEqual(42, intValue);
@@ -668,6 +757,7 @@ namespace EasyToolkit.Serialization.Tests
             IReadingFormatter readFormatter = new JsonReadingFormatter();
 
             // Act
+            writeFormatter.BeginObject();
             writeFormatter.BeginMember("data");
             writeFormatter.BeginObject(typeof(TestDataClass));
 
@@ -680,12 +770,14 @@ namespace EasyToolkit.Serialization.Tests
             writeFormatter.Format(ref count);
 
             writeFormatter.EndObject();
+            writeFormatter.EndObject();
 
             byte[] buffer = writeFormatter.GetBuffer();
             readFormatter.SetBuffer(buffer);
+            readFormatter.BeginObject();
 
             readFormatter.BeginMember("data");
-            readFormatter.BeginObject();
+            readFormatter.BeginObject(typeof(TestDataClass));
 
             items = null;
             readFormatter.BeginMember("items");
@@ -695,6 +787,7 @@ namespace EasyToolkit.Serialization.Tests
             readFormatter.BeginMember("count");
             readFormatter.Format(ref count);
 
+            readFormatter.EndObject();
             readFormatter.EndObject();
 
             // Assert
@@ -1039,38 +1132,6 @@ namespace EasyToolkit.Serialization.Tests
         /// <summary>
         /// Verifies that formatter can be reused after disposal.
         /// </summary>
-        [Test]
-        public void JsonWritingFormatter_ReuseAfterDispose_WorksCorrectly()
-        {
-            // Arrange
-            var formatter = new JsonWritingFormatter();
-            IReadingFormatter readFormatter = new JsonReadingFormatter();
-
-            // Act - First use
-            int value1 = 100;
-            ((IDataFormatter)formatter).BeginMember("value");
-            formatter.Format(ref value1);
-            byte[] buffer1 = formatter.GetBuffer();
-            readFormatter.SetBuffer(buffer1);
-            readFormatter.BeginMember("value");
-            readFormatter.Format(ref value1);
-            formatter.Dispose();
-
-            // Reuse after dispose
-            int value2 = 200;
-            ((IDataFormatter)formatter).BeginMember("value");
-            formatter.Format(ref value2);
-            byte[] buffer2 = formatter.GetBuffer();
-            readFormatter.SetBuffer(buffer2);
-            readFormatter.BeginMember("value");
-            readFormatter.Format(ref value2);
-            formatter.Dispose();
-
-            // Assert
-            Assert.AreEqual(100, value1);
-            Assert.AreEqual(200, value2);
-        }
-
         #endregion
     }
 }

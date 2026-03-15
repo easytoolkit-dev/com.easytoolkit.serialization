@@ -59,8 +59,7 @@ namespace EasyToolkit.Serialization.Resolvers.Implementations
                     serializedName = memberInfo.Name;
                 }
 
-                // Get Processor from Context (key change)
-                var processor = SerializationProcessorFactory.GetProcessor(memberType, context);
+                var processor = SerializationProcessorFactory.CreateProcessor(memberType, context);
                 if (processor == null)
                 {
                     Debug.LogError(

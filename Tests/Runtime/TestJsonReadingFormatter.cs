@@ -22,7 +22,7 @@ namespace EasyToolkit.Serialization.Tests
         public void JsonReadingFormatter_Constructor_ReturnsJsonFormat()
         {
             // Arrange
-            var formatter = new JsonReadingFormatter();
+            IReadingFormatter formatter = new JsonReadingFormatter();
 
             // Assert
             Assert.AreEqual(SerializationFormat.Json, formatter.FormatType);
@@ -39,7 +39,7 @@ namespace EasyToolkit.Serialization.Tests
         public void JsonReadingFormatter_SetBuffer_ParsesJsonCorrectly()
         {
             // Arrange
-            var formatter = new JsonReadingFormatter();
+            IReadingFormatter formatter = new JsonReadingFormatter();
             string json = "{\"value\":42}";
             byte[] buffer = Encoding.UTF8.GetBytes(json);
 
@@ -57,7 +57,7 @@ namespace EasyToolkit.Serialization.Tests
         public void JsonReadingFormatter_GetBuffer_ReturnsOriginalJson()
         {
             // Arrange
-            var formatter = new JsonReadingFormatter();
+            IReadingFormatter formatter = new JsonReadingFormatter();
             string json = "{\"test\":\"value\"}";
             byte[] buffer = Encoding.UTF8.GetBytes(json);
             formatter.SetBuffer(buffer);
@@ -76,7 +76,7 @@ namespace EasyToolkit.Serialization.Tests
         public void JsonReadingFormatter_GetPosition_ThrowsNotSupportedException()
         {
             // Arrange
-            var formatter = new JsonReadingFormatter();
+            IReadingFormatter formatter = new JsonReadingFormatter();
             string json = "{\"value\":42}";
             formatter.SetBuffer(Encoding.UTF8.GetBytes(json));
 
@@ -92,7 +92,7 @@ namespace EasyToolkit.Serialization.Tests
         public void JsonReadingFormatter_GetRemainingLength_ThrowsNotSupportedException()
         {
             // Arrange
-            var formatter = new JsonReadingFormatter();
+            IReadingFormatter formatter = new JsonReadingFormatter();
             string json = "{\"value\":42}";
             formatter.SetBuffer(Encoding.UTF8.GetBytes(json));
 
@@ -117,9 +117,11 @@ namespace EasyToolkit.Serialization.Tests
             formatter.SetBuffer(Encoding.UTF8.GetBytes(json));
 
             // Act
+            formatter.BeginObject();
             formatter.BeginMember("value");
             int result = 0;
             formatter.Format(ref result);
+            formatter.EndObject();
 
             // Assert
             Assert.AreEqual(12345, result);
@@ -137,9 +139,11 @@ namespace EasyToolkit.Serialization.Tests
             formatter.SetBuffer(Encoding.UTF8.GetBytes(json));
 
             // Act
+            formatter.BeginObject();
             formatter.BeginMember("value");
             int result = 0;
             formatter.Format(ref result);
+            formatter.EndObject();
 
             // Assert
             Assert.AreEqual(-99999, result);
@@ -160,9 +164,11 @@ namespace EasyToolkit.Serialization.Tests
             formatter.SetBuffer(Encoding.UTF8.GetBytes(json));
 
             // Act
+            formatter.BeginObject();
             formatter.BeginMember("value");
             long result = 0;
             formatter.Format(ref result);
+            formatter.EndObject();
 
             // Assert
             Assert.AreEqual(testValue, result);
@@ -180,9 +186,11 @@ namespace EasyToolkit.Serialization.Tests
             formatter.SetBuffer(Encoding.UTF8.GetBytes(json));
 
             // Act
+            formatter.BeginObject();
             formatter.BeginMember("value");
             float result = 0f;
             formatter.Format(ref result);
+            formatter.EndObject();
 
             // Assert
             Assert.AreEqual(3.14159f, result, 0.00001f);
@@ -200,9 +208,11 @@ namespace EasyToolkit.Serialization.Tests
             formatter.SetBuffer(Encoding.UTF8.GetBytes(json));
 
             // Act
+            formatter.BeginObject();
             formatter.BeginMember("value");
             double result = 0d;
             formatter.Format(ref result);
+            formatter.EndObject();
 
             // Assert
             Assert.AreEqual(123.45678901234, result, 0.00000001);
@@ -220,9 +230,11 @@ namespace EasyToolkit.Serialization.Tests
             formatter.SetBuffer(Encoding.UTF8.GetBytes(json));
 
             // Act
+            formatter.BeginObject();
             formatter.BeginMember("value");
             bool result = false;
             formatter.Format(ref result);
+            formatter.EndObject();
 
             // Assert
             Assert.IsTrue(result);
@@ -240,9 +252,11 @@ namespace EasyToolkit.Serialization.Tests
             formatter.SetBuffer(Encoding.UTF8.GetBytes(json));
 
             // Act
+            formatter.BeginObject();
             formatter.BeginMember("value");
             bool result = true;
             formatter.Format(ref result);
+            formatter.EndObject();
 
             // Assert
             Assert.IsFalse(result);
@@ -260,9 +274,11 @@ namespace EasyToolkit.Serialization.Tests
             formatter.SetBuffer(Encoding.UTF8.GetBytes(json));
 
             // Act
+            formatter.BeginObject();
             formatter.BeginMember("value");
             string result = null;
             formatter.Format(ref result);
+            formatter.EndObject();
 
             // Assert
             Assert.AreEqual("Hello, World!", result);
@@ -280,9 +296,11 @@ namespace EasyToolkit.Serialization.Tests
             formatter.SetBuffer(Encoding.UTF8.GetBytes(json));
 
             // Act
+            formatter.BeginObject();
             formatter.BeginMember("value");
             string result = null;
             formatter.Format(ref result);
+            formatter.EndObject();
 
             // Assert
             Assert.AreEqual(string.Empty, result);
@@ -300,9 +318,11 @@ namespace EasyToolkit.Serialization.Tests
             formatter.SetBuffer(Encoding.UTF8.GetBytes(json));
 
             // Act
+            formatter.BeginObject();
             formatter.BeginMember("value");
             string result = "not null";
             formatter.Format(ref result);
+            formatter.EndObject();
 
             // Assert
             Assert.IsNull(result);
@@ -320,9 +340,11 @@ namespace EasyToolkit.Serialization.Tests
             formatter.SetBuffer(Encoding.UTF8.GetBytes(json));
 
             // Act
+            formatter.BeginObject();
             formatter.BeginMember("value");
             string result = null;
             formatter.Format(ref result);
+            formatter.EndObject();
 
             // Assert
             Assert.AreEqual("Hello 世界! 🌍", result);
@@ -343,6 +365,7 @@ namespace EasyToolkit.Serialization.Tests
             formatter.SetBuffer(Encoding.UTF8.GetBytes(json));
 
             // Act
+            formatter.BeginObject();
             byte byteValue = 0;
             formatter.BeginMember("byte");
             formatter.Format(ref byteValue);
@@ -374,6 +397,7 @@ namespace EasyToolkit.Serialization.Tests
             ulong ulongValue = 0;
             formatter.BeginMember("ulong");
             formatter.Format(ref ulongValue);
+            formatter.EndObject();
 
             // Assert
             Assert.AreEqual((byte)255, byteValue);
@@ -404,9 +428,11 @@ namespace EasyToolkit.Serialization.Tests
             formatter.SetBuffer(Encoding.UTF8.GetBytes(json));
 
             // Act
+            formatter.BeginObject();
             formatter.BeginMember("value");
             int[] result = null;
             formatter.Format(ref result);
+            formatter.EndObject();
 
             // Assert
             Assert.IsNotNull(result);
@@ -428,9 +454,11 @@ namespace EasyToolkit.Serialization.Tests
             formatter.SetBuffer(Encoding.UTF8.GetBytes(json));
 
             // Act
+            formatter.BeginObject();
             formatter.BeginMember("value");
             int[] result = null;
             formatter.Format(ref result);
+            formatter.EndObject();
 
             // Assert
             Assert.IsNotNull(result);
@@ -450,9 +478,11 @@ namespace EasyToolkit.Serialization.Tests
             formatter.SetBuffer(Encoding.UTF8.GetBytes(json));
 
             // Act
+            formatter.BeginObject();
             formatter.BeginMember("value");
             bool[] result = null;
             formatter.Format(ref result);
+            formatter.EndObject();
 
             // Assert
             Assert.IsNotNull(result);
@@ -478,7 +508,7 @@ namespace EasyToolkit.Serialization.Tests
             formatter.SetBuffer(Encoding.UTF8.GetBytes(json));
 
             // Act
-            // Root is already in object context (JSON starts with '{')
+            formatter.BeginObject();
             formatter.BeginMember("inner");
             formatter.BeginObject();
 
@@ -509,7 +539,7 @@ namespace EasyToolkit.Serialization.Tests
             formatter.SetBuffer(Encoding.UTF8.GetBytes(json));
 
             // Act
-            // Root is already in object context (JSON starts with '{')
+            formatter.BeginObject();
             int intValue = 0;
             formatter.BeginMember("intValue");
             formatter.Format(ref intValue);
@@ -525,6 +555,7 @@ namespace EasyToolkit.Serialization.Tests
             bool boolValue = false;
             formatter.BeginMember("boolValue");
             formatter.Format(ref boolValue);
+            formatter.EndObject();
 
             // Assert
             Assert.AreEqual(42, intValue);
@@ -545,7 +576,7 @@ namespace EasyToolkit.Serialization.Tests
             formatter.SetBuffer(Encoding.UTF8.GetBytes(json));
 
             // Act
-            // Root is already in object context (JSON starts with '{')
+            formatter.BeginObject();
             formatter.BeginMember("data");
             formatter.BeginObject();
 
@@ -577,7 +608,7 @@ namespace EasyToolkit.Serialization.Tests
             formatter.SetBuffer(Encoding.UTF8.GetBytes(json));
 
             // Act
-            // Root is already in object context (JSON starts with '{')
+            formatter.BeginObject();
             formatter.BeginMember("data");
             // BeginObject on null should not enter hierarchy
             formatter.BeginObject();
@@ -607,10 +638,11 @@ namespace EasyToolkit.Serialization.Tests
             formatter.SetBuffer(Encoding.UTF8.GetBytes(json));
 
             // Act & Assert
-            // Root is already in object context (JSON starts with '{')
+            formatter.BeginObject();
             formatter.BeginMember("value");
             bool result = false;
             Assert.Throws<DataFormatException>(() => formatter.Format(ref result));
+            formatter.EndObject();
         }
 
         /// <summary>
@@ -625,10 +657,11 @@ namespace EasyToolkit.Serialization.Tests
             formatter.SetBuffer(Encoding.UTF8.GetBytes(json));
 
             // Act & Assert
-            // Root is already in object context (JSON starts with '{')
+            formatter.BeginObject();
             formatter.BeginMember("value");
             int result = 0;
             Assert.Throws<DataFormatException>(() => formatter.Format(ref result));
+            formatter.EndObject();
         }
 
         /// <summary>
@@ -643,13 +676,14 @@ namespace EasyToolkit.Serialization.Tests
             formatter.SetBuffer(Encoding.UTF8.GetBytes(json));
 
             // Act & Assert
-            // Root is already in object context (JSON starts with '{')
+            formatter.BeginObject();
             formatter.BeginMember("value");
             Assert.Throws<DataFormatException>(() =>
             {
                 int[] result = null;
                 formatter.Format(ref result);
             });
+            formatter.EndObject();
         }
 
         /// <summary>
@@ -664,9 +698,10 @@ namespace EasyToolkit.Serialization.Tests
             formatter.SetBuffer(Encoding.UTF8.GetBytes(json));
 
             // Act & Assert
-            // Root is already in object context (JSON starts with '{')
+            formatter.BeginObject();
             formatter.BeginMember("value");
             Assert.Throws<DataFormatException>(() => formatter.BeginObject());
+            formatter.EndObject();
         }
 
         /// <summary>
@@ -714,6 +749,7 @@ namespace EasyToolkit.Serialization.Tests
 
             // Act & Assert
             // Root is already in object context
+            formatter.BeginObject();
             formatter.BeginMember("inner");
             formatter.BeginObject();
             var ex = Assert.Throws<InvalidOperationException>(() => formatter.EndArray());
@@ -733,6 +769,7 @@ namespace EasyToolkit.Serialization.Tests
 
             // Act & Assert
             // Root is already in object context, need to enter a nested object for unbalanced operations
+            formatter.BeginObject();
             formatter.BeginMember("inner");
             formatter.BeginObject();
             var ex = Assert.Throws<InvalidOperationException>(() => formatter.Dispose());
@@ -755,7 +792,7 @@ namespace EasyToolkit.Serialization.Tests
             formatter.SetBuffer(Encoding.UTF8.GetBytes(json));
 
             // Act
-            // Root is already in object context (JSON starts with '{')
+            formatter.BeginObject();
             formatter.BeginMember("player");
             formatter.BeginObject();
 
@@ -817,7 +854,7 @@ namespace EasyToolkit.Serialization.Tests
             formatter.SetBuffer(Encoding.UTF8.GetBytes(json));
 
             // Act
-            // Root is already in object context (JSON starts with '{')
+            formatter.BeginObject();
             formatter.BeginMember("matrix");
 
             int outerLength = 0;

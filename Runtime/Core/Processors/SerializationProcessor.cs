@@ -78,10 +78,7 @@ namespace EasyToolkit.Serialization.Processors
         /// </summary>
         /// <param name="value">The value to process.</param>
         /// <param name="formatter">The data formatter to use for processing.</param>
-        protected virtual void Process(ref T value, IDataFormatter formatter)
-        {
-            Process(null, ref value, formatter);
-        }
+        protected abstract void Process(ref T value, IDataFormatter formatter);
 
         /// <summary>
         /// Processes a strongly-typed value with a member name during serialization or deserialization.
@@ -89,7 +86,14 @@ namespace EasyToolkit.Serialization.Processors
         /// <param name="name">The member name being processed.</param>
         /// <param name="value">The value to process.</param>
         /// <param name="formatter">The data formatter to use for processing.</param>
-        protected abstract void Process(string name, ref T value, IDataFormatter formatter);
+        protected virtual void Process(string name, ref T value, IDataFormatter formatter)
+        {
+            if (!IsRoot)
+            {
+                formatter.BeginMember(name);
+            }
+            Process(ref value, formatter);
+        }
 
         protected virtual void Initialize()
         {

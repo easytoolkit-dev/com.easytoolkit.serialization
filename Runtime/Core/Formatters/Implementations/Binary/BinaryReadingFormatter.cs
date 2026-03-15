@@ -34,7 +34,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         public override SerializationFormat FormatType => SerializationFormat.Binary;
 
         /// <inheritdoc />
-        public override void SetBuffer(ReadOnlySpan<byte> buffer)
+        protected override void SetBuffer(ReadOnlySpan<byte> buffer)
         {
             _buffer = buffer.ToArray();
             _position = 0;
@@ -43,13 +43,13 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         }
 
         /// <inheritdoc />
-        public override ReadOnlySpan<byte> GetBuffer() => _buffer;
+        protected override ReadOnlySpan<byte> GetBuffer() => _buffer;
 
         /// <inheritdoc />
-        public override int GetPosition() => _position;
+        protected override int GetPosition() => _position;
 
         /// <inheritdoc />
-        public override int GetRemainingLength() => _buffer.Length - _position;
+        protected override int GetRemainingLength() => _buffer.Length - _position;
 
         /// <inheritdoc />
         protected override void BeginMember(string name)
@@ -525,14 +525,13 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         }
 
         /// <inheritdoc />
-        public override void Dispose()
+        protected override void Dispose()
         {
             _position = 0;
             _nodeDepth = 0;
             _buffer = Array.Empty<byte>();
             _typeById.Clear();
             PoolUtility.ReleaseObject(this);
-            base.Dispose();
         }
 
         protected override void OnSettingsChanged(DataFormatterSettings settings)

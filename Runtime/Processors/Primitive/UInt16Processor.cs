@@ -8,9 +8,8 @@ namespace EasyToolkit.Serialization.Processors
     [ProcessorConfiguration(ProcessorPriorityLevel.Primitive)]
     public class UInt16Processor : SerializationProcessor<ushort>
     {
-        protected override void Process(string name, ref ushort value, IDataFormatter formatter)
+        protected override void Process(ref ushort value, IDataFormatter formatter)
         {
-            formatter.BeginMember(name);
             formatter.Format(ref value);
         }
     }

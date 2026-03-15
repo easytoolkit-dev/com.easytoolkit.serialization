@@ -7,10 +7,8 @@ namespace EasyToolkit.Serialization.Processors
     public class EnumProcessor<T> : SerializationProcessor<T>
         where T : struct, Enum
     {
-        protected override void Process(string name, ref T value, IDataFormatter formatter)
+        protected override void Process(ref T value, IDataFormatter formatter)
         {
-            formatter.BeginMember(name);
-
             if (formatter.FormatType != SerializationFormat.Binary)
             {
                 var str = string.Empty;

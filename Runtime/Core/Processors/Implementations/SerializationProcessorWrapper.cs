@@ -12,10 +12,10 @@ namespace EasyToolkit.Serialization.Processors.Implementations
             _baseProcessor = baseProcessor;
         }
 
-        protected override void Process(string name, ref T value, IDataFormatter formatter)
+        protected override void Process(ref T value, IDataFormatter formatter)
         {
             var casted = (TBase)value;
-            _baseProcessor.Process(name, ref casted, formatter);
+            _baseProcessor.Process(ref casted, formatter);
             value = (T)casted;
         }
     }

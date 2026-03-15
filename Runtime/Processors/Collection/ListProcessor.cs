@@ -10,10 +10,8 @@ namespace EasyToolkit.Serialization.Processors
         [DependencyProcessor]
         private ISerializationProcessor<TItem> _itemProcessor;
 
-        protected override void Process(string name, ref TCollection value, IDataFormatter formatter)
+        protected override void Process(ref TCollection value, IDataFormatter formatter)
         {
-            formatter.BeginMember(name);
-
             int size;
             if (formatter.Operation == FormatterOperation.Write)
             {

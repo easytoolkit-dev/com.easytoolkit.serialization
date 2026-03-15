@@ -31,33 +31,39 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         private JSONNode _root;
         private readonly Stack<JSONNode> _nodeStack = new();
         private bool _isNullScope;
+        private JsonFormatterSettings _jsonSettings;
 
         /// <inheritdoc />
-        public override void SetBuffer(ReadOnlySpan<byte> buffer)
+        protected override void SetBuffer(ReadOnlySpan<byte> buffer)
         {
             _jsonText = Encoding.UTF8.GetString(buffer);
-            _root = JSON.Parse(_jsonText);
             _nodeStack.Clear();
-            _nodeStack.Push(_root);
             _currentMemberName = null;
             _arrayIndexStack.Clear();
         }
 
         /// <inheritdoc />
-        public override ReadOnlySpan<byte> GetBuffer()
+        protected override ReadOnlySpan<byte> GetBuffer()
         {
             return Encoding.UTF8.GetBytes(_jsonText);
         }
 
         /// <inheritdoc />
-        public override int GetPosition()
+        protected override void OnSettingsChanged(DataFormatterSettings settings)
+        {
+            _jsonSettings = settings as JsonFormatterSettings;
+            base.OnSettingsChanged(settings);
+        }
+
+        /// <inheritdoc />
+        protected override int GetPosition()
         {
             throw new NotSupportedException(
                 "GetPosition is not supported for JSON format. JSON is a tree-based format, not a stream-based format.");
         }
 
         /// <inheritdoc />
-        public override int GetRemainingLength()
+        protected override int GetRemainingLength()
         {
             throw new NotSupportedException(
                 "GetRemainingLength is not supported for JSON format. JSON is a tree-based format, not a stream-based format.");
@@ -72,6 +78,11 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void BeginObject(Type type)
         {
+            if (_root == null)
+            {
+                _root = JSON.Parse(_jsonText);
+            }
+
             var node = GetCurrentNode();
             if (!node.IsObject && !node.IsNull)
             {
@@ -99,7 +110,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
             }
 
             var endNode = _nodeStack.Peek();
-            if (!endNode.IsObject || endNode == _root)
+            if (!endNode.IsObject)
             {
                 throw new InvalidOperationException($"Mismatched BeginObject/EndObject. Current node is not an object.");
             }
@@ -110,6 +121,11 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void BeginArray(ref int length)
         {
+            if (_root == null)
+            {
+                _root = JSON.Parse(_jsonText);
+            }
+
             var node = GetCurrentNode();
             if (!node.IsArray)
             {
@@ -129,7 +145,6 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         protected override void EndArray()
         {
             var endNode = _nodeStack.Peek();
-            Assert.IsTrue(endNode != _root);
             if (!endNode.IsArray)
             {
                 throw new InvalidOperationException("Mismatched BeginArray/EndArray. Current node is not an array.");
@@ -218,14 +233,14 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         }
 
         /// <inheritdoc />
-        public override void Dispose()
+        protected override void Dispose()
         {
             _currentMemberName = null;
             _arrayIndexStack.Clear();
             _jsonText = null;
             _root = null;
             _nodeStack.Clear();
-            base.Dispose();
+            _jsonSettings = null;
         }
 
         /// <summary>
@@ -234,6 +249,35 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// </summary>
         private JSONNode GetCurrentNode()
         {
+            if (_nodeStack.Count == 0)
+            {
+                // Auto-parse atomic values when enabled and no root exists
+                if (_root == null)
+                {
+                    if (_jsonSettings?.AutoWrapAtomicValueInArray == true)
+                    {
+                        var root = JSON.Parse(_jsonText);
+                        if (!root.IsArray)
+                        {
+                            throw new DataFormatException(
+                            "JSON data format mismatch: expected array root when AutoWrapAtomicValueInArray is enabled. " +
+                            "The data was likely serialized with different settings or has been modified externally. " +
+                            "Ensure the reading configuration matches the writing configuration, or disable AutoWrapAtomicValueInArray.");
+                        }
+
+                        _root = root;
+                        return _root[0];
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException(
+                            "Cannot read value without a root node. Call BeginArray() or BeginObject() first to create the root element.");
+                    }
+                }
+
+                return _root;
+            }
+
             var parent = _nodeStack.Peek();
 
             // If parent is an array, access by index
@@ -275,6 +319,11 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// </summary>
         private void AdvanceArrayIndex()
         {
+            if (_nodeStack.Count == 0)
+            {
+                return;
+            }
+
             var parent = _nodeStack.Peek();
             if (parent.IsArray)
             {

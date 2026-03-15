@@ -21,7 +21,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_Constructor_ReturnsBinaryFormat()
         {
             // Arrange
-            var formatter = new BinaryWritingFormatter();
+            IWritingFormatter formatter = new BinaryWritingFormatter();
 
             // Assert
             Assert.AreEqual(SerializationFormat.Binary, formatter.FormatType);
@@ -34,7 +34,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_ConstructorWithCapacity_InitializesCorrectly()
         {
             // Arrange
-            var formatter = new BinaryWritingFormatter(2048);
+            IWritingFormatter formatter = new BinaryWritingFormatter(2048);
 
             // Assert
             Assert.AreEqual(0, formatter.GetPosition());
@@ -76,7 +76,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_ToArray_ReturnsCorrectSize()
         {
             // Arrange
-            var formatter = new BinaryWritingFormatter();
+            IWritingFormatter formatter = new BinaryWritingFormatter();
             int value = 42;
             formatter.Format(ref value);
 
@@ -86,25 +86,6 @@ namespace EasyToolkit.Serialization.Tests
             // Assert
             Assert.IsNotNull(result);
             Assert.AreEqual(formatter.GetLength(), result.Length);
-        }
-
-        /// <summary>
-        /// Verifies that Reset clears position and length.
-        /// </summary>
-        [Test]
-        public void BinaryWritingFormatter_Reset_ClearsPositionAndLength()
-        {
-            // Arrange
-            var formatter = new BinaryWritingFormatter();
-            int value = 42;
-            formatter.Format(ref value);
-
-            // Act
-            formatter.Reset();
-
-            // Assert
-            Assert.AreEqual(0, formatter.GetPosition());
-            Assert.AreEqual(0, formatter.GetLength());
         }
 
         #endregion
@@ -118,7 +99,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_WriteInt_CanBeReadBack()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             int original = 12345;
 
@@ -140,7 +121,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_WriteNegativeInt_CanBeReadBack()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             int original = -99999;
 
@@ -162,7 +143,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_WriteFloat_CanBeReadBack()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             float original = 3.14159f;
 
@@ -184,7 +165,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_WriteDouble_CanBeReadBack()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             double original = 123.45678901234;
 
@@ -206,7 +187,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_WriteBoolTrue_CanBeReadBack()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             bool original = true;
 
@@ -228,7 +209,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_WriteBoolFalse_CanBeReadBack()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             bool original = false;
 
@@ -250,7 +231,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_WriteLong_CanBeReadBack()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             long original = 98765432101234;
 
@@ -276,7 +257,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_WriteString_CanBeReadBack()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             string original = "Hello, World!";
 
@@ -298,7 +279,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_WriteEmptyString_CanBeReadBack()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             string original = string.Empty;
 
@@ -320,7 +301,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_WriteNullString_CanBeReadBack()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             string original = null;
 
@@ -342,7 +323,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_WriteUnicodeString_CanBeReadBack()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             string original = "Hello 世界! 🌍";
 
@@ -368,7 +349,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_WriteByteArray_CanBeReadBack()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             byte[] original = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 
@@ -394,7 +375,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_WriteEmptyByteArray_CanBeReadBack()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             byte[] original = Array.Empty<byte>();
 
@@ -417,7 +398,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_WriteNullByteArray_CanBeReadBack()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             byte[] original = null;
 
@@ -444,7 +425,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_WriteSByteArray_CanBeReadBack()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             sbyte[] original = { -128, -1, 0, 1, 127 };
 
@@ -470,7 +451,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_WriteShortArray_CanBeReadBack()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             short[] original = { -32768, -100, 0, 100, 32767 };
 
@@ -496,7 +477,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_WriteIntArray_CanBeReadBack()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             int[] original = { -2147483648, -1000000, 0, 1000000, 2147483647 };
 
@@ -522,7 +503,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_WriteLongArray_CanBeReadBack()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             long[] original = { -9223372036854775808, -10000000000, 0, 10000000000, 9223372036854775807 };
 
@@ -548,7 +529,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_WriteUShortArray_CanBeReadBack()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             ushort[] original = { 0, 100, 32767, 65535 };
 
@@ -574,7 +555,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_WriteUIntArray_CanBeReadBack()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             uint[] original = { 0, 1000000, 2147483648, 4294967295 };
 
@@ -600,7 +581,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_WriteULongArray_CanBeReadBack()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             ulong[] original = { 0, 10000000000, 9223372036854775808, 18446744073709551615 };
 
@@ -626,7 +607,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_WriteNullPrimitiveArrays_AllReturnEmpty()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
 
             // Act
@@ -681,7 +662,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_WriteEmptyPrimitiveArrays_AllReturnEmpty()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
 
             // Act
@@ -728,7 +709,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_WriteLargePrimitiveArrays_UsesDirectMemoryCopy()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
 
             // Create arrays with 10000 elements each
@@ -778,7 +759,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_FormatGenericPrimitive_SingleValue_CanBeReadBack()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             var original = new TestUnmanagedStruct(42, 3.14f, 255);
 
@@ -802,7 +783,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_FormatGenericPrimitive_Enum_CanBeReadBack()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             TestEnum original = TestEnum.OptionC;
 
@@ -828,7 +809,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_FormatGenericPrimitive_Array_CanBeReadBack()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             var original = new TestUnmanagedStruct[]
             {
@@ -864,7 +845,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_FormatGenericPrimitive_EnumArray_CanBeReadBack()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             var original = new TestEnum[] { TestEnum.OptionA, TestEnum.OptionB, TestEnum.OptionC, TestEnum.OptionA };
 
@@ -891,7 +872,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_FormatGenericPrimitive_NullArray_ReturnsEmpty()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             TestUnmanagedStruct[] original = null;
 
@@ -913,7 +894,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_FormatGenericPrimitive_EmptyArray_ReturnsEmpty()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             var original = Array.Empty<TestUnmanagedStruct>();
 
@@ -936,7 +917,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryWritingFormatter_FormatGenericPrimitive_LargeArray_HandledCorrectly()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
             var original = new TestUnmanagedStruct[1000];
             for (int i = 0; i < 1000; i++)
@@ -972,7 +953,7 @@ namespace EasyToolkit.Serialization.Tests
         public void BinaryFormatter_MultipleValues_AllReadCorrectly()
         {
             // Arrange
-            var writeFormatter = new BinaryWritingFormatter();
+            IWritingFormatter writeFormatter = new BinaryWritingFormatter();
             IReadingFormatter readFormatter = new BinaryReadingFormatter();
 
             int intValue = 42;
@@ -998,36 +979,6 @@ namespace EasyToolkit.Serialization.Tests
             Assert.AreEqual(3.14f, floatValue, 0.001f);
             Assert.AreEqual("Test", stringValue);
             Assert.IsTrue(boolValue);
-        }
-
-        /// <summary>
-        /// Verifies that writing formatters can be reused after Reset.
-        /// </summary>
-        [Test]
-        public void BinaryWritingFormatter_ReuseAfterReset_WorksCorrectly()
-        {
-            // Arrange
-            var formatter = new BinaryWritingFormatter();
-            IReadingFormatter readFormatter = new BinaryReadingFormatter();
-
-            // Act - First use
-            int value1 = 100;
-            formatter.Format(ref value1);
-            byte[] buffer1 = formatter.ToArray();
-            readFormatter.SetBuffer(buffer1);
-            readFormatter.Format(ref value1);
-
-            // Reset and reuse
-            formatter.Reset();
-            int value2 = 200;
-            formatter.Format(ref value2);
-            byte[] buffer2 = formatter.ToArray();
-            readFormatter.SetBuffer(buffer2);
-            readFormatter.Format(ref value2);
-
-            // Assert
-            Assert.AreEqual(100, value1);
-            Assert.AreEqual(200, value2);
         }
 
         #endregion

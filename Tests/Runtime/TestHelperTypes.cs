@@ -384,4 +384,58 @@ namespace EasyToolkit.Serialization.Tests
             return HashCode.Combine(X, Y, Z);
         }
     }
+
+    #region Context Test Classes
+
+    /// <summary>Test class with EasySerializable but no explicit settings for context testing.</summary>
+    [EasySerializable]
+    public class ContextTestClass
+    {
+        public int publicField;
+        private int _privateField;
+        public int PublicProperty { get; set; }
+        private int PrivateProperty { get; set; }
+
+        [UnityEngine.SerializeField] private int _privateFieldWithAttribute;
+        [NonSerialized] public int publicFieldWithNonSerialized;
+
+        public ContextTestClass()
+        {
+        }
+
+        public ContextTestClass(int publicField, int privateField, int publicProperty,
+            int privateProperty, int privateFieldWithAttribute, int publicFieldWithNonSerialized)
+        {
+            this.publicField = publicField;
+            this._privateField = privateField;
+            this.PublicProperty = publicProperty;
+            this.PrivateProperty = privateProperty;
+            this._privateFieldWithAttribute = privateFieldWithAttribute;
+            this.publicFieldWithNonSerialized = publicFieldWithNonSerialized;
+        }
+
+        public int GetPrivateField() => _privateField;
+        public int GetPrivateProperty() => PrivateProperty;
+        public int GetPrivateFieldWithAttribute() => _privateFieldWithAttribute;
+    }
+
+    /// <summary>Test class with NonSerialized field for ExcludeNonSerialized testing.</summary>
+    [EasySerializable]
+    public class NonSerializedTestClass
+    {
+        public int normalField;
+        [NonSerialized] public int nonSerializedField;
+
+        public NonSerializedTestClass()
+        {
+        }
+
+        public NonSerializedTestClass(int normalField, int nonSerializedField)
+        {
+            this.normalField = normalField;
+            this.nonSerializedField = nonSerializedField;
+        }
+    }
+
+    #endregion
 }

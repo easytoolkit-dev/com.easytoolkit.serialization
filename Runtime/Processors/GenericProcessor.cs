@@ -24,16 +24,13 @@ namespace EasyToolkit.Serialization.Processors
 
         protected override void Initialize()
         {
-            _memberDefinitions = SerializationStructureResolverFactory.GetResolver(typeof(T)).Resolve(typeof(T), Context);
+            _memberDefinitions =
+                SerializationStructureResolverFactory.GetResolver(typeof(T)).Resolve(typeof(T), Context);
         }
 
-        protected override void Process(string name, ref T value, IDataFormatter formatter)
+        protected override void Process(ref T value, IDataFormatter formatter)
         {
-            if (formatter.FormatType != SerializationFormat.Json || !IsRoot)
-            {
-                formatter.BeginMember(name);
-                formatter.BeginObject();
-            }
+            formatter.BeginObject();
 
             foreach (var memberDefinition in _memberDefinitions)
             {
@@ -66,10 +63,7 @@ namespace EasyToolkit.Serialization.Processors
                 }
             }
 
-            if (formatter.FormatType != SerializationFormat.Json || !IsRoot)
-            {
-                formatter.EndObject();
-            }
+            formatter.EndObject();
         }
     }
 }

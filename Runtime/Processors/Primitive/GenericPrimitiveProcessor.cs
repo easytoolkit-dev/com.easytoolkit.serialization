@@ -17,19 +17,17 @@ namespace EasyToolkit.Serialization.Processors
             return !valueType.IsGenericType;
         }
 
-        protected override void Process(string name, ref T value, IDataFormatter formatter)
+        protected override void Process(ref T value, IDataFormatter formatter)
         {
             if (formatter.FormatType == SerializationFormat.Binary)
             {
-                formatter.BeginMember(name);
                 using var scope = formatter.EnterObject(typeof(T));
                 formatter.BeginMember("_");
                 formatter.FormatGenericPrimitive(ref value);
             }
             else
             {
-                _genericProcessor ??= new GenericProcessor<T>();
-                _genericProcessor.Process(name, ref value, formatter);
+                _genericProcessor.Process(ref value, formatter);
             }
         }
     }

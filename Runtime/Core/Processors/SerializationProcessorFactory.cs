@@ -32,12 +32,10 @@ namespace EasyToolkit.Serialization.Processors
         }
 
         private static readonly ITypeMatcher TypeMatcher;
-        private static readonly ConcurrentDictionary<Type, ISerializationProcessor> ProcessorCache;
 
         static SerializationProcessorFactory()
         {
             TypeMatcher = TypeMatcherFactory.CreateDefault();
-            ProcessorCache = new ConcurrentDictionary<Type, ISerializationProcessor>();
             InitializeTypeMatcher();
         }
 
@@ -53,38 +51,13 @@ namespace EasyToolkit.Serialization.Processors
         }
 
         /// <summary>
-        /// Gets the processor for the specified value type using the shared context.
+        /// Creates the processor for the specified value type
         /// </summary>
         /// <param name="valueType">The type to get a processor for.</param>
-        /// <returns>The cached or newly created processor.</returns>
-        public static ISerializationProcessor GetProcessor(Type valueType)
+        /// <returns>The created processor.</returns>
+        public static ISerializationProcessor CreateProcessor(Type valueType, SerializationContext context)
         {
-            return GetProcessor(valueType, SerializationContext.Shared);
-        }
-
-        /// <summary>
-        /// Gets the processor for the specified value type using the specified context.
-        /// </summary>
-        /// <param name="valueType">The type to get a processor for.</param>
-        /// <param name="context">The serialization context to use for caching and configuration.</param>
-        /// <returns>The cached or newly created processor.</returns>
-        public static ISerializationProcessor GetProcessor(Type valueType, SerializationContext context)
-        {
-            return context.GetProcessor(valueType, type =>
-            {
-                var processor = CreateProcessor(type);
-                if (processor == null)
-                    return null;
-
-                // Set Context (must be before dependency injection)
-                processor.Context = context;
-
-                // Dependency injection (pass context)
-                InjectDependencyToProcessor(processor, context);
-
-                // Wrapping logic
-                return WrapProcessorIfNeeded(processor, type);
-            });
+            return CreateProcessor(valueType, context, null);
         }
 
         private static void InjectDependencyToProcessor([NotNull] ISerializationProcessor processor, SerializationContext context)
@@ -118,7 +91,7 @@ namespace EasyToolkit.Serialization.Processors
                 if (candidateTypes != null || excludedTypes != null)
                 {
                     var filteredTypes = FilterProcessorTypes(candidateTypes, excludedTypes);
-                    dependency = CreateProcessorFromCandidates(valueType, filteredTypes);
+                    dependency = CreateProcessor(valueType, context, filteredTypes);
 
                     if (dependency == null)
                     {
@@ -127,20 +100,17 @@ namespace EasyToolkit.Serialization.Processors
                             $"from candidates [{string.Join(", ", filteredTypes.Select(t => t.Name))}] " +
                             $"for member '{memberInfo.Name}'.");
                     }
-
-                    // Set Context (must be before dependency injection)
-                    dependency.Context = context;
-
-                    // Dependency injection for nested processors
-                    InjectDependencyToProcessor(dependency, context);
-
-                    // Handle wrapper logic
-                    dependency = WrapProcessorIfNeeded(dependency, valueType);
                 }
                 else
                 {
-                    // Use standard GetProcessor when no candidates specified
-                    dependency = GetProcessor(valueType, context);
+                    dependency = CreateProcessor(valueType, context);
+
+                    if (dependency == null)
+                    {
+                        throw new InvalidOperationException(
+                            $"No suitable processor found for type '{valueType.FullName}' " +
+                            $"for member '{memberInfo.Name}'.");
+                    }
                 }
 
                 // Set the dependency value
@@ -160,58 +130,15 @@ namespace EasyToolkit.Serialization.Processors
             }
         }
 
-        /// <summary>
-        /// Wraps the processor with a <see cref="Implementations.SerializationProcessorWrapper{TValue, TBase}"/>
-        /// if the processor's base value type differs from the requested value type.
-        /// </summary>
-        /// <param name="processor">The processor to potentially wrap.</param>
-        /// <param name="valueType">The requested value type.</param>
-        /// <returns>The wrapped processor if types differ, otherwise the original processor.</returns>
-        /// <exception cref="InvalidOperationException">
-        /// Thrown when <paramref name="valueType"/> is not derived from the processor's base value type.
-        /// </exception>
-        private static ISerializationProcessor WrapProcessorIfNeeded(ISerializationProcessor processor, Type valueType)
+        private static ISerializationProcessor CreateProcessor(Type valueType, SerializationContext context, [CanBeNull] Type[] candidateTypes)
         {
-            var baseValueType = processor.GetType().GetGenericArgumentsRelativeTo(typeof(ISerializationProcessor<>))[0];
-            if (baseValueType != valueType)
-            {
-                if (!valueType.IsDerivedFrom(baseValueType))
-                {
-                    throw new InvalidOperationException(
-                        $"Type '{valueType.FullName}' is not derived from '{baseValueType.FullName}'.");
-                }
+            var processor = PureCreateProcessor(valueType, candidateTypes);
+            if (processor == null)
+                return null;
 
-                var processorWrapperType =
-                    typeof(Implementations.SerializationProcessorWrapper<,>).MakeGenericType(valueType, baseValueType);
-                return processorWrapperType.CreateInstance<ISerializationProcessor>(processor);
-            }
-
+            processor.Context = context;
+            InjectDependencyToProcessor(processor, context);
             return processor;
-        }
-
-        [CanBeNull]
-        internal static ISerializationProcessor CreateProcessor(Type valueType)
-        {
-            var resultsList = new List<TypeMatchResult[]>
-            {
-                TypeMatcher.GetMatches(Type.EmptyTypes),
-                TypeMatcher.GetMatches(valueType)
-            };
-            var results = TypeMatcher.GetMergedResults(resultsList);
-            foreach (var result in results)
-            {
-                if (result.Constraints[0] != valueType)
-                {
-                    continue;
-                }
-
-                if (CanProcessType(result.MatchedType, valueType))
-                {
-                    return result.MatchedType.CreateInstance<ISerializationProcessor>();
-                }
-            }
-
-            return null;
         }
 
         private static OrderPriority GetProcessorPriority(Type processorType)
@@ -290,7 +217,7 @@ namespace EasyToolkit.Serialization.Processors
         /// <param name="valueType">The type to get a processor for.</param>
         /// <param name="candidateTypes">The candidate processor types.</param>
         /// <returns>The created processor, or null if no suitable processor was found.</returns>
-        private static ISerializationProcessor CreateProcessorFromCandidates(Type valueType, Type[] candidateTypes)
+        private static ISerializationProcessor PureCreateProcessor(Type valueType, Type[] candidateTypes = null)
         {
             var resultsList = new List<TypeMatchResult[]>
             {
@@ -301,7 +228,7 @@ namespace EasyToolkit.Serialization.Processors
             var results = TypeMatcher.GetMergedResults(resultsList);
 
             // Build a HashSet of candidate types for quick lookup
-            var candidateSet = candidateTypes.ToHashSet();
+            var candidateSet = candidateTypes?.ToHashSet();
 
             foreach (var result in results)
             {
@@ -311,7 +238,7 @@ namespace EasyToolkit.Serialization.Processors
                 }
 
                 // Check if the matched type is in the candidate set
-                if (!candidateSet.Contains(result.MatchedType))
+                if (candidateSet != null && !candidateSet.Contains(result.MatchedType))
                 {
                     continue;
                 }

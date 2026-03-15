@@ -10,7 +10,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
     /// Abstract base class for reading formatters.
     /// Provides common Unity object reference resolution logic and Begin/End pairing validation.
     /// </summary>
-    public abstract class ReadingFormatterBase : IReadingFormatter
+    public abstract class ReadingFormatterBase : IReadingFormatter, IPoolObject
     {
         /// <summary>Represents the type of formatting operation for tracking Begin/End pairs.</summary>
         private enum OperationType
@@ -23,6 +23,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         private readonly Stack<OperationType> _operationStack = new();
         private int _anonymousMemberId;
         private DataFormatterSettings _settings;
+        private bool _disposed;
 
         /// <summary>
         /// Gets whether this formatter requires stream-based validation before reading.
@@ -58,31 +59,25 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         public bool IsInObjectScope => _operationStack.Count > 0 && _operationStack.Peek() == OperationType.Object;
         public bool IsInArrayScope => _operationStack.Count > 0 && _operationStack.Peek() == OperationType.Array;
 
-        /// <inheritdoc />
-        public void SetObjectTable(IReadOnlyList<UnityEngine.Object> objects)
+        protected virtual void SetObjectTable(IReadOnlyList<UnityEngine.Object> objects)
         {
             _objectTable = objects;
         }
 
-        /// <inheritdoc />
-        public UnityEngine.Object ResolveReference(int index)
+        protected virtual UnityEngine.Object ResolveReference(int index)
         {
             if (index <= 0 || _objectTable == null || index > _objectTable.Count)
                 return null;
             return _objectTable[index - 1];
         }
 
-        /// <inheritdoc />
-        public abstract void SetBuffer(ReadOnlySpan<byte> buffer);
+        protected abstract void SetBuffer(ReadOnlySpan<byte> buffer);
 
-        /// <inheritdoc />
-        public abstract ReadOnlySpan<byte> GetBuffer();
+        protected abstract ReadOnlySpan<byte> GetBuffer();
 
-        /// <inheritdoc />
-        public abstract int GetPosition();
+        protected abstract int GetPosition();
 
-        /// <inheritdoc />
-        public abstract int GetRemainingLength();
+        protected abstract int GetRemainingLength();
 
         protected abstract void BeginMember(string name);
 
@@ -298,6 +293,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         void IDataFormatter.BeginMember(string name)
         {
+            ValidateDisposed();
             if (_operationStack.Count > 0 && _operationStack.Peek() != OperationType.Object)
             {
                 return;
@@ -316,6 +312,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         void IDataFormatter.BeginObject(Type type)
         {
+            ValidateDisposed();
             BeginObject(type);
             _operationStack.Push(OperationType.Object);
         }
@@ -323,6 +320,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         void IDataFormatter.EndObject()
         {
+            ValidateDisposed();
             ValidateEndOperationType(OperationType.Object);
             EndObject();
             _operationStack.Pop();
@@ -331,6 +329,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         void IDataFormatter.BeginArray(ref int length)
         {
+            ValidateDisposed();
             BeginArray(ref length);
             _operationStack.Push(OperationType.Array);
         }
@@ -338,6 +337,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         void IDataFormatter.EndArray()
         {
+            ValidateDisposed();
             ValidateEndOperationType(OperationType.Array);
             EndArray();
             _operationStack.Pop();
@@ -345,6 +345,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         void IDataFormatter.Format(ref int value)
         {
+            ValidateDisposed();
             if (!ValidateStreamBeforeRead(ref value))
             {
                 return;
@@ -354,6 +355,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         void IDataFormatter.Format(ref sbyte value)
         {
+            ValidateDisposed();
             if (!ValidateStreamBeforeRead(ref value))
             {
                 return;
@@ -363,6 +365,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         void IDataFormatter.Format(ref short value)
         {
+            ValidateDisposed();
             if (!ValidateStreamBeforeRead(ref value))
             {
                 return;
@@ -372,6 +375,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         void IDataFormatter.Format(ref long value)
         {
+            ValidateDisposed();
             if (!ValidateStreamBeforeRead(ref value))
             {
                 return;
@@ -381,6 +385,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         void IDataFormatter.Format(ref byte value)
         {
+            ValidateDisposed();
             if (!ValidateStreamBeforeRead(ref value))
             {
                 return;
@@ -390,6 +395,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         void IDataFormatter.Format(ref ushort value)
         {
+            ValidateDisposed();
             if (!ValidateStreamBeforeRead(ref value))
             {
                 return;
@@ -399,6 +405,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         void IDataFormatter.Format(ref uint value)
         {
+            ValidateDisposed();
             if (!ValidateStreamBeforeRead(ref value))
             {
                 return;
@@ -408,6 +415,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         void IDataFormatter.Format(ref ulong value)
         {
+            ValidateDisposed();
             if (!ValidateStreamBeforeRead(ref value))
             {
                 return;
@@ -417,6 +425,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         void IDataFormatter.Format(ref bool value)
         {
+            ValidateDisposed();
             if (!ValidateStreamBeforeRead(ref value))
             {
                 return;
@@ -426,6 +435,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         void IDataFormatter.Format(ref bool[] data)
         {
+            ValidateDisposed();
             if (!ValidateStreamBeforeRead(ref data))
             {
                 return;
@@ -435,6 +445,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         void IDataFormatter.Format(ref float value)
         {
+            ValidateDisposed();
             if (!ValidateStreamBeforeRead(ref value))
             {
                 return;
@@ -444,6 +455,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         void IDataFormatter.Format(ref double value)
         {
+            ValidateDisposed();
             if (!ValidateStreamBeforeRead(ref value))
             {
                 return;
@@ -453,6 +465,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         void IDataFormatter.Format(ref string str)
         {
+            ValidateDisposed();
             if (!ValidateStreamBeforeRead(ref str))
             {
                 return;
@@ -462,6 +475,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         void IDataFormatter.Format(ref byte[] data)
         {
+            ValidateDisposed();
             if (!ValidateStreamBeforeRead(ref data))
             {
                 return;
@@ -471,6 +485,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         void IDataFormatter.Format(ref sbyte[] data)
         {
+            ValidateDisposed();
             if (!ValidateStreamBeforeRead(ref data))
             {
                 return;
@@ -480,6 +495,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         void IDataFormatter.Format(ref short[] data)
         {
+            ValidateDisposed();
             if (!ValidateStreamBeforeRead(ref data))
             {
                 return;
@@ -489,6 +505,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         void IDataFormatter.Format(ref int[] data)
         {
+            ValidateDisposed();
             if (!ValidateStreamBeforeRead(ref data))
             {
                 return;
@@ -498,6 +515,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         void IDataFormatter.Format(ref long[] data)
         {
+            ValidateDisposed();
             if (!ValidateStreamBeforeRead(ref data))
             {
                 return;
@@ -507,6 +525,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         void IDataFormatter.Format(ref ushort[] data)
         {
+            ValidateDisposed();
             if (!ValidateStreamBeforeRead(ref data))
             {
                 return;
@@ -516,6 +535,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         void IDataFormatter.Format(ref uint[] data)
         {
+            ValidateDisposed();
             if (!ValidateStreamBeforeRead(ref data))
             {
                 return;
@@ -525,6 +545,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         void IDataFormatter.Format(ref ulong[] data)
         {
+            ValidateDisposed();
             if (!ValidateStreamBeforeRead(ref data))
             {
                 return;
@@ -534,6 +555,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         void IDataFormatter.Format(ref UnityEngine.Object unityObject)
         {
+            ValidateDisposed();
             if (!ValidateStreamBeforeRead(ref unityObject))
             {
                 return;
@@ -543,6 +565,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         void IDataFormatter.FormatGenericPrimitive<T>(ref T value)
         {
+            ValidateDisposed();
             if (!ValidateStreamBeforeRead(ref value))
             {
                 return;
@@ -552,6 +575,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         void IDataFormatter.FormatGenericPrimitive<T>(ref T[] data)
         {
+            ValidateDisposed();
             if (!ValidateStreamBeforeRead(ref data))
             {
                 return;
@@ -609,9 +633,14 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
             }
         }
 
-        /// <inheritdoc />
-        public virtual void Dispose()
+        protected virtual void Dispose()
         {
+        }
+
+        /// <inheritdoc />
+        void IDisposable.Dispose()
+        {
+            Dispose();
             _anonymousMemberId = 0;
             if (_operationStack.Count > 0)
             {
@@ -622,9 +651,69 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
                     $"Missing End{operation} call for the corresponding Begin{operation} operation.");
             }
             _operationStack.Clear();
+            _disposed = true;
+        }
+
+        protected void ValidateDisposed()
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException("");
+            }
         }
 
         protected virtual void OnSettingsChanged(DataFormatterSettings settings)
+        {
+        }
+
+        /// <inheritdoc />
+        void IObjectReferenceReader.SetObjectTable(IReadOnlyList<UnityEngine.Object> objects)
+        {
+            ValidateDisposed();
+            SetObjectTable(objects);
+        }
+
+        /// <inheritdoc />
+        UnityEngine.Object IObjectReferenceReader.ResolveReference(int index)
+        {
+            ValidateDisposed();
+            return ResolveReference(index);
+        }
+
+        /// <inheritdoc />
+        void IReadingFormatter.SetBuffer(ReadOnlySpan<byte> buffer)
+        {
+            ValidateDisposed();
+            SetBuffer(buffer);
+        }
+
+        /// <inheritdoc />
+        ReadOnlySpan<byte> IReadingFormatter.GetBuffer()
+        {
+            ValidateDisposed();
+            return GetBuffer();
+        }
+
+        /// <inheritdoc />
+        int IReadingFormatter.GetPosition()
+        {
+            ValidateDisposed();
+            return GetPosition();
+        }
+
+        /// <inheritdoc />
+        int IReadingFormatter.GetRemainingLength()
+        {
+            ValidateDisposed();
+            return GetRemainingLength();
+        }
+
+        void IPoolObject.OnRent()
+        {
+            _disposed = false;
+        }
+
+        void IPoolObject.OnRelease()
         {
         }
     }

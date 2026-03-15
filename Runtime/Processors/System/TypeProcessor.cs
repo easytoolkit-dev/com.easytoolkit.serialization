@@ -7,10 +7,8 @@ namespace EasyToolkit.Serialization.Processors
     [ProcessorConfiguration(ProcessorPriorityLevel.System)]
     public class TypeProcessor : SerializationProcessor<Type>
     {
-        protected override void Process(string name, ref Type value, IDataFormatter formatter)
+        protected override void Process(ref Type value, IDataFormatter formatter)
         {
-            formatter.BeginMember(name);
-
             string typeName = null;
             if (formatter.Operation == FormatterOperation.Write)
                 typeName = TypeToName(value);
@@ -27,6 +25,7 @@ namespace EasyToolkit.Serialization.Processors
             {
                 return string.Empty;
             }
+
             return type.AssemblyQualifiedName ?? type.FullName;
         }
 

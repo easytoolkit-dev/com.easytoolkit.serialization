@@ -33,7 +33,8 @@ namespace EasyToolkit.Serialization
                     $"Failed to create writer for format '{format}'. The format may not be supported.");
             }
 
-            var processor = SerializationProcessorFactory.GetProcessor(valueType, context);
+            var processor = context.GetProcessor(valueType,
+                _ => SerializationProcessorFactory.CreateProcessor(valueType, context));
             if (processor == null)
             {
                 throw new SerializationException(
@@ -166,7 +167,7 @@ namespace EasyToolkit.Serialization
         /// <summary>
         /// Deserializes a value of the specified type from the serialization data.
         /// </summary>
-        public static object Deserialize(Type type, SerializationFormat format, ref SerializationData serializationData, SerializationSettings settings = null, SerializationContext context = null)
+        public static object Deserialize(Type valueType, SerializationFormat format, ref SerializationData serializationData, SerializationSettings settings = null, SerializationContext context = null)
         {
             var buffer = serializationData.GetBuffer(format);
             if (buffer == null)
@@ -189,11 +190,12 @@ namespace EasyToolkit.Serialization
 
             formatter.SetObjectTable(serializationData.ReferencedUnityObjects);
 
-            var processor = SerializationProcessorFactory.GetProcessor(type, context);
+            var processor = context.GetProcessor(valueType,
+                _ => SerializationProcessorFactory.CreateProcessor(valueType, context));
             if (processor == null)
             {
                 throw new SerializationException(
-                    $"Cannot deserialize type '{type}'. No serialization processor found for this type. " +
+                    $"Cannot deserialize type '{valueType}'. No serialization processor found for this type. " +
                     $"Ensure the type is either a primitive type, a collection, or marked with [Serializable] or [EasySerializable].");
             }
 

@@ -11,9 +11,8 @@ namespace EasyToolkit.Serialization.Processors
         [DependencyProcessor]
         private ISerializationProcessor<KeyValuePair<TKey, TValue>> _keyValuePairProcessor;
 
-        protected override void Process(string name, ref TDictionary value, IDataFormatter formatter)
+        protected override void Process(ref TDictionary value, IDataFormatter formatter)
         {
-            formatter.BeginMember(name);
             int size;
             if (formatter.Operation == FormatterOperation.Write)
             {
