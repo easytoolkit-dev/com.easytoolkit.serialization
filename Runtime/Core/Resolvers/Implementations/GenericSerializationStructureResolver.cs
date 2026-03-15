@@ -41,7 +41,7 @@ namespace EasyToolkit.Serialization.Resolvers.Implementations
             var members = new List<SerializationMemberDefinition>();
 
             var memberInfos = valueType.GetMembers(MemberAccessFlags.AllInstance)
-                .Where(memberInfo => memberInfo is FieldInfo || memberInfo is PropertyInfo)
+                .Where(memberInfo => (memberInfo is FieldInfo fieldInfo && !fieldInfo.IsBackingField()) || memberInfo is PropertyInfo)
                 .Where(memberInfo => ShouldIncludeMember(memberInfo, memberFlags, requireSerializeField, excludeNonSerialized))
                 .ToList();
 
