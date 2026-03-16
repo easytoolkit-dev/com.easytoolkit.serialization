@@ -21,28 +21,37 @@ namespace EasyToolkit.Serialization.Resolvers.Implementations
                    !valueType.IsSubclassOf(typeof(UnityEngine.Object));
         }
 
+        /// <inheritdoc/>
         public SerializationMemberDefinition[] Resolve(Type valueType, SerializationContext context)
         {
-            var attribute = SerializedTypeUtility.GetDefinedEasySerializableAttribute(valueType);
+            var easySerializableAttribute = SerializedTypeUtility.GetDefinedEasySerializableAttribute(valueType);
 
-            // Priority: Attribute explicit setting > Context > Default
-            var memberFlags = attribute != null && attribute.IsDefinedMemberFlags
-                ? attribute.MemberFlags
+            // Priority: Attribute explicit setting > Context
+            var serializableMemberFlags = easySerializableAttribute is { IsDefinedMemberFlags: true }
+                ? easySerializableAttribute.MemberFlags
                 : context.MemberFlags;
 
-            var requireSerializeField = attribute != null && attribute.IsDefinedRequireSerializeFieldOnNonPublic
-                ? attribute.RequireSerializeFieldOnNonPublic
+            var requireSerializeField = easySerializableAttribute is { IsDefinedRequireSerializeFieldOnNonPublic: true }
+                ? easySerializableAttribute.RequireSerializeFieldOnNonPublic
                 : context.RequireSerializeFieldOnNonPublic;
 
-            var excludeNonSerialized = attribute != null && attribute.IsDefinedExcludeNonSerialized
-                ? attribute.ExcludeNonSerialized
+            var excludeNonSerialized = easySerializableAttribute is { IsDefinedExcludeNonSerialized: true }
+                ? easySerializableAttribute.ExcludeNonSerialized
                 : context.ExcludeNonSerialized;
+
+            var allowAnonymousTypes = easySerializableAttribute is { IsDefinedAllowAnonymousTypes: true }
+                ? easySerializableAttribute.AllowAnonymousTypes
+                : context.AllowAnonymousTypes;
+
+            var allowUnmarkedStructs = easySerializableAttribute is { IsDefinedAllowUnmarkedStructs: true }
+                ? easySerializableAttribute.AllowUnmarkedStructs
+                : context.AllowUnmarkedStructs;
 
             var members = new List<SerializationMemberDefinition>();
 
             var memberInfos = valueType.GetMembers(MemberAccessFlags.AllInstance)
                 .Where(memberInfo => (memberInfo is FieldInfo fieldInfo && !fieldInfo.IsBackingField()) || memberInfo is PropertyInfo)
-                .Where(memberInfo => ShouldIncludeMember(memberInfo, memberFlags, requireSerializeField, excludeNonSerialized))
+                .Where(memberInfo => ShouldIncludeMember(memberInfo, serializableMemberFlags, requireSerializeField, excludeNonSerialized, allowAnonymousTypes, allowUnmarkedStructs))
                 .ToList();
 
             for (int i = 0; i < memberInfos.Count; i++)
@@ -91,8 +100,31 @@ namespace EasyToolkit.Serialization.Resolvers.Implementations
         /// Determines whether a member should be included based on the specified flags.
         /// </summary>
         private static bool ShouldIncludeMember(MemberInfo memberInfo, SerializableMemberFlags flags,
-            bool requireSerializeFieldOnNonPublic, bool excludeNonSerialized)
+            bool requireSerializeFieldOnNonPublic, bool excludeNonSerialized, bool allowAnonymousTypes, bool allowUnmarkedStructs)
         {
+            if (memberInfo.TryGetMemberType(out var memberValueType) && memberValueType.IsAnonymousType())
+            {
+                if (!allowAnonymousTypes)
+                {
+                    return false;
+                }
+            }
+
+            // Check if struct types require serialization attributes
+            if (!allowUnmarkedStructs && memberValueType != null)
+            {
+                if (memberValueType.IsStructType())
+                {
+                    var hasSerializableAttribute = memberValueType.IsDefined(typeof(SerializableAttribute), inherit: false);
+                    var easySerializableAttribute = SerializedTypeUtility.GetDefinedEasySerializableAttribute(memberValueType);
+
+                    if (!hasSerializableAttribute && easySerializableAttribute == null)
+                    {
+                        return false;
+                    }
+                }
+            }
+
             // Check for EasySerializeFieldAttribute with Ignore flag
             var serializeFieldAttribute = memberInfo.GetCustomAttribute<EasySerializeFieldAttribute>(inherit: true);
             if (serializeFieldAttribute != null && serializeFieldAttribute.Ignore)
@@ -190,22 +222,44 @@ namespace EasyToolkit.Serialization.Resolvers.Implementations
 
         private InstanceGetter CreateValueGetter(MemberInfo memberInfo)
         {
-            return memberInfo.MemberType switch
+            try
             {
-                MemberTypes.Field => ReflectionCompiler.CreateInstanceFieldGetter((FieldInfo)memberInfo),
-                MemberTypes.Property => ReflectionCompiler.CreateInstancePropertyGetter((PropertyInfo)memberInfo),
-                _ => throw new ArgumentException($"Unsupported member type: {memberInfo.MemberType}")
-            };
+                return memberInfo.MemberType switch
+                {
+                    MemberTypes.Field => ReflectionCompiler.CreateInstanceFieldGetter((FieldInfo)memberInfo),
+                    MemberTypes.Property => ReflectionCompiler.CreateInstancePropertyGetter((PropertyInfo)memberInfo),
+                    _ => throw new NotSupportedException($"Unsupported member type: {memberInfo.MemberType}")
+                };
+            }
+            catch (NotSupportedException)
+            {
+                throw;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         private InstanceSetter CreateValueSetter(MemberInfo memberInfo)
         {
-            return memberInfo.MemberType switch
+            try
             {
-                MemberTypes.Field => ReflectionCompiler.CreateInstanceFieldSetter((FieldInfo)memberInfo),
-                MemberTypes.Property => ReflectionCompiler.CreateInstancePropertySetter((PropertyInfo)memberInfo),
-                _ => throw new ArgumentException($"Unsupported member type: {memberInfo.MemberType}")
-            };
+                return memberInfo.MemberType switch
+                {
+                    MemberTypes.Field => ReflectionCompiler.CreateInstanceFieldSetter((FieldInfo)memberInfo),
+                    MemberTypes.Property => ReflectionCompiler.CreateInstancePropertySetter((PropertyInfo)memberInfo),
+                    _ => throw new NotSupportedException($"Unsupported member type: {memberInfo.MemberType}")
+                };
+            }
+            catch (NotSupportedException)
+            {
+                throw;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
     }
 }

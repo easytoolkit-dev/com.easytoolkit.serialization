@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using EasyToolkit.Core.Reflection;
 using EasyToolkit.Serialization.Processors;
+using JetBrains.Annotations;
 
 namespace EasyToolkit.Serialization.Resolvers
 {
@@ -36,8 +37,8 @@ namespace EasyToolkit.Serialization.Resolvers
         /// </summary>
         public object DefaultValue { get; set; }
 
-        public InstanceGetter ValueGetter { get; set; }
-        public InstanceSetter ValueSetter { get; set; }
+        [CanBeNull] public InstanceGetter ValueGetter { get; set; }
+        [CanBeNull] public InstanceSetter ValueSetter { get; set; }
 
         public ISerializationProcessor Processor { get; set; }
     }

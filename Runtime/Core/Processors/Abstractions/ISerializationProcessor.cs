@@ -21,7 +21,7 @@ namespace EasyToolkit.Serialization.Processors
         /// </remarks>
         SerializationContext Context { get; internal set; }
 
-        bool CanProcess(Type valueType);
+        bool CanProcess(Type valueType, SerializationContext context);
 
         void ProcessUntyped(ref object value, IDataFormatter formatter);
         void ProcessUntyped(string name, ref object value, IDataFormatter formatter);

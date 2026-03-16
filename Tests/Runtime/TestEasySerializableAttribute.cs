@@ -305,5 +305,55 @@ namespace EasyToolkit.Serialization.Tests
         }
 
         #endregion
+
+        #region AllowUnmarkedStructs
+
+        /// <summary>
+        /// Verifies that AllowUnmarkedStructs=true in EasySerializableAttribute allows serialization of unmarked structs.
+        /// </summary>
+        [Test]
+        public void AllowUnmarkedStructsTrue_InAttribute_SerializesUnmarkedStructs()
+        {
+            // Arrange
+            var original = new StructContainerClass(
+                new UnmarkedStruct(10, 20),
+                new SerializableStruct(100, "test"),
+                new EasySerializableStruct(3.5f, true)
+            );
+
+            // Act
+            byte[] data = EasySerializer.SerializeToBinary(ref original);
+            var result = EasySerializer.DeserializeFromBinary<StructContainerClass>(data);
+
+            // Assert - All structs should be serialized with default AllowUnmarkedStructs=true
+            Assert.AreEqual(10, result.UnmarkedField.X, "Unmarked struct X should be serialized");
+            Assert.AreEqual(20, result.UnmarkedField.Y, "Unmarked struct Y should be serialized");
+            Assert.AreEqual(100, result.SerializableField.Value, "Serializable struct should be serialized");
+            Assert.AreEqual("test", result.SerializableField.Name, "Serializable struct name should be serialized");
+        }
+
+        #endregion
+
+        #region AllowAnonymousTypes
+
+        /// <summary>
+        /// Verifies that AllowAnonymousTypes=true in EasySerializableAttribute allows serialization of anonymous types.
+        /// </summary>
+        [Test]
+        public void AllowAnonymousTypesTrue_InAttribute_SerializesAnonymousTypes()
+        {
+            // Arrange
+            var anonymousData = new { Name = "Test", Value = 42, IsActive = true };
+            var original = new AnonymousTypeContainerClass(anonymousData);
+
+            // Act
+            byte[] data = EasySerializer.SerializeToBinary(ref original);
+            var result = EasySerializer.DeserializeFromBinary<AnonymousTypeContainerClass>(data);
+
+            // Assert - Anonymous type should be serialized with default AllowAnonymousTypes=true
+            Assert.IsNotNull(result.Data, "Anonymous type data should be serialized");
+        }
+
+        #endregion
     }
 }

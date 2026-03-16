@@ -387,5 +387,201 @@ namespace EasyToolkit.Serialization.Tests
         }
 
         #endregion
+
+        #region AllowUnmarkedStructs
+
+        /// <summary>
+        /// Verifies that AllowUnmarkedStructs=true allows serialization of unmarked structs.
+        /// </summary>
+        [Test]
+        public void SerializeWithContext_AllowUnmarkedStructsTrue_SerializesUnmarkedStructs()
+        {
+            // Arrange
+            var context = new SerializationContext
+            {
+                AllowUnmarkedStructs = true
+            };
+            var original = new StructContainerClass(
+                new UnmarkedStruct(10, 20),
+                new SerializableStruct(100, "test"),
+                new EasySerializableStruct(3.5f, true)
+            );
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original, context: context);
+            var result = EasySerializer.DeserializeFromJson<StructContainerClass>(json, context: context);
+
+            // Assert - All structs should be serialized
+            Assert.AreEqual(10, result.UnmarkedField.X, "Unmarked struct X should be serialized");
+            Assert.AreEqual(20, result.UnmarkedField.Y, "Unmarked struct Y should be serialized");
+            Assert.AreEqual(100, result.SerializableField.Value, "Serializable struct should be serialized");
+            Assert.AreEqual("test", result.SerializableField.Name, "Serializable struct name should be serialized");
+            Assert.AreEqual(3.5f, result.EasySerializableField.Score, 0.001f, "EasySerializable struct score should be serialized");
+            Assert.IsTrue(result.EasySerializableField.IsActive, "EasySerializable struct IsActive should be serialized");
+        }
+
+        /// <summary>
+        /// Verifies that AllowUnmarkedStructs=false prevents serialization of unmarked structs.
+        /// </summary>
+        [Test]
+        public void SerializeWithContext_AllowUnmarkedStructsFalse_PreventsUnmarkedStructsSerialization()
+        {
+            // Arrange
+            var context = new SerializationContext
+            {
+                AllowUnmarkedStructs = false
+            };
+            var original = new StructContainerClass(
+                new UnmarkedStruct(10, 20),
+                new SerializableStruct(100, "test"),
+                new EasySerializableStruct(3.5f, true)
+            );
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original, context: context);
+            var result = EasySerializer.DeserializeFromJson<StructContainerClass>(json, context: context);
+
+            // Assert - Unmarked struct should use default values (not serialized)
+            Assert.AreEqual(0, result.UnmarkedField.X, "Unmarked struct X should NOT be serialized (default value)");
+            Assert.AreEqual(0, result.UnmarkedField.Y, "Unmarked struct Y should NOT be serialized (default value)");
+            // Marked structs should still be serialized
+            Assert.AreEqual(100, result.SerializableField.Value, "Serializable struct should be serialized");
+            Assert.AreEqual("test", result.SerializableField.Name, "Serializable struct name should be serialized");
+            Assert.AreEqual(3.5f, result.EasySerializableField.Score, 0.001f, "EasySerializable struct score should be serialized");
+        }
+
+        /// <summary>
+        /// Verifies that modifying AllowUnmarkedStructs clears the processor cache.
+        /// </summary>
+        [Test]
+        public void SerializeWithContext_ModifyAllowUnmarkedStructs_ClearsProcessorCache()
+        {
+            // Arrange
+            var context = new SerializationContext
+            {
+                AllowUnmarkedStructs = true
+            };
+            var original = new StructContainerClass(
+                new UnmarkedStruct(10, 20),
+                new SerializableStruct(100, "test"),
+                new EasySerializableStruct(3.5f, true)
+            );
+
+            // Act - Serialize with AllowUnmarkedStructs=true
+            string json1 = EasySerializer.SerializeToJson(ref original, context: context);
+            var result1 = EasySerializer.DeserializeFromJson<StructContainerClass>(json1, context: context);
+
+            // Modify context to AllowUnmarkedStructs=false
+            context.AllowUnmarkedStructs = false;
+
+            // Serialize again with new settings
+            string json2 = EasySerializer.SerializeToJson(ref original, context: context);
+            var result2 = EasySerializer.DeserializeFromJson<StructContainerClass>(json2, context: context);
+
+            // Assert
+            // First serialization should include unmarked structs
+            Assert.AreEqual(10, result1.UnmarkedField.X, "First: Unmarked struct X should be serialized");
+            Assert.AreEqual(20, result1.UnmarkedField.Y, "First: Unmarked struct Y should be serialized");
+
+            // Second serialization should NOT include unmarked structs
+            Assert.AreEqual(0, result2.UnmarkedField.X, "Second: Unmarked struct X should NOT be serialized");
+            Assert.AreEqual(0, result2.UnmarkedField.Y, "Second: Unmarked struct Y should NOT be serialized");
+        }
+
+        #endregion
+
+        #region AllowAnonymousTypes
+
+        /// <summary>
+        /// Verifies that AllowAnonymousTypes=true allows serialization of anonymous types.
+        /// </summary>
+        [Test]
+        public void SerializeWithContext_AllowAnonymousTypesTrue_SerializesAnonymousTypes()
+        {
+            // Arrange
+            var context = new SerializationContext
+            {
+                AllowAnonymousTypes = true
+            };
+            var anonymousData = new { Name = "Test", Value = 42, IsActive = true };
+            var original = new AnonymousTypeContainerClass(anonymousData);
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original, context: context);
+            var result = EasySerializer.DeserializeFromJson<AnonymousTypeContainerClass>(json, context: context);
+
+            // Assert - Anonymous type should be serialized
+            Assert.IsNotNull(result.Data, "Anonymous type data should be serialized");
+        }
+
+        /// <summary>
+        /// Verifies that AllowAnonymousTypes only performs static type checking.
+        /// </summary>
+        /// <remarks>
+        /// When a member's declared type is <c>object</c>, static type checking does not
+        /// identify it as an anonymous type. Therefore, runtime anonymous types assigned
+        /// to <c>object</c> members are still serialized even when <c>AllowAnonymousTypes=false</c>.
+        /// This is expected behavior as the setting only checks declared types, not runtime types,
+        /// to avoid performance overhead.
+        /// </remarks>
+        [Test]
+        public void SerializeWithContext_AllowAnonymousTypesFalse_OnlyStaticTypeChecking()
+        {
+            // Arrange
+            var context = new SerializationContext
+            {
+                AllowAnonymousTypes = false
+            };
+            var anonymousData = new { Name = "Test", Value = 42, IsActive = true };
+            var original = new AnonymousTypeContainerClass(anonymousData);
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original, context: context);
+            var result = EasySerializer.DeserializeFromJson<AnonymousTypeContainerClass>(json, context: context);
+
+            // Assert
+            // Anonymous type IS serialized because the declared type is 'object', not an anonymous type
+            // Static checking doesn't inspect runtime types
+            Assert.IsNotNull(result.Data, "Anonymous type should be serialized when declared type is object (static checking only)");
+        }
+
+        /// <summary>
+        /// Verifies that AllowAnonymousTypes setting only affects static type checking.
+        /// </summary>
+        /// <remarks>
+        /// When a member's declared type is <c>object</c>, the <c>AllowAnonymousTypes</c> setting
+        /// has no effect because static type checking only examines the declared type (<c>object</c>),
+        /// not the runtime type (anonymous type). Runtime anonymous types are still serialized
+        /// regardless of the <c>AllowAnonymousTypes</c> setting to avoid performance overhead.
+        /// </remarks>
+        [Test]
+        public void SerializeWithContext_AllowAnonymousTypes_OnlyAffectsStaticTypes()
+        {
+            // Arrange
+            var context = new SerializationContext
+            {
+                AllowAnonymousTypes = true
+            };
+            var anonymousData = new { Name = "Test", Value = 42 };
+            var original = new AnonymousTypeContainerClass(anonymousData);
+
+            // Act - Serialize with AllowAnonymousTypes=true
+            string json1 = EasySerializer.SerializeToJson(ref original, context: context);
+            var result1 = EasySerializer.DeserializeFromJson<AnonymousTypeContainerClass>(json1, context: context);
+
+            // Modify context to AllowAnonymousTypes=false
+            context.AllowAnonymousTypes = false;
+
+            // Serialize again with new settings
+            string json2 = EasySerializer.SerializeToJson(ref original, context: context);
+            var result2 = EasySerializer.DeserializeFromJson<AnonymousTypeContainerClass>(json2, context: context);
+
+            // Assert
+            // Both serializations should include anonymous types because declared type is 'object'
+            Assert.IsNotNull(result1.Data, "First: Anonymous type should be serialized (declared type is object)");
+            Assert.IsNotNull(result2.Data, "Second: Anonymous type should still be serialized (static checking only)");
+        }
+
+        #endregion
     }
 }

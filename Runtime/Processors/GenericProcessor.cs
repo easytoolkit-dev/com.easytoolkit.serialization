@@ -14,18 +14,35 @@ namespace EasyToolkit.Serialization.Processors
         /// <inheritdoc/>
         protected override bool AutoConstruct => true;
 
-        public override bool CanProcess(Type valueType)
+        public override bool CanProcess(Type valueType, SerializationContext context)
         {
-            return SerializationStructureResolverFactory.GetResolver(valueType) != null &&
-                   (valueType.IsDefined<SerializableAttribute>() ||
-                    SerializedTypeUtility.GetDefinedEasySerializableAttribute(valueType) != null ||
-                    valueType.IsStructType());
+            if (SerializationStructureResolverFactory.GetResolver(valueType) == null)
+            {
+                return false;
+            }
+
+            if (valueType.IsAnonymousType() && context.AllowAnonymousTypes)
+            {
+                return true;
+            }
+
+            if (!valueType.IsDefined<SerializableAttribute>()
+                && SerializedTypeUtility.GetDefinedEasySerializableAttribute(valueType) == null)
+            {
+                if (context.AllowUnmarkedStructs && valueType.IsStructType())
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
+            return true;
         }
 
         protected override void Initialize()
         {
-            _memberDefinitions =
-                SerializationStructureResolverFactory.GetResolver(typeof(T)).Resolve(typeof(T), Context);
+            _memberDefinitions = SerializationStructureResolverFactory.GetResolver(typeof(T)).Resolve(typeof(T), Context);
         }
 
         protected override void Process(ref T value, IDataFormatter formatter)

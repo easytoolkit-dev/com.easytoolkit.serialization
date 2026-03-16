@@ -438,4 +438,90 @@ namespace EasyToolkit.Serialization.Tests
     }
 
     #endregion
+
+    #region Struct Test Types
+
+    /// <summary>Unmarked struct without Serializable or EasySerializable attribute.</summary>
+    public struct UnmarkedStruct
+    {
+        public int X;
+        public int Y;
+
+        public UnmarkedStruct(int x, int y)
+        {
+            X = x;
+            Y = y;
+        }
+    }
+
+    /// <summary>Struct marked with Serializable attribute.</summary>
+    [System.Serializable]
+    public struct SerializableStruct
+    {
+        public int Value;
+        public string Name;
+
+        public SerializableStruct(int value, string name)
+        {
+            Value = value;
+            Name = name;
+        }
+    }
+
+    /// <summary>Struct marked with EasySerializable attribute.</summary>
+    [EasySerializable]
+    public struct EasySerializableStruct
+    {
+        public float Score;
+        public bool IsActive;
+
+        public EasySerializableStruct(float score, bool isActive)
+        {
+            Score = score;
+            IsActive = isActive;
+        }
+    }
+
+    /// <summary>Test class containing struct fields for AllowUnmarkedStructs testing.</summary>
+    [EasySerializable]
+    public class StructContainerClass
+    {
+        public UnmarkedStruct UnmarkedField;
+        public SerializableStruct SerializableField;
+        public EasySerializableStruct EasySerializableField;
+
+        public StructContainerClass()
+        {
+        }
+
+        public StructContainerClass(UnmarkedStruct unmarked, SerializableStruct serializable,
+            EasySerializableStruct easySerializable)
+        {
+            UnmarkedField = unmarked;
+            SerializableField = serializable;
+            EasySerializableField = easySerializable;
+        }
+    }
+
+    #endregion
+
+    #region Anonymous Type Test Classes
+
+    /// <summary>Test class with object field that can hold anonymous types.</summary>
+    [EasySerializable]
+    public class AnonymousTypeContainerClass
+    {
+        public object Data;
+
+        public AnonymousTypeContainerClass()
+        {
+        }
+
+        public AnonymousTypeContainerClass(object data)
+        {
+            Data = data;
+        }
+    }
+
+    #endregion
 }

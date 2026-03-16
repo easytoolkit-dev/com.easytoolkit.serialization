@@ -12,7 +12,7 @@ namespace EasyToolkit.Serialization.Processors
         [DependencyProcessor(CandidateTypesGetter = nameof(CandidateTypes))]
         private ISerializationProcessor<T> _genericProcessor;
 
-        public override bool CanProcess(Type valueType)
+        public override bool CanProcess(Type valueType, SerializationContext context)
         {
             return !valueType.IsGenericType;
         }

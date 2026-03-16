@@ -65,13 +65,7 @@ namespace EasyToolkit.Serialization.Processors
         /// </value>
         protected virtual bool AutoConstruct => false;
 
-        /// <summary>
-        /// Determines whether the specified value type can be serialized.
-        /// Default implementation uses exact type matching.
-        /// </summary>
-        /// <param name="valueType">The type to validate for serialization support.</param>
-        /// <returns>True if the type can be serialized; otherwise, false.</returns>
-        public virtual bool CanProcess(Type valueType) => true;
+        public virtual bool CanProcess(Type valueType, SerializationContext context) => true;
 
         /// <summary>
         /// Processes a strongly-typed value during serialization or deserialization.

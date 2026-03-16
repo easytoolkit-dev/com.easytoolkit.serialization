@@ -5,9 +5,15 @@ namespace EasyToolkit.Serialization
     /// <summary>
     /// Marks a type as serializable by the EasyToolkit serialization system.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Struct, Inherited = false, AllowMultiple = false)]
     public class EasySerializableAttribute : Attribute
     {
+        private bool? _excludeNonSerialized;
+        private bool? _allowAnonymousTypes;
+        private bool? _allowUnmarkedStructs;
+        private bool? _requireSerializeFieldOnNonPublic;
+        private SerializableMemberFlags? _memberFlags;
+
         /// <summary>
         /// Gets or sets whether derived classes inherit serializability when this attribute
         /// is applied only to a base class.
@@ -18,8 +24,6 @@ namespace EasyToolkit.Serialization
         /// attribute applied is serializable.
         /// </remarks>
         public bool AllocInherit { get; set; }
-
-        private SerializableMemberFlags? _memberFlags;
 
         /// <summary>
         /// Gets or sets the flags that control which members are filtered for serialization.
@@ -49,8 +53,6 @@ namespace EasyToolkit.Serialization
         /// When <c>false</c>, the <see cref="SerializationContext.MemberFlags"/> value is used instead.
         /// </remarks>
         public bool IsDefinedMemberFlags => _memberFlags.HasValue;
-
-        private bool? _requireSerializeFieldOnNonPublic;
 
         /// <summary>
         /// Gets or sets whether non-public fields must have the <c>SerializeField</c> attribute
@@ -84,8 +86,6 @@ namespace EasyToolkit.Serialization
         /// </remarks>
         public bool IsDefinedRequireSerializeFieldOnNonPublic => _requireSerializeFieldOnNonPublic.HasValue;
 
-        private bool? _excludeNonSerialized;
-
         /// <summary>
         /// Gets or sets whether to exclude members marked with <c>NonSerializedAttribute</c>
         /// from serialization.
@@ -117,5 +117,72 @@ namespace EasyToolkit.Serialization
         /// When <c>false</c>, the <see cref="SerializationContext.ExcludeNonSerialized"/> value is used instead.
         /// </remarks>
         public bool IsDefinedExcludeNonSerialized => _excludeNonSerialized.HasValue;
+
+        /// <summary>
+        /// Gets or sets whether to allow anonymous types to be serialized.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when getting this property without first setting a value.
+        /// Check <see cref="IsDefinedAllowAnonymousTypes"/> before accessing.
+        /// </exception>
+        /// <remarks>
+        /// When <c>true</c>, anonymous types (compiler-generated types with names containing
+        /// "&lt;&gt;f__AnonymousType") can be serialized. When <c>false</c>, anonymous types
+        /// are excluded from serialization.
+        /// When this property is explicitly set, it takes precedence over the
+        /// <see cref="SerializationContext.AllowAnonymousTypes"/> setting.
+        /// <para>This setting only performs static member type checking based on declared types.
+        /// Runtime member types are not checked for anonymous type compatibility to avoid performance overhead.</para>
+        /// </remarks>
+        public bool AllowAnonymousTypes
+        {
+            get => _allowAnonymousTypes ?? throw new InvalidOperationException(
+                "Cannot access AllowAnonymousTypes property because it has not been set.");
+            set => _allowAnonymousTypes = value;
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether the <see cref="AllowAnonymousTypes"/> property
+        /// has been explicitly defined.
+        /// </summary>
+        /// <remarks>
+        /// When <c>true</c>, the attribute's <see cref="AllowAnonymousTypes"/> value is used.
+        /// When <c>false</c>, the <see cref="SerializationContext.AllowAnonymousTypes"/> value is used instead.
+        /// </remarks>
+        public bool IsDefinedAllowAnonymousTypes => _allowAnonymousTypes.HasValue;
+
+        /// <summary>
+        /// Gets or sets whether to allow struct types without <see cref="SerializableAttribute"/>
+        /// or <see cref="EasySerializableAttribute"/> to be serialized.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when getting this property without first setting a value.
+        /// Check <see cref="IsDefinedAllowUnmarkedStructs"/> before accessing.
+        /// </exception>
+        /// <remarks>
+        /// When <c>true</c>, struct types can be serialized even without explicit serialization
+        /// attributes. When <c>false</c>, structs must be marked with either
+        /// <see cref="SerializableAttribute"/> or <see cref="EasySerializableAttribute"/> to be serialized.
+        /// When this property is explicitly set, it takes precedence over the
+        /// <see cref="SerializationContext.AllowUnmarkedStructs"/> setting.
+        /// <para>This setting only performs static member type checking based on declared types.
+        /// Runtime member types are not checked for struct serialization compatibility to avoid performance overhead.</para>
+        /// </remarks>
+        public bool AllowUnmarkedStructs
+        {
+            get => _allowUnmarkedStructs ?? throw new InvalidOperationException(
+                "Cannot access AllowUnmarkedStructs property because it has not been set.");
+            set => _allowUnmarkedStructs = value;
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether the <see cref="AllowUnmarkedStructs"/> property
+        /// has been explicitly defined.
+        /// </summary>
+        /// <remarks>
+        /// When <c>true</c>, the attribute's <see cref="AllowUnmarkedStructs"/> value is used.
+        /// When <c>false</c>, the <see cref="SerializationContext.AllowUnmarkedStructs"/> value is used instead.
+        /// </remarks>
+        public bool IsDefinedAllowUnmarkedStructs => _allowUnmarkedStructs.HasValue;
     }
 }

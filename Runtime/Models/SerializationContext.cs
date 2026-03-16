@@ -14,6 +14,12 @@ namespace EasyToolkit.Serialization
     /// </remarks>
     public sealed class SerializationContext
     {
+        private bool _allowUnmarkedStructs = true;
+        private bool _allowAnonymousTypes = true;
+        private bool _excludeNonSerialized = true;
+        private bool _requireSerializeFieldOnNonPublic = true;
+        private SerializableMemberFlags _memberFlags = SerializableMemberFlags.Default;
+
         /// <summary>
         /// Global shared context using default reflection settings and independent cache.
         /// </summary>
@@ -23,8 +29,6 @@ namespace EasyToolkit.Serialization
         /// its own cache for performance.
         /// </remarks>
         public static readonly SerializationContext Shared = new();
-
-        private SerializableMemberFlags _memberFlags = SerializableMemberFlags.Default;
 
         /// <summary>
         /// Gets or sets the flags that control which members are filtered for serialization.
@@ -44,8 +48,6 @@ namespace EasyToolkit.Serialization
                 _processorCache.Clear();
             }
         }
-
-        private bool _requireSerializeFieldOnNonPublic = true;
 
         /// <summary>
         /// Gets or sets whether non-public fields must have the <c>SerializeField</c> attribute
@@ -67,8 +69,6 @@ namespace EasyToolkit.Serialization
             }
         }
 
-        private bool _excludeNonSerialized = true;
-
         /// <summary>
         /// Gets or sets whether to exclude members marked with <c>NonSerializedAttribute</c>
         /// from serialization.
@@ -85,6 +85,47 @@ namespace EasyToolkit.Serialization
             set
             {
                 _excludeNonSerialized = value;
+                _processorCache.Clear();
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether to allow anonymous types to be serialized.
+        /// </summary>
+        /// <remarks>
+        /// When <c>true</c>, anonymous types (compiler-generated types with names containing
+        /// "&lt;&gt;f__AnonymousType") can be serialized. When <c>false</c>, anonymous types
+        /// are excluded from serialization. Default is <c>false</c> to prevent accidental
+        /// serialization of temporary data structures.
+        /// Setting this property clears the processor cache to ensure new settings take effect.
+        /// </remarks>
+        public bool AllowAnonymousTypes
+        {
+            get => _allowAnonymousTypes;
+            set
+            {
+                _allowAnonymousTypes = value;
+                _processorCache.Clear();
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether to allow struct types without <see cref="SerializableAttribute"/>
+        /// or <see cref="EasySerializableAttribute"/> to be serialized.
+        /// </summary>
+        /// <remarks>
+        /// When <c>true</c>, struct types can be serialized even without explicit serialization
+        /// attributes. When <c>false</c>, structs must be marked with either
+        /// <see cref="SerializableAttribute"/> or <see cref="EasySerializableAttribute"/> to be serialized.
+        /// Default is <c>true</c> for convenience with common struct types like <c>Vector3</c>.
+        /// Setting this property clears the processor cache to ensure new settings take effect.
+        /// </remarks>
+        public bool AllowUnmarkedStructs
+        {
+            get => _allowUnmarkedStructs;
+            set
+            {
+                _allowUnmarkedStructs = value;
                 _processorCache.Clear();
             }
         }

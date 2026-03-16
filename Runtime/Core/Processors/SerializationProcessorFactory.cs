@@ -132,7 +132,7 @@ namespace EasyToolkit.Serialization.Processors
 
         private static ISerializationProcessor CreateProcessor(Type valueType, SerializationContext context, [CanBeNull] Type[] candidateTypes)
         {
-            var processor = PureCreateProcessor(valueType, candidateTypes);
+            var processor = PureCreateProcessor(valueType, context, candidateTypes);
             if (processor == null)
                 return null;
 
@@ -157,19 +157,12 @@ namespace EasyToolkit.Serialization.Processors
             return priority;
         }
 
-        private static bool CanProcessType(Type serializerType, Type valueType)
+        private static bool CanProcessType(Type serializerType, Type valueType, SerializationContext context)
         {
             var serializer = (ISerializationProcessor)FormatterServices.GetUninitializedObject(serializerType);
-            return serializer.CanProcess(valueType);
+            return serializer.CanProcess(valueType, context);
         }
 
-        /// <summary>
-        /// Gets the array of types from an expression path evaluated against the processor instance.
-        /// </summary>
-        /// <param name="processor">The processor instance to evaluate against.</param>
-        /// <param name="expressionPath">The expression path to evaluate.</param>
-        /// <param name="memberName">The member name for error messages.</param>
-        /// <returns>The array of types, or null if the expression path is null or empty.</returns>
         private static Type[] GetTypesFromExpression(ISerializationProcessor processor, string expressionPath, string memberName)
         {
             if (expressionPath.IsNullOrWhiteSpace())
@@ -195,12 +188,6 @@ namespace EasyToolkit.Serialization.Processors
                 $"but returned '{result.GetType().FullName}'.");
         }
 
-        /// <summary>
-        /// Filters processor types based on candidate and excluded types.
-        /// </summary>
-        /// <param name="candidateTypes">The candidate types to include, or null for all.</param>
-        /// <param name="excludedTypes">The types to exclude, or null for none.</param>
-        /// <returns>The filtered list of processor types.</returns>
         private static Type[] FilterProcessorTypes(Type[] candidateTypes, Type[] excludedTypes)
         {
             var candidates = candidateTypes ?? ProcessorTypes;
@@ -211,13 +198,7 @@ namespace EasyToolkit.Serialization.Processors
                 .ToArray();
         }
 
-        /// <summary>
-        /// Creates a processor from the specified candidate types for the given value type.
-        /// </summary>
-        /// <param name="valueType">The type to get a processor for.</param>
-        /// <param name="candidateTypes">The candidate processor types.</param>
-        /// <returns>The created processor, or null if no suitable processor was found.</returns>
-        private static ISerializationProcessor PureCreateProcessor(Type valueType, Type[] candidateTypes = null)
+        private static ISerializationProcessor PureCreateProcessor(Type valueType, SerializationContext context, [CanBeNull] Type[] candidateTypes)
         {
             var resultsList = new List<TypeMatchResult[]>
             {
@@ -243,7 +224,7 @@ namespace EasyToolkit.Serialization.Processors
                     continue;
                 }
 
-                if (CanProcessType(result.MatchedType, valueType))
+                if (CanProcessType(result.MatchedType, valueType, context))
                 {
                     return result.MatchedType.CreateInstance<ISerializationProcessor>();
                 }
