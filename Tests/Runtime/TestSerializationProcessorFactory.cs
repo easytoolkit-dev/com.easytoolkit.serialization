@@ -431,6 +431,41 @@ namespace EasyToolkit.Serialization.Tests
 
         #endregion
 
+        #region Circular Dependency - Recursive Injection Tests
+
+        /// <summary>
+        /// Verifies that a processor with recursive dependency injection throws InvalidOperationException.
+        /// This tests the circular dependency detection when a processor injects ISerializationProcessor<T>
+        /// without excluding itself via ExcludedTypesGetter.
+        /// </summary>
+        [Test]
+        public void CreateProcessor_RecursiveDependencyWithoutExclusion_ThrowsInvalidOperationException()
+        {
+            // Arrange & Act & Assert
+            var ex = Assert.Throws<InvalidOperationException>(() =>
+                CreateProcessor(typeof(CircularDependencyTestClass))
+            );
+
+            Assert.That(ex.Message, Does.Contain("Circular dependency detected"));
+        }
+
+        /// <summary>
+        /// Verifies that a processor can safely inject ISerializationProcessor<T> when using
+        /// ExcludedTypesGetter to exclude itself, similar to GenericPrimitiveProcessor pattern.
+        /// </summary>
+        [Test]
+        public void CreateProcessor_RecursiveDependencyWithExclusion_Succeeds()
+        {
+            // Arrange & Act
+            var processor = CreateProcessor(typeof(SafeRecursiveDependencyTestClass));
+
+            // Assert
+            Assert.IsNotNull(processor);
+            Assert.AreEqual(typeof(SafeRecursiveDependencyTestProcessor), processor.GetType());
+        }
+
+        #endregion
+
         private ISerializationProcessor CreateProcessor(Type type)
         {
             return SerializationProcessorFactory.CreateProcessor(type, SerializationContext.Shared);

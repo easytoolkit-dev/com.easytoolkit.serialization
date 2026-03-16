@@ -365,6 +365,163 @@ namespace EasyToolkit.Serialization.Tests
 
         #endregion
 
+        #region Common Types
+
+        /// <summary>
+        /// Verifies that serializing and deserializing a Guid produces the original value.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_Guid_ReturnsOriginalValue()
+        {
+            // Arrange
+            var original = new Guid("12345678-1234-1234-1234-123456789abc");
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            var result = EasySerializer.DeserializeFromJson<Guid>(json);
+
+            // Assert
+            Assert.AreEqual(new Guid("12345678-1234-1234-1234-123456789abc"), result);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing an empty Guid produces the original value.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_EmptyGuid_ReturnsOriginalValue()
+        {
+            // Arrange
+            var original = Guid.Empty;
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            var result = EasySerializer.DeserializeFromJson<Guid>(json);
+
+            // Assert
+            Assert.AreEqual(Guid.Empty, result);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing a TimeSpan produces the original value.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_TimeSpan_ReturnsOriginalValue()
+        {
+            // Arrange
+            var original = TimeSpan.FromHours(2.5);
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            var result = EasySerializer.DeserializeFromJson<TimeSpan>(json);
+
+            // Assert
+            Assert.AreEqual(TimeSpan.FromHours(2.5), result);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing a negative TimeSpan produces the original value.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_NegativeTimeSpan_ReturnsOriginalValue()
+        {
+            // Arrange
+            var original = TimeSpan.FromSeconds(-30);
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            var result = EasySerializer.DeserializeFromJson<TimeSpan>(json);
+
+            // Assert
+            Assert.AreEqual(TimeSpan.FromSeconds(-30), result);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing a maximum TimeSpan produces the original value.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_MaxTimeSpan_ReturnsOriginalValue()
+        {
+            // Arrange
+            var original = TimeSpan.MaxValue;
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            var result = EasySerializer.DeserializeFromJson<TimeSpan>(json);
+
+            // Assert
+            Assert.AreEqual(TimeSpan.MaxValue, result);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing a DateTime produces the original value.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_DateTime_ReturnsOriginalValue()
+        {
+            // Arrange
+            var original = new DateTime(2025, 3, 16, 14, 30, 45, DateTimeKind.Local);
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            var result = EasySerializer.DeserializeFromJson<DateTime>(json);
+
+            // Assert
+            Assert.AreEqual(new DateTime(2025, 3, 16, 14, 30, 45, DateTimeKind.Local), result);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing a UTC DateTime produces the original value.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_UtcDateTime_ReturnsOriginalValue()
+        {
+            // Arrange
+            var original = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            var result = EasySerializer.DeserializeFromJson<DateTime>(json);
+
+            // Assert
+            Assert.AreEqual(new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc), result);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing MinValue DateTime produces the original value.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_MinValueDateTime_ReturnsOriginalValue()
+        {
+            // Arrange
+            var original = DateTime.MinValue;
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            var result = EasySerializer.DeserializeFromJson<DateTime>(json);
+
+            // Assert
+            Assert.AreEqual(DateTime.MinValue, result);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing MaxValue DateTime produces the original value.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_MaxValueDateTime_ReturnsOriginalValue()
+        {
+            // Arrange
+            var original = DateTime.MaxValue;
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            var result = EasySerializer.DeserializeFromJson<DateTime>(json);
+
+            // Assert
+            Assert.AreEqual(DateTime.MaxValue, result);
+        }
+
+        #endregion
+
         #region Enum
 
         /// <summary>

@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using System.Text;
+using EasyToolkit.Core.Collections;
 using EasyToolkit.Core.Mathematics;
 using EasyToolkit.Core.Reflection;
 using EasyToolkit.Core.Textual;
@@ -57,7 +59,7 @@ namespace EasyToolkit.Serialization.Processors
         /// <returns>The created processor.</returns>
         public static ISerializationProcessor CreateProcessor(Type valueType, SerializationContext context)
         {
-            return CreateProcessor(valueType, context, null);
+            return CreateProcessor(valueType, context, null, null);
         }
 
         private static void InjectDependencyToProcessor([NotNull] ISerializationProcessor processor, SerializationContext context)
@@ -76,7 +78,7 @@ namespace EasyToolkit.Serialization.Processors
                 if (!memberType.IsImplementsGenericDefinition(typeof(ISerializationProcessor<>)))
                 {
                     throw new InvalidOperationException(
-                        $"Member '{memberInfo.Name}' of type '{memberType.FullName}' is not a ISerializationProcessor<T>.");
+                        $"Member '{memberInfo.Name}' of type '{memberType}' is not a ISerializationProcessor<T>.");
                 }
 
                 var valueType = memberType.GetGenericArgumentsRelativeTo(typeof(ISerializationProcessor<>))[0];
@@ -91,24 +93,38 @@ namespace EasyToolkit.Serialization.Processors
                 if (candidateTypes != null || excludedTypes != null)
                 {
                     var filteredTypes = FilterProcessorTypes(candidateTypes, excludedTypes);
-                    dependency = CreateProcessor(valueType, context, filteredTypes);
+                    dependency = CreateProcessor(valueType, context, filteredTypes, processor.GetType());
 
                     if (dependency == null)
                     {
-                        throw new InvalidOperationException(
-                            $"No suitable processor found for type '{valueType.FullName}' " +
-                            $"from candidates [{string.Join(", ", filteredTypes.Select(t => t.Name))}] " +
-                            $"for member '{memberInfo.Name}'.");
+                        var stringBuilder = new StringBuilder();
+                        stringBuilder.Append($"No suitable processor found for type '{valueType}' ");
+                        if (candidateTypes.IsNotNullOrEmpty() || excludedTypes.IsNotNullOrEmpty())
+                        {
+                            stringBuilder.Append("from ");
+
+                            if (candidateTypes.IsNotNullOrEmpty())
+                            {
+                                stringBuilder.Append($"candidateTypes [{string.Join(", ", candidateTypes!.Select(t => t.ToString()))}]");
+                            }
+                            else
+                            {
+                                stringBuilder.Append($"excludedTypes [{string.Join(", ", excludedTypes!.Select(t => t.ToString()))}]");
+                            }
+                        }
+                        stringBuilder.Append($"for member '{memberInfo.Name}'.");
+
+                        throw new InvalidOperationException(stringBuilder.ToString());
                     }
                 }
                 else
                 {
-                    dependency = CreateProcessor(valueType, context);
+                    dependency = CreateProcessor(valueType, context, null, processor.GetType());
 
                     if (dependency == null)
                     {
                         throw new InvalidOperationException(
-                            $"No suitable processor found for type '{valueType.FullName}' " +
+                            $"No suitable processor found for type '{valueType}' " +
                             $"for member '{memberInfo.Name}'.");
                     }
                 }
@@ -125,16 +141,30 @@ namespace EasyToolkit.Serialization.Processors
                 else
                 {
                     throw new InvalidOperationException(
-                        $"Member '{memberInfo.Name}' of type '{memberType.FullName}' is not a field or property.");
+                        $"Member '{memberInfo.Name}' of type '{memberType}' is not a field or property.");
                 }
             }
         }
 
-        private static ISerializationProcessor CreateProcessor(Type valueType, SerializationContext context, [CanBeNull] Type[] candidateTypes)
+        private static ISerializationProcessor CreateProcessor(
+            Type valueType,
+            SerializationContext context,
+            [CanBeNull] Type[] candidateTypes,
+            [CanBeNull] Type owningProcessorType)
         {
             var processor = PureCreateProcessor(valueType, context, candidateTypes);
             if (processor == null)
                 return null;
+
+            if (processor.GetType() == owningProcessorType)
+            {
+                throw new InvalidOperationException(
+                    $"Circular dependency detected: Processor '{owningProcessorType}' " +
+                    $"cannot be injected into itself. To fix this, add ExcludedTypes to the " +
+                    $"[DependencyProcessor] attribute to exclude the owning processor type. " +
+                    $"Example: [DependencyProcessor(ExcludedTypesGetter = nameof(ExcludedTypes))] " +
+                    $"with private static readonly Type[] ExcludedTypes = {{ typeof({owningProcessorType}) }};");
+            }
 
             processor.Context = context;
             InjectDependencyToProcessor(processor, context);
@@ -185,20 +215,31 @@ namespace EasyToolkit.Serialization.Processors
 
             throw new InvalidOperationException(
                 $"Expression '{expressionPath}' for member '{memberName}' must return IEnumerable<Type>, " +
-                $"but returned '{result.GetType().FullName}'.");
+                $"but returned '{result.GetType()}'.");
         }
 
         private static Type[] FilterProcessorTypes(Type[] candidateTypes, Type[] excludedTypes)
         {
-            var candidates = candidateTypes ?? ProcessorTypes;
-            var excluded = excludedTypes?.ToHashSet() ?? new HashSet<Type>();
+            candidateTypes ??= ProcessorTypes;
+            var excludedTypeSet = excludedTypes?.ToHashSet() ?? new HashSet<Type>();
 
-            return candidates
-                .Where(type => excluded.All(excludedType => type != excludedType))
+            return candidateTypes
+                .Where(candidateType => excludedTypeSet.All(excludedType =>
+                {
+                    if (excludedType == candidateType)
+                    {
+                        return false;
+                    }
+
+                    return !excludedType.IsGenericType || excludedType.GetGenericTypeDefinition() != candidateType;
+                }))
                 .ToArray();
         }
 
-        private static ISerializationProcessor PureCreateProcessor(Type valueType, SerializationContext context, [CanBeNull] Type[] candidateTypes)
+        private static ISerializationProcessor PureCreateProcessor(
+            Type valueType,
+            SerializationContext context,
+            [CanBeNull] Type[] candidateTypes)
         {
             var resultsList = new List<TypeMatchResult[]>
             {
@@ -219,7 +260,7 @@ namespace EasyToolkit.Serialization.Processors
                 }
 
                 // Check if the matched type is in the candidate set
-                if (candidateSet != null && !candidateSet.Contains(result.MatchedType))
+                if (candidateSet != null && !candidateSet.Contains(result.Candidate.SourceType))
                 {
                     continue;
                 }

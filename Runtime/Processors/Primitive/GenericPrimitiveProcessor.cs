@@ -7,9 +7,9 @@ namespace EasyToolkit.Serialization.Processors
     public class GenericPrimitiveProcessor<T> : SerializationProcessor<T>
         where T : unmanaged
     {
-        private static readonly Type[] CandidateTypes = { typeof(GenericProcessor<T>) };
+        private static readonly Type[] ExcludedTypes = { typeof(GenericPrimitiveProcessor<T>) };
 
-        [DependencyProcessor(CandidateTypesGetter = nameof(CandidateTypes))]
+        [DependencyProcessor(ExcludedTypesGetter = nameof(ExcludedTypes))]
         private ISerializationProcessor<T> _genericProcessor;
 
         public override bool CanProcess(Type valueType, SerializationContext context)

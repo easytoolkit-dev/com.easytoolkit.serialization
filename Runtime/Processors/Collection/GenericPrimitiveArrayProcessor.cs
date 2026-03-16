@@ -12,9 +12,9 @@ namespace EasyToolkit.Serialization.Processors
     public class GenericPrimitiveArrayProcessor<T> : SerializationProcessor<T[]>
         where T : unmanaged
     {
-        private static readonly Type[] CandidateTypes = { typeof(GenericProcessor<T[]>) };
+        private static readonly Type[] ExcludedTypes = { typeof(GenericPrimitiveArrayProcessor<T>) };
 
-        [DependencyProcessor(CandidateTypesGetter = nameof(CandidateTypes))]
+        [DependencyProcessor(ExcludedTypesGetter = nameof(ExcludedTypes))]
         private ISerializationProcessor<T[]> _genericProcessor;
 
         /// <inheritdoc />

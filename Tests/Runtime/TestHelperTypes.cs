@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using EasyToolkit.Serialization;
+using EasyToolkit.Serialization.Formatters;
+using EasyToolkit.Serialization.Processors;
 
 namespace EasyToolkit.Serialization.Tests
 {
@@ -520,6 +522,76 @@ namespace EasyToolkit.Serialization.Tests
         public AnonymousTypeContainerClass(object data)
         {
             Data = data;
+        }
+    }
+
+    #endregion
+
+    #region Circular Dependency Test Types
+
+    /// <summary>
+    /// Test class for circular dependency testing.
+    /// </summary>
+    [Serializable]
+    public class CircularDependencyTestClass
+    {
+        public int Value;
+    }
+
+    /// <summary>
+    /// Test class for safe recursive dependency testing.
+    /// </summary>
+    [Serializable]
+    public class SafeRecursiveDependencyTestClass
+    {
+        public int Value;
+    }
+
+    #endregion
+
+    #region Circular Dependency Test Processors
+
+    /// <summary>
+    /// Test processor that injects ISerializationProcessor<T> for the same type T
+    /// without excluding itself, which should trigger circular dependency detection.
+    /// </summary>
+    [ProcessorConfiguration(ProcessorPriorityLevel.Custom)]
+    public class CircularDependencyTestProcessor : SerializationProcessor<CircularDependencyTestClass>
+    {
+        [DependencyProcessor]
+        private readonly ISerializationProcessor<CircularDependencyTestClass> _dependency;
+
+        public override bool CanProcess(Type valueType, SerializationContext context)
+        {
+            return valueType == typeof(CircularDependencyTestClass);
+        }
+
+        protected override void Process(ref CircularDependencyTestClass value, IDataFormatter formatter)
+        {
+            // Implementation not needed for this test
+        }
+    }
+
+    /// <summary>
+    /// Test processor that safely injects ISerializationProcessor<T> by using
+    /// ExcludedTypesGetter to exclude itself, following the GenericPrimitiveProcessor pattern.
+    /// </summary>
+    [ProcessorConfiguration(ProcessorPriorityLevel.Custom)]
+    public class SafeRecursiveDependencyTestProcessor : SerializationProcessor<SafeRecursiveDependencyTestClass>
+    {
+        private static readonly Type[] ExcludedTypes = { typeof(SafeRecursiveDependencyTestProcessor) };
+
+        [DependencyProcessor(ExcludedTypesGetter = nameof(ExcludedTypes))]
+        private readonly ISerializationProcessor<SafeRecursiveDependencyTestClass> _dependency;
+
+        public override bool CanProcess(Type valueType, SerializationContext context)
+        {
+            return valueType == typeof(SafeRecursiveDependencyTestClass);
+        }
+
+        protected override void Process(ref SafeRecursiveDependencyTestClass value, IDataFormatter formatter)
+        {
+            // Implementation not needed for this test
         }
     }
 
