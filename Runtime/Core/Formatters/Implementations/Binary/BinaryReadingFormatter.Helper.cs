@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text;
 using EasyToolkit.Serialization.Utilities;
 
 namespace EasyToolkit.Serialization.Formatters.Implementations
@@ -375,8 +376,15 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
             var depth = (int)ReadUInt32Optimized();
             if (depth != _nodeDepth)
             {
-                throw new DataFormatException(
-                    $"Depth mismatch at {context}. Expected {_nodeDepth}, found {depth}.");
+                var stringBuilder = new StringBuilder();
+                stringBuilder.Append($"Depth mismatch at {context}. Expected {_nodeDepth}, found {depth}.");
+
+                var tag = BitConverter.GetBytes(depth)[3];
+                if (Enum.IsDefined(typeof(BinaryFormatterTag), tag))
+                {
+                    stringBuilder.Append($"(possible tag: BinaryFormatterTag.{(BinaryFormatterTag)tag})");
+                }
+                throw new DataFormatException(stringBuilder.ToString());
             }
         }
     }

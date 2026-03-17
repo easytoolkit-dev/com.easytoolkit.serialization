@@ -12,16 +12,32 @@ namespace EasyToolkit.Serialization.Formatters
         /// Creates an object scope that automatically manages the BeginObject/EndObject calls.
         /// </summary>
         /// <param name="formatter">The data formatter to create the scope for.</param>
-        /// <param name="type">The type of the object, or null if type information is not needed.</param>
         /// <returns>A <see cref="FormatterObjectScope"/> that will automatically end the object when disposed.</returns>
-        public static FormatterObjectScope EnterObject(this IDataFormatter formatter, [CanBeNull] Type type = null)
+        public static FormatterObjectScope EnterObject(this IDataFormatter formatter)
         {
             if (formatter == null)
             {
                 throw new ArgumentNullException(nameof(formatter));
             }
 
-            return FormatterObjectScope.Create(formatter, type);
+            return FormatterObjectScope.Create(formatter);
+        }
+
+        /// <summary>
+        /// Creates an object scope that automatically manages the BeginObject/EndObject calls.
+        /// </summary>
+        /// <param name="formatter">The data formatter to create the scope for.</param>
+        /// <param name="type">The type of the object. In Write mode, this type is written to the output if enabled by formatter settings.
+        /// In Read mode, the type is read from the input and returned via this parameter.</param>
+        /// <returns>A <see cref="FormatterObjectScope"/> that will automatically end the object when disposed.</returns>
+        public static FormatterObjectScope EnterObject(this IDataFormatter formatter, ref Type type)
+        {
+            if (formatter == null)
+            {
+                throw new ArgumentNullException(nameof(formatter));
+            }
+
+            return FormatterObjectScope.Create(formatter, ref type);
         }
 
         /// <summary>

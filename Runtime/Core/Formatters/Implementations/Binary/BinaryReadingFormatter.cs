@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using EasyToolkit.Core.Pooling;
+using EasyToolkit.Core.Reflection;
 using EasyToolkit.Serialization.Utilities;
 
 namespace EasyToolkit.Serialization.Formatters.Implementations
@@ -78,7 +79,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         }
 
         /// <inheritdoc />
-        protected override void BeginObject(Type type)
+        protected override void BeginObject(ref Type type)
         {
             if (GetRemainingLength() == 0)
             {
@@ -110,12 +111,13 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
                                 $"Type ID {typeId} not found in type dictionary.");
                         }
 
-                        if (foundType != type)
+                        if (!foundType.IsDerivedFrom(type))
                         {
                             throw new DataFormatException(
                                 $"Type mismatch in binary data. Expected type '{type}', found '{foundType}'.");
                         }
 
+                        type = foundType;
                         break;
                     }
                     case BinaryFormatterTag.TypeName:
@@ -123,13 +125,14 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
                         var typeNameLength = ReadUInt32Optimized();
                         var typeName = ReadString((int)typeNameLength);
                         var foundType = SerializedTypeUtility.NameToType(typeName);
-                        if (foundType != type)
+                        if (!foundType.IsDerivedFrom(type))
                         {
                             throw new DataFormatException(
                                 $"Type mismatch in binary data. Expected type '{type}', found '{foundType}'.");
                         }
 
-                        _typeById[_typeById.Count] = type;
+                        _typeById[_typeById.Count] = foundType;
+                        type = foundType;
                         break;
                     }
                     default:

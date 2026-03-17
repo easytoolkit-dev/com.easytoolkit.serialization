@@ -47,6 +47,10 @@ namespace EasyToolkit.Serialization.Resolvers.Implementations
                 ? easySerializableAttribute.AllowUnmarkedStructs
                 : context.AllowUnmarkedStructs;
 
+            var useRuntimeTypeSerialization = easySerializableAttribute is { IsDefinedUseRuntimeTypeSerialization: true }
+                ? easySerializableAttribute.UseRuntimeTypeSerialization
+                : context.UseRuntimeTypeSerialization;
+
             var members = new List<SerializationMemberDefinition>();
 
             var memberInfos = valueType.GetMembers(MemberAccessFlags.AllInstance)
@@ -87,7 +91,10 @@ namespace EasyToolkit.Serialization.Resolvers.Implementations
                     DefaultValue = null,
                     ValueGetter = CreateValueGetter(memberInfo),
                     ValueSetter = CreateValueSetter(memberInfo),
-                    Processor = processor
+                    Processor = processor,
+                    UseRuntimeType = useRuntimeTypeSerialization && memberType.IsClass && memberType != typeof(string),
+                    AllowAnonymousTypes = allowAnonymousTypes,
+                    AllowUnmarkedStructs = allowUnmarkedStructs
                 };
 
                 members.Add(memberDefinition);
@@ -258,6 +265,20 @@ namespace EasyToolkit.Serialization.Resolvers.Implementations
             }
             catch (Exception)
             {
+                if (memberInfo is PropertyInfo propertyInfo)
+                {
+                    if (propertyInfo.TryGetBackingField(out var backingField))
+                    {
+                        try
+                        {
+                            return ReflectionCompiler.CreateInstanceFieldSetter(backingField);
+                        }
+                        catch (Exception)
+                        {
+                            return null;
+                        }
+                    }
+                }
                 return null;
             }
         }

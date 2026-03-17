@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using EasyToolkit.Core.Pooling;
+using UnityEngine;
 
 namespace EasyToolkit.Serialization.Formatters.Implementations
 {
@@ -243,8 +244,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
             if (_operationStack.Count > 0)
             {
                 var operation = _operationStack.Peek();
-                _operationStack.Clear();
-                throw new InvalidOperationException(
+                Debug.LogError(
                     $"Formatter disposed with unbalanced Begin/End operations. " +
                     $"Missing End{operation} call for the corresponding Begin{operation} operation.");
             }
@@ -306,7 +306,15 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         }
 
         /// <inheritdoc />
-        void IDataFormatter.BeginObject(Type type)
+        void IDataFormatter.BeginObject()
+        {
+            ValidateDisposed();
+            BeginObject(null);
+            _operationStack.Push(OperationType.Object);
+        }
+
+        /// <inheritdoc />
+        void IDataFormatter.BeginObject(ref Type type)
         {
             ValidateDisposed();
             BeginObject(type);

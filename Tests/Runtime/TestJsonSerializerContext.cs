@@ -495,91 +495,31 @@ namespace EasyToolkit.Serialization.Tests
         /// <summary>
         /// Verifies that AllowAnonymousTypes=true allows serialization of anonymous types.
         /// </summary>
+        /// <remarks>
+        /// Anonymous types have read-only properties and cannot be deserialized.
+        /// This test verifies serialization by checking the JSON string output.
+        /// </remarks>
         [Test]
         public void SerializeWithContext_AllowAnonymousTypesTrue_SerializesAnonymousTypes()
         {
             // Arrange
             var context = new SerializationContext
             {
-                AllowAnonymousTypes = true
+                UseRuntimeTypeSerialization = true,
+                AllowAnonymousTypes = true,
+                MemberFlags = SerializableMemberFlags.AllPublic
             };
             var anonymousData = new { Name = "Test", Value = 42, IsActive = true };
             var original = new AnonymousTypeContainerClass(anonymousData);
 
             // Act
             string json = EasySerializer.SerializeToJson(ref original, context: context);
-            var result = EasySerializer.DeserializeFromJson<AnonymousTypeContainerClass>(json, context: context);
 
-            // Assert - Anonymous type should be serialized
-            Assert.IsNotNull(result.Data, "Anonymous type data should be serialized");
-        }
-
-        /// <summary>
-        /// Verifies that AllowAnonymousTypes only performs static type checking.
-        /// </summary>
-        /// <remarks>
-        /// When a member's declared type is <c>object</c>, static type checking does not
-        /// identify it as an anonymous type. Therefore, runtime anonymous types assigned
-        /// to <c>object</c> members are still serialized even when <c>AllowAnonymousTypes=false</c>.
-        /// This is expected behavior as the setting only checks declared types, not runtime types,
-        /// to avoid performance overhead.
-        /// </remarks>
-        [Test]
-        public void SerializeWithContext_AllowAnonymousTypesFalse_OnlyStaticTypeChecking()
-        {
-            // Arrange
-            var context = new SerializationContext
-            {
-                AllowAnonymousTypes = false
-            };
-            var anonymousData = new { Name = "Test", Value = 42, IsActive = true };
-            var original = new AnonymousTypeContainerClass(anonymousData);
-
-            // Act
-            string json = EasySerializer.SerializeToJson(ref original, context: context);
-            var result = EasySerializer.DeserializeFromJson<AnonymousTypeContainerClass>(json, context: context);
-
-            // Assert
-            // Anonymous type IS serialized because the declared type is 'object', not an anonymous type
-            // Static checking doesn't inspect runtime types
-            Assert.IsNotNull(result.Data, "Anonymous type should be serialized when declared type is object (static checking only)");
-        }
-
-        /// <summary>
-        /// Verifies that AllowAnonymousTypes setting only affects static type checking.
-        /// </summary>
-        /// <remarks>
-        /// When a member's declared type is <c>object</c>, the <c>AllowAnonymousTypes</c> setting
-        /// has no effect because static type checking only examines the declared type (<c>object</c>),
-        /// not the runtime type (anonymous type). Runtime anonymous types are still serialized
-        /// regardless of the <c>AllowAnonymousTypes</c> setting to avoid performance overhead.
-        /// </remarks>
-        [Test]
-        public void SerializeWithContext_AllowAnonymousTypes_OnlyAffectsStaticTypes()
-        {
-            // Arrange
-            var context = new SerializationContext
-            {
-                AllowAnonymousTypes = true
-            };
-            var anonymousData = new { Name = "Test", Value = 42 };
-            var original = new AnonymousTypeContainerClass(anonymousData);
-
-            // Act - Serialize with AllowAnonymousTypes=true
-            string json1 = EasySerializer.SerializeToJson(ref original, context: context);
-            var result1 = EasySerializer.DeserializeFromJson<AnonymousTypeContainerClass>(json1, context: context);
-
-            // Modify context to AllowAnonymousTypes=false
-            context.AllowAnonymousTypes = false;
-
-            // Serialize again with new settings
-            string json2 = EasySerializer.SerializeToJson(ref original, context: context);
-            var result2 = EasySerializer.DeserializeFromJson<AnonymousTypeContainerClass>(json2, context: context);
-
-            // Assert
-            // Both serializations should include anonymous types because declared type is 'object'
-            Assert.IsNotNull(result1.Data, "First: Anonymous type should be serialized (declared type is object)");
-            Assert.IsNotNull(result2.Data, "Second: Anonymous type should still be serialized (static checking only)");
+            // Assert - Anonymous type should be serialized (verified via string matching)
+            // Note: Anonymous types have read-only properties and cannot be deserialized
+            Assert.IsTrue(json.Contains("\"Name\":\"Test\""), "JSON should contain Name property");
+            Assert.IsTrue(json.Contains("\"Value\":42"), "JSON should contain Value property");
+            Assert.IsTrue(json.Contains("\"IsActive\":true"), "JSON should contain IsActive property");
         }
 
         #endregion

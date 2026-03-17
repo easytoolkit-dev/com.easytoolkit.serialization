@@ -50,16 +50,36 @@ namespace EasyToolkit.Serialization.Formatters
         void BeginMember(string name);
 
         /// <summary>
-        /// Begins serialization of a complex object with optional type information.
+        /// Begins serialization of a complex object without type information.
         /// </summary>
-        /// <param name="type">The type of the object, or null if type information is not needed.</param>
+        /// <remarks>
+        /// Objects are complex types containing multiple members.
+        /// This overload does not write or read type information, regardless of formatter settings.
+        /// Use <see cref="BeginObject(ref Type)"/> overload when type information handling is required.
+        /// Call <see cref="EndObject"/> to complete the object.
+        /// </remarks>
+        void BeginObject();
+
+        /// <summary>
+        /// Begins serialization of a complex object with type information.
+        /// </summary>
+        /// <param name="type">The type of the object. In Write mode, this type is written to the output if enabled by formatter settings.
+        /// In Read mode, the type is read from the input and returned via this parameter.</param>
         /// <remarks>
         /// Objects are complex types containing multiple members.
         /// The type parameter is used by formatters that support polymorphic serialization
         /// (e.g., Binary formatter can write type information when IncludeObjectType is enabled).
+        ///
+        /// Write mode: When <paramref name="type"/> is not null and formatter settings enable
+        /// type inclusion (e.g., <c>IncludeObjectType</c>), the type information is written to output.
+        ///
+        /// Read mode: Reads the type information from input and assigns it to <paramref name="type"/>.
+        /// If the input <paramref name="type"/> is not null, validates that the read type is
+        /// compatible (inherits from or implements) the expected type.
+        ///
         /// Call <see cref="EndObject"/> to complete the object.
         /// </remarks>
-        void BeginObject([CanBeNull] Type type = null);
+        void BeginObject(ref Type type);
 
         /// <summary>
         /// Ends the current object serialization scope.

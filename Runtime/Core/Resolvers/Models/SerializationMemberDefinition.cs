@@ -41,5 +41,35 @@ namespace EasyToolkit.Serialization.Resolvers
         [CanBeNull] public InstanceSetter ValueSetter { get; set; }
 
         public ISerializationProcessor Processor { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether to use runtime type for processor lookup during serialization.
+        /// </summary>
+        /// <remarks>
+        /// When <c>true</c>, the processor will use the runtime type of the value instead of the
+        /// declared member type to find the appropriate serialization processor. This enables
+        /// polymorphic serialization for reference types. Only applicable to reference types.
+        /// </remarks>
+        public bool UseRuntimeType { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether to allow unmarked struct types during serialization.
+        /// </summary>
+        /// <remarks>
+        /// When <c>true</c>, struct types that are not marked with <see cref="SerializableAttribute"/>
+        /// or <see cref="EasySerializableAttribute"/> will still be serialized. This is useful for
+        /// third-party structs or simple value types that cannot be modified. Only applicable to struct types.
+        /// </remarks>
+        public bool AllowUnmarkedStructs { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether to allow anonymous types during serialization.
+        /// </summary>
+        /// <remarks>
+        /// When <c>true</c>, anonymous types will be serialized. Anonymous types are compiler-generated
+        /// types that cannot be marked with serialization attributes. This enables serialization of
+        /// LINQ query results and other anonymous type instances.
+        /// </remarks>
+        public bool AllowAnonymousTypes { get; set; }
     }
 }

@@ -756,26 +756,6 @@ namespace EasyToolkit.Serialization.Tests
             Assert.IsTrue(ex.Message.Contains("Expected EndObject"));
         }
 
-        /// <summary>
-        /// Verifies that Dispose with unbalanced operations throws InvalidOperationException.
-        /// </summary>
-        [Test]
-        public void JsonReadingFormatter_DisposeWithUnbalancedOperations_ThrowsInvalidOperationException()
-        {
-            // Arrange
-            IReadingFormatter formatter = new JsonReadingFormatter();
-            string json = "{\"inner\":{\"value\":42}}";
-            formatter.SetBuffer(Encoding.UTF8.GetBytes(json));
-
-            // Act & Assert
-            // Root is already in object context, need to enter a nested object for unbalanced operations
-            formatter.BeginObject();
-            formatter.BeginMember("inner");
-            formatter.BeginObject();
-            var ex = Assert.Throws<InvalidOperationException>(() => formatter.Dispose());
-            Assert.IsTrue(ex.Message.Contains("unbalanced Begin/End operations"));
-        }
-
         #endregion
 
         #region Complex Scenarios

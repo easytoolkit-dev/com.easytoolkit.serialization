@@ -22,14 +22,29 @@ namespace EasyToolkit.Serialization.Formatters
         /// Creates a new instance of the <see cref="FormatterObjectScope"/> class from the object pool.
         /// </summary>
         /// <param name="formatter">The data formatter to manage the object scope for.</param>
-        /// <param name="type">The type of the object, or null if type information is not needed.</param>
         /// <returns>A new or reused instance of <see cref="FormatterObjectScope"/>.</returns>
-        public static FormatterObjectScope Create(IDataFormatter formatter, [CanBeNull] Type type = null)
+        public static FormatterObjectScope Create(IDataFormatter formatter)
         {
             var scope = PoolUtility.RentObject<FormatterObjectScope>();
             scope._formatter = formatter ?? throw new ArgumentNullException(nameof(formatter));
             scope._disposed = false;
-            scope._formatter.BeginObject(type);
+            scope._formatter.BeginObject();
+            return scope;
+        }
+
+        /// <summary>
+        /// Creates a new instance of the <see cref="FormatterObjectScope"/> class from the object pool.
+        /// </summary>
+        /// <param name="formatter">The data formatter to manage the object scope for.</param>
+        /// <param name="type">The type of the object. In Write mode, this type is written to the output if enabled by formatter settings.
+        /// In Read mode, the type is read from the input and returned via this parameter.</param>
+        /// <returns>A new or reused instance of <see cref="FormatterObjectScope"/>.</returns>
+        public static FormatterObjectScope Create(IDataFormatter formatter, ref Type type)
+        {
+            var scope = PoolUtility.RentObject<FormatterObjectScope>();
+            scope._formatter = formatter ?? throw new ArgumentNullException(nameof(formatter));
+            scope._disposed = false;
+            scope._formatter.BeginObject(ref type);
             return scope;
         }
 

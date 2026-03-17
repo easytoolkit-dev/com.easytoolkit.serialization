@@ -34,7 +34,8 @@ namespace EasyToolkit.Serialization.Processors
 
         private void SerializeAsBinary(ref DateTime value, IDataFormatter formatter)
         {
-            using var scope = formatter.EnterObject(ValueType);
+            var valueType = ValueType;
+            using var scope = formatter.EnterObject(ref valueType);
 
             var ticks = value.Ticks;
             _ticksProcessor.Process("Ticks", ref ticks, formatter);

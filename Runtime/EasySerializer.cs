@@ -34,7 +34,7 @@ namespace EasyToolkit.Serialization
             }
 
             var processor = context.GetProcessor(valueType,
-                _ => SerializationProcessorFactory.CreateProcessor(valueType, context));
+                type => SerializationProcessorFactory.CreateProcessor(type, context));
             if (processor == null)
             {
                 throw new SerializationException(
@@ -191,7 +191,7 @@ namespace EasyToolkit.Serialization
             formatter.SetObjectTable(serializationData.ReferencedUnityObjects);
 
             var processor = context.GetProcessor(valueType,
-                _ => SerializationProcessorFactory.CreateProcessor(valueType, context));
+                type => SerializationProcessorFactory.CreateProcessor(type, context));
             if (processor == null)
             {
                 throw new SerializationException(

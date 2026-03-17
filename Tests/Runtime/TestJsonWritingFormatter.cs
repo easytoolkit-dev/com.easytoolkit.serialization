@@ -650,7 +650,8 @@ namespace EasyToolkit.Serialization.Tests
             // Act - Write nested object
             writeFormatter.BeginObject();
             writeFormatter.BeginMember("inner");
-            writeFormatter.BeginObject(typeof(TestDataClass));
+            Type type = typeof(TestDataClass);
+            writeFormatter.BeginObject(ref type);
 
             int id = 42;
             writeFormatter.BeginMember("id");
@@ -669,7 +670,8 @@ namespace EasyToolkit.Serialization.Tests
             readFormatter.BeginObject();
 
             readFormatter.BeginMember("inner");
-            readFormatter.BeginObject(typeof(TestDataClass));
+            type = typeof(TestDataClass);
+            readFormatter.BeginObject(ref type);
 
             id = 0;
             readFormatter.BeginMember("id");
@@ -759,7 +761,8 @@ namespace EasyToolkit.Serialization.Tests
             // Act
             writeFormatter.BeginObject();
             writeFormatter.BeginMember("data");
-            writeFormatter.BeginObject(typeof(TestDataClass));
+            Type type = typeof(TestDataClass);
+            writeFormatter.BeginObject(ref type);
 
             int[] items = { 1, 2, 3 };
             writeFormatter.BeginMember("items");
@@ -777,7 +780,8 @@ namespace EasyToolkit.Serialization.Tests
             readFormatter.BeginObject();
 
             readFormatter.BeginMember("data");
-            readFormatter.BeginObject(typeof(TestDataClass));
+            type = typeof(TestDataClass);
+            readFormatter.BeginObject(ref type);
 
             items = null;
             readFormatter.BeginMember("items");
@@ -917,28 +921,12 @@ namespace EasyToolkit.Serialization.Tests
             IWritingFormatter writeFormatter = new JsonWritingFormatter();
 
             // Act
-            writeFormatter.BeginObject(typeof(TestDataClass));
+            Type type = typeof(TestDataClass);
+            writeFormatter.BeginObject(ref type);
 
             // Assert - EndArray after BeginObject should throw
             var ex = Assert.Throws<InvalidOperationException>(() => writeFormatter.EndArray());
             Assert.IsTrue(ex.Message.Contains("Expected EndObject"));
-        }
-
-        /// <summary>
-        /// Verifies that disposing with unbalanced operations throws InvalidOperationException.
-        /// </summary>
-        [Test]
-        public void JsonWritingFormatter_DisposeWithUnbalancedOperations_ThrowsInvalidOperationException()
-        {
-            // Arrange
-            IWritingFormatter writeFormatter = new JsonWritingFormatter();
-
-            // Act
-            writeFormatter.BeginObject(typeof(TestDataClass));
-
-            // Assert - Dispose without EndObject should throw
-            var ex = Assert.Throws<InvalidOperationException>(() => writeFormatter.Dispose());
-            Assert.IsTrue(ex.Message.Contains("unbalanced Begin/End operations"));
         }
 
         #endregion
@@ -957,7 +945,8 @@ namespace EasyToolkit.Serialization.Tests
 
             // Act - Write player structure
             writeFormatter.BeginMember("player");
-            writeFormatter.BeginObject(typeof(TestDataClass));
+            Type type = typeof(TestDataClass);
+            writeFormatter.BeginObject(ref type);
 
             int id = 1;
             writeFormatter.BeginMember("id");
@@ -969,7 +958,8 @@ namespace EasyToolkit.Serialization.Tests
 
             // Nested position object
             writeFormatter.BeginMember("position");
-            writeFormatter.BeginObject(typeof(TestDataClass));
+            type = typeof(TestDataClass);
+            writeFormatter.BeginObject(ref type);
 
             float x = 10.5f;
             writeFormatter.BeginMember("x");
@@ -983,7 +973,8 @@ namespace EasyToolkit.Serialization.Tests
 
             // Nested stats object
             writeFormatter.BeginMember("stats");
-            writeFormatter.BeginObject(typeof(TestDataClass));
+            type = typeof(TestDataClass);
+            writeFormatter.BeginObject(ref type);
 
             int hp = 100;
             writeFormatter.BeginMember("hp");

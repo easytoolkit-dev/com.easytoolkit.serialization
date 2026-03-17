@@ -76,7 +76,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         }
 
         /// <inheritdoc />
-        protected override void BeginObject(Type type)
+        protected override void BeginObject(ref Type type)
         {
             if (_root == null)
             {
