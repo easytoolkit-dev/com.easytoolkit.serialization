@@ -265,6 +265,27 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         }
 
         /// <summary>
+        /// Reads a decimal value from the buffer.
+        /// Deserializes the decimal from four 32-bit integers (lo, mid, hi, flags).
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private decimal ReadDecimal()
+        {
+            const int size = 4 * sizeof(int); // 4 ints = 16 bytes
+            if (_position + size > _buffer.Length)
+                throw new EndOfStreamException(
+                    $"Attempted to read {size} bytes but only {_buffer.Length - _position} bytes available.");
+
+            var bits = new int[4];
+            for (int i = 0; i < 4; i++)
+            {
+                bits[i] = (int)ReadUInt32Fixed();
+            }
+
+            return new decimal(bits);
+        }
+
+        /// <summary>
         /// Reads a primitive array from the buffer using direct memory copy.
         /// </summary>
         /// <typeparam name="T">The primitive type (sbyte, short, int, long, ushort, uint, ulong).</typeparam>

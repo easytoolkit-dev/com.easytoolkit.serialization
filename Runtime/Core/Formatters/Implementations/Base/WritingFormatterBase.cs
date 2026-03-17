@@ -108,6 +108,8 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         protected abstract void Format(ref double value);
 
+        protected abstract void Format(ref decimal value);
+
         protected abstract void Format(ref string str);
 
         protected virtual void Format(ref byte[] data)
@@ -401,6 +403,13 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         /// <inheritdoc />
         void IDataFormatter.Format(ref double value)
+        {
+            ValidateDisposed();
+            Format(ref value);
+        }
+
+        /// <inheritdoc />
+        void IDataFormatter.Format(ref decimal value)
         {
             ValidateDisposed();
             Format(ref value);

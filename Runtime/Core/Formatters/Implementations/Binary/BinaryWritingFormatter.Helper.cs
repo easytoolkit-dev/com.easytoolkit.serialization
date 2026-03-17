@@ -280,6 +280,21 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         }
 
         /// <summary>
+        /// Writes a decimal value to the buffer.
+        /// Serializes the decimal as four 32-bit integers (lo, mid, hi, flags).
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void WriteDecimal(decimal value)
+        {
+            // Get the bits of the decimal: [0]=lo, [1]=mid, [2]=hi, [3]=flags
+            var bits = decimal.GetBits(value);
+            foreach (var bit in bits)
+            {
+                WriteUInt32Fixed((uint)bit);
+            }
+        }
+
+        /// <summary>
         /// Writes a primitive array to the buffer using direct memory copy.
         /// </summary>
         /// <typeparam name="T">The unmanaged type of elements in the array.</typeparam>

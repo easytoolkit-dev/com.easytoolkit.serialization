@@ -227,6 +227,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         }
 
         /// <inheritdoc />
+        protected override void Format(ref decimal value)
+        {
+            value = ReadAndValidateDecimal();
+        }
+
+        /// <inheritdoc />
         protected override void Format(ref string str)
         {
             str = ReadAndValidateString();
@@ -345,6 +351,13 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
             AdvanceArrayIndex();
             return node.AsDouble;
+        }
+
+        private decimal ReadAndValidateDecimal()
+        {
+            var stringValue = ReadAndValidateString();
+            // Parse from string to preserve decimal precision
+            return decimal.Parse(stringValue, System.Globalization.CultureInfo.InvariantCulture);
         }
 
         private float ReadAndValidateFloat()

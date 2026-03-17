@@ -182,6 +182,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         }
 
         /// <inheritdoc />
+        protected override void Format(ref decimal value)
+        {
+            AddToCurrentNode(value);
+        }
+
+        /// <inheritdoc />
         protected override void Format(ref string str)
         {
             if (str == null)
@@ -287,6 +293,17 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
                 node.AsObject.Add(_currentMemberName, value);
                 _currentMemberName = null;
             }
+        }
+
+        /// <summary>
+        /// Adds a value node to the current JSON node context.
+        /// Handles both object member assignment and array element addition.
+        /// </summary>
+        /// <param name="value">The value to add.</param>
+        private void AddToCurrentNode(decimal value)
+        {
+            var stringValue = value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            AddToCurrentNode(stringValue);
         }
 
         /// <summary>

@@ -170,6 +170,12 @@ namespace EasyToolkit.Serialization.Formatters
         void Format(ref double value);
 
         /// <summary>
+        /// Serializes or deserializes a decimal value.
+        /// </summary>
+        /// <param name="value">The decimal value to read or write.</param>
+        void Format(ref decimal value);
+
+        /// <summary>
         /// Serializes or deserializes a string value.
         /// </summary>
         /// <param name="str">The string value to read or write.</param>

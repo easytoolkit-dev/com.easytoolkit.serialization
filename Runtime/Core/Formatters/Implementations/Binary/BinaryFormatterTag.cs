@@ -64,69 +64,74 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         Double = 0x1A,
 
         /// <summary>
+        /// Tag for decimal (decimal) values.
+        /// </summary>
+        Decimal = 0x1B,
+
+        /// <summary>
         /// Tag for string (string) values. Followed by length-prefixed UTF-8 bytes.
         /// </summary>
-        String = 0x1B,
+        String = 0x1C,
 
         /// <summary>
         /// Tag for byte array (byte[]) values. Followed by length-prefixed bytes.
         /// </summary>
-        ByteArray = 0x1C,
+        ByteArray = 0x1D,
 
         /// <summary>
         /// Tag for sbyte array (sbyte[]) values. Followed by length-prefixed bytes.
         /// </summary>
-        SByteArray = 0x1D,
+        SByteArray = 0x1E,
 
         /// <summary>
         /// Tag for short array (short[]) values. Followed by length-prefixed bytes.
         /// </summary>
-        Int16Array = 0x1E,
+        Int16Array = 0x1F,
 
         /// <summary>
         /// Tag for int array (int[]) values. Followed by length-prefixed bytes.
         /// </summary>
-        Int32Array = 0x1F,
+        Int32Array = 0x20,
 
         /// <summary>
         /// Tag for long array (long[]) values. Followed by length-prefixed bytes.
         /// </summary>
-        Int64Array = 0x20,
+        Int64Array = 0x21,
 
         /// <summary>
         /// Tag for ushort array (ushort[]) values. Followed by length-prefixed bytes.
         /// </summary>
-        UInt16Array = 0x21,
+        UInt16Array = 0x22,
 
         /// <summary>
         /// Tag for uint array (uint[]) values. Followed by length-prefixed bytes.
         /// </summary>
-        UInt32Array = 0x22,
+        UInt32Array = 0x23,
 
         /// <summary>
         /// Tag for ulong array (ulong[]) values. Followed by length-prefixed bytes.
         /// </summary>
-        UInt64Array = 0x23,
+        UInt64Array = 0x24,
 
         /// <summary>
         /// Tag for boolean array (bool[]) values. Followed by length-prefixed packed bytes (8 bools per byte).
         /// </summary>
-        BooleanArray = 0x24,
+        BooleanArray = 0x25,
 
         /// <summary>
         /// Tag for Unity object reference values. Followed by varint32 reference index.
         /// </summary>
-        UnityObjectRef = 0x25,
+        UnityObjectRef = 0x26,
 
         /// <summary>
         /// Tag for generic unmanaged values (custom structs, enums). Followed by raw bytes.
         /// </summary>
-        UnmanagedValue = 0x25,
+        UnmanagedValue = 0x27,
 
         /// <summary>
         /// Tag for generic unmanaged array values (custom struct arrays, enum arrays). Followed by length-prefixed raw bytes.
         /// </summary>
-        UnmanagedArray = 0x26,
+        UnmanagedArray = 0x28,
 
         #endregion
 

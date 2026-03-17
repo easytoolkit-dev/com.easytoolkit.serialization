@@ -291,6 +291,91 @@ namespace EasyToolkit.Serialization.Tests
             Assert.AreEqual(9007199254740991ul, result);
         }
 
+        /// <summary>
+        /// Verifies that serializing and deserializing a decimal produces the original value.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_Decimal_ReturnsOriginalValue()
+        {
+            // Arrange
+            decimal original = 123.456789m;
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            decimal result = EasySerializer.DeserializeFromJson<decimal>(json);
+
+            // Assert
+            Assert.AreEqual(123.456789m, result);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing a negative decimal produces the original value.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_NegativeDecimal_ReturnsOriginalValue()
+        {
+            // Arrange
+            decimal original = -99999.9999m;
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            decimal result = EasySerializer.DeserializeFromJson<decimal>(json);
+
+            // Assert
+            Assert.AreEqual(-99999.9999m, result);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing a very large decimal produces the original value.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_LargeDecimal_ReturnsOriginalValue()
+        {
+            // Arrange
+            decimal original = 79228162514264337593543950335m;
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            decimal result = EasySerializer.DeserializeFromJson<decimal>(json);
+
+            // Assert
+            Assert.AreEqual(79228162514264337593543950335m, result);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing a very small negative decimal produces the original value.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_SmallDecimal_ReturnsOriginalValue()
+        {
+            // Arrange
+            decimal original = -79228162514264337593543950335m;
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            decimal result = EasySerializer.DeserializeFromJson<decimal>(json);
+
+            // Assert
+            Assert.AreEqual(-79228162514264337593543950335m, result);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing decimal with high precision produces the original value.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_HighPrecisionDecimal_ReturnsOriginalValue()
+        {
+            // Arrange
+            decimal original = 0.0000000000000000000000000001m;
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            decimal result = EasySerializer.DeserializeFromJson<decimal>(json);
+
+            // Assert
+            Assert.AreEqual(0.0000000000000000000000000001m, result);
+        }
+
         #endregion
 
         #region String

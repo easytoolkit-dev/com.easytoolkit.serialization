@@ -360,6 +360,13 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         }
 
         /// <inheritdoc />
+        protected override void Format(ref decimal value)
+        {
+            ReadAndValidateOptionTag(BinaryFormatterTag.Decimal, "decimal");
+            value = ReadDecimal();
+        }
+
+        /// <inheritdoc />
         protected override void Format(ref string str)
         {
             ReadAndValidateOptionTag(BinaryFormatterTag.String, "string");

@@ -298,6 +298,13 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         }
 
         /// <inheritdoc />
+        protected override void Format(ref decimal value)
+        {
+            WriteOptionTag(BinaryFormatterTag.Decimal);
+            WriteDecimal(value);
+        }
+
+        /// <inheritdoc />
         protected override void Format(ref string str)
         {
             WriteOptionTag(BinaryFormatterTag.String);
