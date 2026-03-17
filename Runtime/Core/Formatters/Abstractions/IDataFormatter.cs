@@ -300,6 +300,8 @@ namespace EasyToolkit.Serialization.Formatters
         /// </remarks>
         void Format(ref UnityEngine.Object unityObject);
 
+        void FormatNullable(ref bool isNull);
+
         /// <summary>
         /// Serializes or deserializes a generic primitive value using direct memory operations.
         /// </summary>

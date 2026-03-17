@@ -278,6 +278,21 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         protected abstract void Format(ref UnityEngine.Object unityObject);
 
+        /// <summary>
+        /// Formats the null state as a tag marker for any nullable type.
+        /// </summary>
+        /// <param name="isNull">Whether the value is null (true) or has a value (false).</param>
+        /// <remarks>
+        /// This method handles the null flag serialization for any type that can be null, including:
+        /// - Nullable value types (e.g., int?, bool?, float?)
+        /// - Reference types (e.g., class instances, strings)
+        ///
+        /// Format-specific behavior:
+        /// - Binary: Reads a boolean value directly
+        /// - JSON: Reads a null token as a marker
+        /// </remarks>
+        protected abstract void FormatNullable(ref bool isNull);
+
         protected virtual void FormatGenericPrimitive<T>(ref T value) where T : unmanaged
         {
             throw new NotSupportedException(
@@ -593,6 +608,17 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
                 return;
             }
             FormatGenericPrimitive(ref data);
+        }
+
+        /// <inheritdoc />
+        void IDataFormatter.FormatNullable(ref bool isNull)
+        {
+            ValidateDisposed();
+            if (!ValidateStreamBeforeRead(ref isNull))
+            {
+                return;
+            }
+            FormatNullable(ref isNull);
         }
 
         /// <summary>

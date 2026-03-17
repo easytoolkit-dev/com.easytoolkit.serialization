@@ -215,6 +215,17 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         }
 
         /// <inheritdoc />
+        protected override void FormatNullable(ref bool isNull)
+        {
+            var node = GetCurrentNode();
+            isNull = node.IsNull;
+            if (node.IsNull)
+            {
+                AdvanceArrayIndex();
+            }
+        }
+
+        /// <inheritdoc />
         protected override void Format(ref float value)
         {
             value = ReadAndValidateFloat();

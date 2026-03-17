@@ -511,6 +511,13 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         }
 
         /// <inheritdoc />
+        protected override void FormatNullable(ref bool isNull)
+        {
+            var byteValue = ReadByte();
+            isNull = byteValue != 0;
+        }
+
+        /// <inheritdoc />
         protected override void FormatGenericPrimitive<T>(ref T value)
         {
             ReadAndValidateOptionTag(BinaryFormatterTag.UnmanagedValue, "unmanaged value");

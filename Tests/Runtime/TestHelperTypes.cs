@@ -25,6 +25,11 @@ namespace EasyToolkit.Serialization.Tests
         public UnityEngine.Vector3 Position;
         public List<int> Scores;
         public byte[] Data;
+        public int? OptionalId;
+        public float? OptionalHealth;
+        public bool? OptionalIsActive;
+        public DateTime? OptionalTimestamp;
+        public Guid? OptionalGuid;
     }
 
 

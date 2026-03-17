@@ -170,6 +170,16 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         }
 
         /// <inheritdoc />
+        protected override void FormatNullable(ref bool isNull)
+        {
+            if (isNull)
+            {
+                AddToCurrentNode((JSONNode)JSONNull.CreateOrGet());
+            }
+            // Non-null: do nothing, actual value will be written by subsequent Format calls
+        }
+
+        /// <inheritdoc />
         protected override void Format(ref float value)
         {
             AddToCurrentNode(value);

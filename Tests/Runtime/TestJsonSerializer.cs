@@ -378,6 +378,308 @@ namespace EasyToolkit.Serialization.Tests
 
         #endregion
 
+        #region Nullable Types
+
+        /// <summary>
+        /// Verifies that serializing and deserializing a nullable int with a value produces the original value.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_NullableIntWithValue_ReturnsOriginalValue()
+        {
+            // Arrange
+            int? original = 42;
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            int? result = EasySerializer.DeserializeFromJson<int?>(json);
+
+            // Assert
+            Assert.IsTrue(result.HasValue);
+            Assert.AreEqual(42, result.Value);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing a nullable int with null produces null.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_NullableIntWithNull_ReturnsNull()
+        {
+            // Arrange
+            int? original = null;
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            int? result = EasySerializer.DeserializeFromJson<int?>(json);
+
+            // Assert
+            Assert.IsFalse(result.HasValue);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing a nullable bool with a true value produces the original value.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_NullableBoolTrue_ReturnsOriginalValue()
+        {
+            // Arrange
+            bool? original = true;
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            bool? result = EasySerializer.DeserializeFromJson<bool?>(json);
+
+            // Assert
+            Assert.IsTrue(result.HasValue);
+            Assert.IsTrue(result.Value);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing a nullable bool with false produces the original value.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_NullableBoolFalse_ReturnsOriginalValue()
+        {
+            // Arrange
+            bool? original = false;
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            bool? result = EasySerializer.DeserializeFromJson<bool?>(json);
+
+            // Assert
+            Assert.IsTrue(result.HasValue);
+            Assert.IsFalse(result.Value);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing a nullable bool with null produces null.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_NullableBoolWithNull_ReturnsNull()
+        {
+            // Arrange
+            bool? original = null;
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            bool? result = EasySerializer.DeserializeFromJson<bool?>(json);
+
+            // Assert
+            Assert.IsFalse(result.HasValue);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing a nullable float with a value produces the original value.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_NullableFloatWithValue_ReturnsOriginalValue()
+        {
+            // Arrange
+            float? original = 3.14159f;
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            float? result = EasySerializer.DeserializeFromJson<float?>(json);
+
+            // Assert
+            Assert.IsTrue(result.HasValue);
+            Assert.AreEqual(3.14159f, result.Value, 0.00001f);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing a nullable float with null produces null.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_NullableFloatWithNull_ReturnsNull()
+        {
+            // Arrange
+            float? original = null;
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            float? result = EasySerializer.DeserializeFromJson<float?>(json);
+
+            // Assert
+            Assert.IsFalse(result.HasValue);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing a nullable double with a value produces the original value.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_NullableDoubleWithValue_ReturnsOriginalValue()
+        {
+            // Arrange
+            double? original = 123.456789;
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            double? result = EasySerializer.DeserializeFromJson<double?>(json);
+
+            // Assert
+            Assert.IsTrue(result.HasValue);
+            Assert.AreEqual(123.456789, result.Value, 0.0000001);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing a nullable double with null produces null.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_NullableDoubleWithNull_ReturnsNull()
+        {
+            // Arrange
+            double? original = null;
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            double? result = EasySerializer.DeserializeFromJson<double?>(json);
+
+            // Assert
+            Assert.IsFalse(result.HasValue);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing a nullable long with a value produces the original value.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_NullableLongWithValue_ReturnsOriginalValue()
+        {
+            // Arrange
+            long? original = 12345678901234;
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            long? result = EasySerializer.DeserializeFromJson<long?>(json);
+
+            // Assert
+            Assert.IsTrue(result.HasValue);
+            Assert.AreEqual(12345678901234, result.Value);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing a nullable long with null produces null.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_NullableLongWithNull_ReturnsNull()
+        {
+            // Arrange
+            long? original = null;
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            long? result = EasySerializer.DeserializeFromJson<long?>(json);
+
+            // Assert
+            Assert.IsFalse(result.HasValue);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing a nullable decimal with a value produces the original value.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_NullableDecimalWithValue_ReturnsOriginalValue()
+        {
+            // Arrange
+            decimal? original = 123.456789m;
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            decimal? result = EasySerializer.DeserializeFromJson<decimal?>(json);
+
+            // Assert
+            Assert.IsTrue(result.HasValue);
+            Assert.AreEqual(123.456789m, result.Value);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing a nullable decimal with null produces null.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_NullableDecimalWithNull_ReturnsNull()
+        {
+            // Arrange
+            decimal? original = null;
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            decimal? result = EasySerializer.DeserializeFromJson<decimal?>(json);
+
+            // Assert
+            Assert.IsFalse(result.HasValue);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing a nullable DateTime with a value produces the original value.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_NullableDateTimeWithValue_ReturnsOriginalValue()
+        {
+            // Arrange
+            DateTime? original = new DateTime(2025, 3, 16, 14, 30, 45, DateTimeKind.Local);
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            DateTime? result = EasySerializer.DeserializeFromJson<DateTime?>(json);
+
+            // Assert
+            Assert.IsTrue(result.HasValue);
+            Assert.AreEqual(new DateTime(2025, 3, 16, 14, 30, 45, DateTimeKind.Local), result.Value);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing a nullable DateTime with null produces null.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_NullableDateTimeWithNull_ReturnsNull()
+        {
+            // Arrange
+            DateTime? original = null;
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            DateTime? result = EasySerializer.DeserializeFromJson<DateTime?>(json);
+
+            // Assert
+            Assert.IsFalse(result.HasValue);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing a nullable Guid with a value produces the original value.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_NullableGuidWithValue_ReturnsOriginalValue()
+        {
+            // Arrange
+            Guid? original = new Guid("12345678-1234-1234-1234-123456789abc");
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            Guid? result = EasySerializer.DeserializeFromJson<Guid?>(json);
+
+            // Assert
+            Assert.IsTrue(result.HasValue);
+            Assert.AreEqual(new Guid("12345678-1234-1234-1234-123456789abc"), result.Value);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing a nullable Guid with null produces null.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_NullableGuidWithNull_ReturnsNull()
+        {
+            // Arrange
+            Guid? original = null;
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            Guid? result = EasySerializer.DeserializeFromJson<Guid?>(json);
+
+            // Assert
+            Assert.IsFalse(result.HasValue);
+        }
+
+        #endregion
+
         #region String
 
         /// <summary>
@@ -902,7 +1204,105 @@ namespace EasyToolkit.Serialization.Tests
             Assert.IsFalse(result.IsActive);
             Assert.AreEqual(UnityEngine.Vector3.zero, result.Position);
             Assert.IsNull(result.Scores);
-            Assert.AreEqual(Array.Empty<byte>(), result.Data);
+            Assert.AreEqual(null, result.Data);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing a complex object with nullable fields having values produces the original value.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_ComplexObjectWithNullableValues_ReturnsOriginalValue()
+        {
+            // Arrange
+            var original = new TestDataClass
+            {
+                Id = 200,
+                Name = "NullableTest",
+                Health = 50.5f,
+                IsActive = true,
+                Position = new UnityEngine.Vector3(5, 10, 15),
+                Scores = new List<int> { 10, 20 },
+                Data = new byte[] { 1, 2 },
+                OptionalId = 999,
+                OptionalHealth = 99.9f,
+                OptionalIsActive = false,
+                OptionalTimestamp = new DateTime(2025, 3, 17, 12, 30, 45, DateTimeKind.Local),
+                OptionalGuid = new Guid("abcdef01-1234-5678-90ab-cdef12345678")
+            };
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            var result = EasySerializer.DeserializeFromJson<TestDataClass>(json);
+
+            // Assert
+            Assert.AreEqual(200, result.Id);
+            Assert.AreEqual("NullableTest", result.Name);
+            Assert.AreEqual(50.5f, result.Health, 0.0001f);
+            Assert.IsTrue(result.IsActive);
+            Assert.AreEqual(5, result.Position.x, 0.00001f);
+            Assert.AreEqual(10, result.Position.y, 0.00001f);
+            Assert.AreEqual(15, result.Position.z, 0.00001f);
+            Assert.AreEqual(2, result.Scores.Count);
+            Assert.AreEqual(10, result.Scores[0]);
+            Assert.AreEqual(20, result.Scores[1]);
+            Assert.AreEqual(1, result.Data[0]);
+            Assert.AreEqual(2, result.Data[1]);
+
+            // Nullable field assertions
+            Assert.IsTrue(result.OptionalId.HasValue);
+            Assert.AreEqual(999, result.OptionalId.Value);
+            Assert.IsTrue(result.OptionalHealth.HasValue);
+            Assert.AreEqual(99.9f, result.OptionalHealth.Value, 0.0001f);
+            Assert.IsTrue(result.OptionalIsActive.HasValue);
+            Assert.IsFalse(result.OptionalIsActive.Value);
+            Assert.IsTrue(result.OptionalTimestamp.HasValue);
+            Assert.AreEqual(new DateTime(2025, 3, 17, 12, 30, 45, DateTimeKind.Local), result.OptionalTimestamp.Value);
+            Assert.IsTrue(result.OptionalGuid.HasValue);
+            Assert.AreEqual(new Guid("abcdef01-1234-5678-90ab-cdef12345678"), result.OptionalGuid.Value);
+        }
+
+        /// <summary>
+        /// Verifies that serializing and deserializing a complex object with nullable fields being null produces null values.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_ComplexObjectWithNullableNulls_ReturnsNullValues()
+        {
+            // Arrange
+            var original = new TestDataClass
+            {
+                Id = 300,
+                Name = "NullableNullTest",
+                Health = 25.0f,
+                IsActive = false,
+                Position = UnityEngine.Vector3.one,
+                Scores = null,
+                Data = null,
+                OptionalId = null,
+                OptionalHealth = null,
+                OptionalIsActive = null,
+                OptionalTimestamp = null,
+                OptionalGuid = null
+            };
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original);
+            var result = EasySerializer.DeserializeFromJson<TestDataClass>(json);
+
+            // Assert
+            Assert.AreEqual(300, result.Id);
+            Assert.AreEqual("NullableNullTest", result.Name);
+            Assert.AreEqual(25.0f, result.Health, 0.0001f);
+            Assert.IsFalse(result.IsActive);
+            Assert.AreEqual(UnityEngine.Vector3.one, result.Position);
+            Assert.IsNull(result.Scores);
+            Assert.IsNull(result.Data);
+
+            // Nullable field null assertions
+            Assert.IsFalse(result.OptionalId.HasValue);
+            Assert.IsFalse(result.OptionalHealth.HasValue);
+            Assert.IsFalse(result.OptionalIsActive.HasValue);
+            Assert.IsFalse(result.OptionalTimestamp.HasValue);
+            Assert.IsFalse(result.OptionalGuid.HasValue);
         }
 
         #endregion

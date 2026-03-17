@@ -432,6 +432,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         }
 
         /// <inheritdoc />
+        protected override void FormatNullable(ref bool isNull)
+        {
+            WriteByte(isNull ? (byte)1 : (byte)0);
+        }
+
+        /// <inheritdoc />
         protected override void FormatGenericPrimitive<T>(ref T value)
         {
             WriteOptionTag(BinaryFormatterTag.UnmanagedValue);
