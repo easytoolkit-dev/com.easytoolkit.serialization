@@ -14,8 +14,7 @@ namespace EasyToolkit.Serialization.Processors
 
         protected override void Process(ref KeyValuePair<TKey, TValue> keyValuePair, IDataFormatter formatter)
         {
-            var valueType = ValueType;
-            using var scope = formatter.EnterObject(ref valueType);
+            using var scope = formatter.EnterObject(ValueType);
 
             var key = keyValuePair.Key;
             _keyProcessor.Process("Key", ref key, formatter);

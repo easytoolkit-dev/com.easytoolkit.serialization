@@ -56,10 +56,12 @@ namespace EasyToolkit.Serialization.Processors
         /// Creates the processor for the specified value type
         /// </summary>
         /// <param name="valueType">The type to get a processor for.</param>
+        /// <param name="context">The serialization context.</param>
+        /// <param name="parent">The parent processor in the serialization hierarchy.</param>
         /// <returns>The created processor.</returns>
-        public static ISerializationProcessor CreateProcessor(Type valueType, SerializationContext context)
+        public static ISerializationProcessor CreateProcessor(Type valueType, SerializationContext context, [CanBeNull] ISerializationProcessor parent)
         {
-            return CreateProcessor(valueType, context, null, null);
+            return CreateProcessor(valueType, context, null, null, parent);
         }
 
         private static void InjectDependencyToProcessor([NotNull] ISerializationProcessor processor, SerializationContext context)
@@ -93,7 +95,7 @@ namespace EasyToolkit.Serialization.Processors
                 if (candidateTypes != null || excludedTypes != null)
                 {
                     var filteredTypes = FilterProcessorTypes(candidateTypes, excludedTypes);
-                    dependency = CreateProcessor(valueType, context, filteredTypes, processor.GetType());
+                    dependency = CreateProcessor(valueType, context, filteredTypes, processor.GetType(), processor);
 
                     if (dependency == null)
                     {
@@ -119,7 +121,7 @@ namespace EasyToolkit.Serialization.Processors
                 }
                 else
                 {
-                    dependency = CreateProcessor(valueType, context, null, processor.GetType());
+                    dependency = CreateProcessor(valueType, context, null, processor.GetType(), processor);
 
                     if (dependency == null)
                     {
@@ -150,7 +152,8 @@ namespace EasyToolkit.Serialization.Processors
             Type valueType,
             SerializationContext context,
             [CanBeNull] Type[] candidateTypes,
-            [CanBeNull] Type owningProcessorType)
+            [CanBeNull] Type owningProcessorType,
+            [CanBeNull] ISerializationProcessor parent)
         {
             var processor = PureCreateProcessor(valueType, context, candidateTypes);
             if (processor == null)
@@ -167,6 +170,7 @@ namespace EasyToolkit.Serialization.Processors
             }
 
             processor.Context = context;
+            processor.Parent = parent;
             InjectDependencyToProcessor(processor, context);
             return processor;
         }

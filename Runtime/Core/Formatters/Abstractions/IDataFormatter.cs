@@ -55,7 +55,7 @@ namespace EasyToolkit.Serialization.Formatters
         /// <remarks>
         /// Objects are complex types containing multiple members.
         /// This overload does not write or read type information, regardless of formatter settings.
-        /// Use <see cref="BeginObject(ref Type)"/> overload when type information handling is required.
+        /// Use <see cref="BeginObject(Type)"/> overload when type information handling is required.
         /// Call <see cref="EndObject"/> to complete the object.
         /// </remarks>
         void BeginObject();
@@ -63,23 +63,24 @@ namespace EasyToolkit.Serialization.Formatters
         /// <summary>
         /// Begins serialization of a complex object with type information.
         /// </summary>
-        /// <param name="type">The type of the object. In Write mode, this type is written to the output if enabled by formatter settings.
-        /// In Read mode, the type is read from the input and returned via this parameter.</param>
+        /// <param name="type">
+        /// The type of the object. In Write mode, this type is written to the output.
+        /// In Read mode, validates that the type in the data matches the expected type.
+        /// </param>
         /// <remarks>
         /// Objects are complex types containing multiple members.
         /// The type parameter is used by formatters that support polymorphic serialization
-        /// (e.g., Binary formatter can write type information when IncludeObjectType is enabled).
         ///
         /// Write mode: When <paramref name="type"/> is not null and formatter settings enable
         /// type inclusion (e.g., <c>IncludeObjectType</c>), the type information is written to output.
         ///
-        /// Read mode: Reads the type information from input and assigns it to <paramref name="type"/>.
-        /// If the input <paramref name="type"/> is not null, validates that the read type is
-        /// compatible (inherits from or implements) the expected type.
+        /// Read mode: Validates that the type in the data is compatible (inherits from or implements)
+        /// the expected <paramref name="type"/>. Does not modify the type parameter.
+        /// To preview the type without advancing position, use <see cref="IReadingFormatter.PeekType()"/>.
         ///
         /// Call <see cref="EndObject"/> to complete the object.
         /// </remarks>
-        void BeginObject(ref Type type);
+        void BeginObject(Type type);
 
         /// <summary>
         /// Ends the current object serialization scope.

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using EasyToolkit.Core.Reflection;
 using EasyToolkit.Serialization.Formatters;
 using EasyToolkit.Serialization.Resolvers;
@@ -9,40 +8,6 @@ using JetBrains.Annotations;
 
 namespace EasyToolkit.Serialization.Processors
 {
-    static class GenericProcessorHelper
-    {
-        private static readonly ConcurrentDictionary<Type, ParameterlessConstructorInvoker> ConstructorInvokerByType = new();
-
-        public static ParameterlessConstructorInvoker GetConstructorInvokerByType(Type type)
-        {
-            return ConstructorInvokerByType.GetOrAdd(type, CreateConstructorInvoker);
-        }
-
-        private static ParameterlessConstructorInvoker CreateConstructorInvoker(Type type)
-        {
-            var isClassType = type.IsClass && type != typeof(string);
-            var isInstantiableType = type.IsInstantiable(allowLenient: true);
-            if (!isClassType || !isInstantiableType)
-            {
-                return null;
-            }
-
-            foreach (var constructorInfo in type.GetConstructors(MemberAccessFlags.AllInstance))
-            {
-                try
-                {
-                    return ReflectionCompiler.CreateParameterlessConstructorInvoker(constructorInfo, autoFillParameters: true);
-                }
-                catch
-                {
-                    return null;
-                }
-            }
-
-            return null;
-        }
-    }
-
     [ProcessorConfiguration(ProcessorPriorityLevel.Generic)]
     public class GenericProcessor<T> : SerializationProcessor<T>
     {
@@ -72,7 +37,7 @@ namespace EasyToolkit.Serialization.Processors
         }
 
         private SerializationMemberDefinition[] _memberDefinitions;
-        private readonly ConcurrentDictionary<Type, SerializationMemberDefinition[]> MemberDefinitionsByType = new();
+        private readonly ConcurrentDictionary<Type, ISerializationProcessor> _processorByType = new();
 
         public override bool CanProcess(Type valueType, SerializationContext context)
         {
@@ -112,20 +77,38 @@ namespace EasyToolkit.Serialization.Processors
 
         protected override void Process(ref T value, IDataFormatter formatter)
         {
-            var valueType = ValueType;
-            if (value != null)
-            {
-                valueType = value.GetType();
-            }
-            using var scope = formatter.EnterObject(ref valueType);
+            var valueType = typeof(T);
 
-            var memberDefinitions = _memberDefinitions;
-            if (valueType != ValueType)
+            if (Parent?.UseRuntimeTypeSerialization == true)
             {
-                memberDefinitions = MemberDefinitionsByType.GetOrAdd(valueType, ResolverMemberDefinitions);
+                if (formatter is IReadingFormatter readingFormatter)
+                {
+                    valueType = readingFormatter.PeekType(expectedType: valueType);
+                    if (valueType != null && valueType != ValueType)
+                    {
+                        var processor = _processorByType.GetOrAdd(valueType, CreateProcessor);
+                        object boxedValue = null;
+                        processor.Parent = Parent;
+                        processor.ProcessUntyped(ref boxedValue, formatter);
+                        processor.Parent = this;
+                        value = (T)boxedValue;
+                        return;
+                    }
+
+                    valueType ??= typeof(T);
+                }
+                else
+                {
+                    if (value != null)
+                    {
+                        valueType = value.GetType();
+                    }
+                }
             }
 
-            foreach (var memberDefinition in memberDefinitions)
+            using var scope = formatter.EnterObject(valueType);
+
+            foreach (var memberDefinition in _memberDefinitions)
             {
                 object memberValue = null;
 
@@ -135,7 +118,7 @@ namespace EasyToolkit.Serialization.Processors
                     if (getter == null)
                     {
                         throw new SerializationException(
-                            $"Cannot serialize member '{memberDefinition.Name}' on type '{valueType}'. " +
+                            $"Cannot serialize member '{memberDefinition.Name}' on type '{typeof(T)}'. " +
                             $"The member does not have a readable getter. Ensure the member is either a field or a property with a get accessor.");
                     }
 
@@ -146,7 +129,7 @@ namespace EasyToolkit.Serialization.Processors
                     catch (Exception ex)
                     {
                         throw new SerializationException(
-                            $"Failed to get value from member '{memberDefinition.Name}' on type '{valueType}'. " +
+                            $"Failed to get value from member '{memberDefinition.Name}' on type '{typeof(T)}'. " +
                             $"The getter threw an exception of type '{ex.GetType()}'. " +
                             $"Check that the getter is not performing invalid operations during serialization.", ex);
                     }
@@ -193,7 +176,7 @@ namespace EasyToolkit.Serialization.Processors
                                 }
                             }
 
-                            var runtimeProcessor = SerializationProcessorFactory.CreateProcessor(runtimeType, Context);
+                            var runtimeProcessor = _processorByType.GetOrAdd(runtimeType, CreateProcessor);
                             if (runtimeProcessor == null)
                             {
                                 throw new SerializationException(
@@ -225,34 +208,20 @@ namespace EasyToolkit.Serialization.Processors
                     if (setter == null)
                     {
                         throw new SerializationException(
-                            $"Cannot deserialize member '{memberDefinition.Name}' on type '{valueType}'. " +
+                            $"Cannot deserialize member '{memberDefinition.Name}' on type '{typeof(T)}'. " +
                             $"The member does not have a writable setter. Ensure the member is either a field or a property with a set accessor.");
                     }
 
                     if (value == null)
                     {
-                        if (ValueType == valueType)
+                        if (ConstructorInvoker == null)
                         {
-                            if (ConstructorInvoker == null)
-                            {
-                                throw new SerializationException(
-                                    $"Cannot deserialize into type '{valueType}' because the instance is null and cannot be automatically constructed. "
-                                    + $"The type must have an accessible parameterless constructor, or a constructor whose parameters can be filled with default values.");
-                            }
+                            throw new SerializationException(
+                                $"Cannot deserialize into type '{typeof(T)}' because the instance is null and cannot be automatically constructed. "
+                                + $"The type must have an accessible parameterless constructor, or a constructor whose parameters can be filled with default values.");
+                        }
 
-                            value = ConstructorInvoker();
-                        }
-                        else
-                        {
-                            var constructorInvoker = GenericProcessorHelper.GetConstructorInvokerByType(valueType);
-                            if (constructorInvoker == null)
-                            {
-                                throw new SerializationException(
-                                    $"Cannot deserialize into type '{valueType}' because the instance is null and cannot be automatically constructed. "
-                                    + $"The type must have an accessible parameterless constructor, or a constructor whose parameters can be filled with default values.");
-                            }
-                            value = (T)constructorInvoker();
-                        }
+                        value = ConstructorInvoker();
                     }
 
                     object boxedValue = value;
@@ -263,7 +232,7 @@ namespace EasyToolkit.Serialization.Processors
                     catch (Exception ex)
                     {
                         throw new SerializationException(
-                            $"Failed to set value on member '{memberDefinition.Name}' on type '{valueType}'. " +
+                            $"Failed to set value on member '{memberDefinition.Name}' on type '{typeof(T)}'. " +
                             $"The setter threw an exception of type '{ex.GetType()}'. " +
                             $"Check that the setter is not performing invalid operations during deserialization " +
                             $"or that the deserialized value is compatible with the member type.", ex);
@@ -274,9 +243,14 @@ namespace EasyToolkit.Serialization.Processors
             }
         }
 
+        private ISerializationProcessor CreateProcessor(Type valueType)
+        {
+            return SerializationProcessorFactory.CreateProcessor(valueType, Context, this);
+        }
+
         private SerializationMemberDefinition[] ResolverMemberDefinitions(Type valueType)
         {
-            return SerializationStructureResolverFactory.GetResolver(valueType).Resolve(valueType, Context);
+            return SerializationStructureResolverFactory.GetResolver(valueType).Resolve(valueType, Context, this);
         }
     }
 }

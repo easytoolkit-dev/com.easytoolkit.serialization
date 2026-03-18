@@ -34,15 +34,13 @@ namespace EasyToolkit.Serialization
             }
 
             var processor = context.GetProcessor(valueType,
-                type => SerializationProcessorFactory.CreateProcessor(type, context));
+                type => SerializationProcessorFactory.CreateProcessor(type, context, parent: null));
             if (processor == null)
             {
                 throw new SerializationException(
                     $"Cannot serialize type '{valueType}'. No serialization processor found for this type. " +
                     $"Ensure the type is either a primitive type, a collection, or marked with [Serializable] or [EasySerializable].");
             }
-
-            processor.IsRoot = true;
 
             if (typeof(T) == valueType)
             {
@@ -191,15 +189,13 @@ namespace EasyToolkit.Serialization
             formatter.SetObjectTable(serializationData.ReferencedUnityObjects);
 
             var processor = context.GetProcessor(valueType,
-                type => SerializationProcessorFactory.CreateProcessor(type, context));
+                type => SerializationProcessorFactory.CreateProcessor(type, context, parent: null));
             if (processor == null)
             {
                 throw new SerializationException(
                     $"Cannot deserialize type '{valueType}'. No serialization processor found for this type. " +
                     $"Ensure the type is either a primitive type, a collection, or marked with [Serializable] or [EasySerializable].");
             }
-
-            processor.IsRoot = true;
             processor.ProcessUntyped(ref result, formatter);
 
             return result;

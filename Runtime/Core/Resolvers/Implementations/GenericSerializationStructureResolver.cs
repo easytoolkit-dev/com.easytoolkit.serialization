@@ -22,7 +22,7 @@ namespace EasyToolkit.Serialization.Resolvers.Implementations
         }
 
         /// <inheritdoc/>
-        public SerializationMemberDefinition[] Resolve(Type valueType, SerializationContext context)
+        public SerializationMemberDefinition[] Resolve(Type valueType, SerializationContext context, ISerializationProcessor parent)
         {
             var easySerializableAttribute = SerializedTypeUtility.GetDefinedEasySerializableAttribute(valueType);
 
@@ -72,7 +72,7 @@ namespace EasyToolkit.Serialization.Resolvers.Implementations
                     serializedName = memberInfo.Name;
                 }
 
-                var processor = SerializationProcessorFactory.CreateProcessor(memberType, context);
+                var processor = SerializationProcessorFactory.CreateProcessor(memberType, context, parent);
                 if (processor == null)
                 {
                     Debug.LogError(

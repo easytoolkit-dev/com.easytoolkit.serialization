@@ -650,8 +650,7 @@ namespace EasyToolkit.Serialization.Tests
             // Act - Write nested object
             writeFormatter.BeginObject();
             writeFormatter.BeginMember("inner");
-            Type type = typeof(TestDataClass);
-            writeFormatter.BeginObject(ref type);
+            writeFormatter.BeginObject(typeof(TestDataClass));
 
             int id = 42;
             writeFormatter.BeginMember("id");
@@ -670,8 +669,7 @@ namespace EasyToolkit.Serialization.Tests
             readFormatter.BeginObject();
 
             readFormatter.BeginMember("inner");
-            type = typeof(TestDataClass);
-            readFormatter.BeginObject(ref type);
+            readFormatter.BeginObject(typeof(TestDataClass));
 
             id = 0;
             readFormatter.BeginMember("id");
@@ -761,8 +759,7 @@ namespace EasyToolkit.Serialization.Tests
             // Act
             writeFormatter.BeginObject();
             writeFormatter.BeginMember("data");
-            Type type = typeof(TestDataClass);
-            writeFormatter.BeginObject(ref type);
+            writeFormatter.BeginObject(typeof(TestDataClass));
 
             int[] items = { 1, 2, 3 };
             writeFormatter.BeginMember("items");
@@ -780,8 +777,7 @@ namespace EasyToolkit.Serialization.Tests
             readFormatter.BeginObject();
 
             readFormatter.BeginMember("data");
-            type = typeof(TestDataClass);
-            readFormatter.BeginObject(ref type);
+            readFormatter.BeginObject(typeof(TestDataClass));
 
             items = null;
             readFormatter.BeginMember("items");
@@ -922,7 +918,7 @@ namespace EasyToolkit.Serialization.Tests
 
             // Act
             Type type = typeof(TestDataClass);
-            writeFormatter.BeginObject(ref type);
+            writeFormatter.BeginObject(type);
 
             // Assert - EndArray after BeginObject should throw
             var ex = Assert.Throws<InvalidOperationException>(() => writeFormatter.EndArray());
@@ -946,7 +942,7 @@ namespace EasyToolkit.Serialization.Tests
             // Act - Write player structure
             writeFormatter.BeginMember("player");
             Type type = typeof(TestDataClass);
-            writeFormatter.BeginObject(ref type);
+            writeFormatter.BeginObject(type);
 
             int id = 1;
             writeFormatter.BeginMember("id");
@@ -959,7 +955,7 @@ namespace EasyToolkit.Serialization.Tests
             // Nested position object
             writeFormatter.BeginMember("position");
             type = typeof(TestDataClass);
-            writeFormatter.BeginObject(ref type);
+            writeFormatter.BeginObject(type);
 
             float x = 10.5f;
             writeFormatter.BeginMember("x");
@@ -974,7 +970,7 @@ namespace EasyToolkit.Serialization.Tests
             // Nested stats object
             writeFormatter.BeginMember("stats");
             type = typeof(TestDataClass);
-            writeFormatter.BeginObject(ref type);
+            writeFormatter.BeginObject(type);
 
             int hp = 100;
             writeFormatter.BeginMember("hp");

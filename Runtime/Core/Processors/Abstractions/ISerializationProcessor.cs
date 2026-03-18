@@ -1,25 +1,35 @@
 using System;
 using EasyToolkit.Serialization.Formatters;
+using JetBrains.Annotations;
 
 namespace EasyToolkit.Serialization.Processors
 {
-    public interface ISerializationProcessor
+    public interface ISerializationProcessor : ISerializationSettingsAccessor
     {
         /// <summary>
         /// Gets the value type this serializer is designed for.
         /// </summary>
         Type ValueType { get; }
-        bool IsRoot { get; internal set; }
 
         /// <summary>
-        /// Gets the serialization context associated with this processor.
+        /// Gets or sets the parent processor in the serialization hierarchy.
+        /// </summary>
+        /// <remarks>
+        /// The parent is null for root processors. This allows processors to understand
+        /// their position in the serialization hierarchy and adjust behavior accordingly.
+        /// </remarks>
+        [CanBeNull]
+        ISerializationProcessor Parent { get; set; }
+
+        /// <summary>
+        /// Gets or sets the serialization context associated with this processor.
         /// </summary>
         /// <remarks>
         /// The context provides runtime configuration for serialization behavior,
         /// including reflection settings and processor cache. Processors within
         /// the same serialization hierarchy share the same context.
         /// </remarks>
-        SerializationContext Context { get; internal set; }
+        SerializationContext Context { get; set; }
 
         bool CanProcess(Type valueType, SerializationContext context);
 

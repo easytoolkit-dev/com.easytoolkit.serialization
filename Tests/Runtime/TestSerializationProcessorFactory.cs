@@ -468,7 +468,7 @@ namespace EasyToolkit.Serialization.Tests
 
         private ISerializationProcessor CreateProcessor(Type type)
         {
-            return SerializationProcessorFactory.CreateProcessor(type, SerializationContext.Shared);
+            return SerializationProcessorFactory.CreateProcessor(type, SerializationContext.Shared, null);
         }
     }
 }

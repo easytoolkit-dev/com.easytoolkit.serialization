@@ -36,15 +36,17 @@ namespace EasyToolkit.Serialization.Formatters
         /// Creates a new instance of the <see cref="FormatterObjectScope"/> class from the object pool.
         /// </summary>
         /// <param name="formatter">The data formatter to manage the object scope for.</param>
-        /// <param name="type">The type of the object. In Write mode, this type is written to the output if enabled by formatter settings.
-        /// In Read mode, the type is read from the input and returned via this parameter.</param>
+        /// <param name="type">
+        /// The type of the object. In Write mode, this type is written to the output.
+        /// In Read mode, validates that the type in the data matches the expected type.
+        /// </param>
         /// <returns>A new or reused instance of <see cref="FormatterObjectScope"/>.</returns>
-        public static FormatterObjectScope Create(IDataFormatter formatter, ref Type type)
+        public static FormatterObjectScope Create(IDataFormatter formatter, Type type)
         {
             var scope = PoolUtility.RentObject<FormatterObjectScope>();
             scope._formatter = formatter ?? throw new ArgumentNullException(nameof(formatter));
             scope._disposed = false;
-            scope._formatter.BeginObject(ref type);
+            scope._formatter.BeginObject(type);
             return scope;
         }
 

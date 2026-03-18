@@ -601,4 +601,90 @@ namespace EasyToolkit.Serialization.Tests
     }
 
     #endregion
+
+    #region Runtime Type Serialization Test Types
+
+    /// <summary>Base class for testing runtime type serialization.</summary>
+    [EasySerializable]
+    public class Animal
+    {
+        public string Name;
+
+        public Animal()
+        {
+        }
+
+        public Animal(string name)
+        {
+            Name = name;
+        }
+    }
+
+    /// <summary>Derived class for testing runtime type serialization.</summary>
+    [EasySerializable]
+    public class Dog : Animal
+    {
+        public string Breed;
+
+        public Dog()
+        {
+        }
+
+        public Dog(string name, string breed) : base(name)
+        {
+            Breed = breed;
+        }
+    }
+
+    /// <summary>Another derived class for testing runtime type serialization.</summary>
+    [EasySerializable]
+    public class Cat : Animal
+    {
+        public bool IsIndoor;
+
+        public Cat()
+        {
+        }
+
+        public Cat(string name, bool isIndoor) : base(name)
+        {
+            IsIndoor = isIndoor;
+        }
+    }
+
+    /// <summary>Container class for testing polymorphic serialization.</summary>
+    [EasySerializable]
+    public class PetContainer
+    {
+        public Animal Pet;
+
+        public PetContainer()
+        {
+        }
+
+        public PetContainer(Animal pet)
+        {
+            Pet = pet;
+        }
+    }
+
+    /// <summary>Container class with multiple animals for testing runtime type serialization.</summary>
+    [EasySerializable]
+    public class ZooContainer
+    {
+        public Animal PrimaryAnimal;
+        public Animal SecondaryAnimal;
+
+        public ZooContainer()
+        {
+        }
+
+        public ZooContainer(Animal primary, Animal secondary)
+        {
+            PrimaryAnimal = primary;
+            SecondaryAnimal = secondary;
+        }
+    }
+
+    #endregion
 }

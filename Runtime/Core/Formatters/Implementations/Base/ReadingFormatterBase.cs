@@ -82,7 +82,9 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         protected abstract void BeginMember(string name);
 
-        protected abstract void BeginObject(ref Type type);
+        protected abstract void BeginObject(Type expectedType);
+
+        protected abstract Type PeekType(Type expectedType);
 
         protected abstract void EndObject();
 
@@ -331,16 +333,15 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         void IDataFormatter.BeginObject()
         {
             ValidateDisposed();
-            Type type = null;
-            BeginObject(ref type);
+            BeginObject(null);
             _operationStack.Push(OperationType.Object);
         }
 
         /// <inheritdoc />
-        void IDataFormatter.BeginObject(ref Type type)
+        void IDataFormatter.BeginObject(Type type)
         {
             ValidateDisposed();
-            BeginObject(ref type);
+            BeginObject(type);
             _operationStack.Push(OperationType.Object);
         }
 
@@ -753,6 +754,13 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         {
             ValidateDisposed();
             return GetRemainingLength();
+        }
+
+        /// <inheritdoc />
+        Type IReadingFormatter.PeekType(Type expectedType)
+        {
+            ValidateDisposed();
+            return PeekType(expectedType);
         }
 
         void IPoolObject.OnRent()

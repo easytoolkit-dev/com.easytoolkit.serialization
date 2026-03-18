@@ -1,6 +1,6 @@
 using System;
-using EasyToolkit.Core.Reflection;
 using EasyToolkit.Serialization.Formatters;
+using EasyToolkit.Serialization.Utilities;
 using JetBrains.Annotations;
 
 namespace EasyToolkit.Serialization.Processors
@@ -8,23 +8,40 @@ namespace EasyToolkit.Serialization.Processors
     public abstract class SerializationProcessor<T> : ISerializationProcessor<T>
     {
         private bool _isInitialized;
-        private bool _isRoot;
-
-        /// <summary>
-        /// Gets the value type this serializer handles.
-        /// </summary>
-        public Type ValueType => typeof(T);
-
-        public bool IsRoot => _isRoot;
-
-        public SerializationContext Context { get; private set; }
+        [CanBeNull] private EasySerializableAttribute _attribute;
+        private bool _useRuntimeTypeSerialization;
+        private SerializableMemberFlags _memberFlags;
+        private bool _requireSerializeFieldOnNonPublic;
+        private bool _excludeNonSerialized;
+        private bool _allowAnonymousTypes;
+        private bool _allowUnmarkedStructs;
 
         /// <inheritdoc/>
-        SerializationContext ISerializationProcessor.Context
-        {
-            get => Context;
-            set => Context = value;
-        }
+        public Type ValueType => typeof(T);
+
+        /// <inheritdoc/>
+        public ISerializationProcessor Parent { get; set; }
+
+        /// <inheritdoc/>
+        public SerializationContext Context { get; set; }
+
+        /// <inheritdoc/>
+        public bool UseRuntimeTypeSerialization => _useRuntimeTypeSerialization;
+
+        /// <inheritdoc/>
+        public SerializableMemberFlags MemberFlags => _memberFlags;
+
+        /// <inheritdoc/>
+        public bool RequireSerializeFieldOnNonPublic => _requireSerializeFieldOnNonPublic;
+
+        /// <inheritdoc/>
+        public bool ExcludeNonSerialized => _excludeNonSerialized;
+
+        /// <inheritdoc/>
+        public bool AllowAnonymousTypes => _allowAnonymousTypes;
+
+        /// <inheritdoc/>
+        public bool AllowUnmarkedStructs => _allowUnmarkedStructs;
 
         public virtual bool CanProcess(Type valueType, SerializationContext context) => true;
 
@@ -43,7 +60,7 @@ namespace EasyToolkit.Serialization.Processors
         /// <param name="formatter">The data formatter to use for processing.</param>
         protected virtual void Process(string name, ref T value, IDataFormatter formatter)
         {
-            if (!IsRoot)
+            if (Parent != null)
             {
                 formatter.BeginMember(name);
             }
@@ -58,15 +75,29 @@ namespace EasyToolkit.Serialization.Processors
         {
             if (!_isInitialized)
             {
+                _attribute = SerializedTypeUtility.GetDefinedEasySerializableAttribute(typeof(T));
+                _useRuntimeTypeSerialization = _attribute is { IsDefinedUseRuntimeTypeSerialization: true }
+                    ? _attribute.UseRuntimeTypeSerialization
+                    : Context.UseRuntimeTypeSerialization;
+                _memberFlags = _attribute is { IsDefinedMemberFlags: true }
+                    ? _attribute.MemberFlags
+                    : Context.MemberFlags;
+                _requireSerializeFieldOnNonPublic = _attribute is { IsDefinedRequireSerializeFieldOnNonPublic: true }
+                    ? _attribute.RequireSerializeFieldOnNonPublic
+                    : Context.RequireSerializeFieldOnNonPublic;
+                _excludeNonSerialized = _attribute is { IsDefinedExcludeNonSerialized: true }
+                    ? _attribute.ExcludeNonSerialized
+                    : Context.ExcludeNonSerialized;
+                _allowAnonymousTypes = _attribute is { IsDefinedAllowAnonymousTypes: true }
+                    ? _attribute.AllowAnonymousTypes
+                    : Context.AllowAnonymousTypes;
+                _allowUnmarkedStructs = _attribute is { IsDefinedAllowUnmarkedStructs: true }
+                    ? _attribute.AllowUnmarkedStructs
+                    : Context.AllowUnmarkedStructs;
+
                 Initialize();
                 _isInitialized = true;
             }
-        }
-
-        bool ISerializationProcessor.IsRoot
-        {
-            get => _isRoot;
-            set => _isRoot = value;
         }
 
         void ISerializationProcessor<T>.Process(ref T value, IDataFormatter formatter)

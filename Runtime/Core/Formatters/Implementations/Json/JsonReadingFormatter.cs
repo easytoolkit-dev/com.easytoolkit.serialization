@@ -76,8 +76,9 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         }
 
         /// <inheritdoc />
-        protected override void BeginObject(ref Type type)
+        protected override void BeginObject(Type expectedType)
         {
+            //TODO: Read expectedType
             if (_root == null)
             {
                 _root = JSON.Parse(_jsonText);
@@ -258,6 +259,13 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
             _root = null;
             _nodeStack.Clear();
             _jsonSettings = null;
+        }
+
+        /// <inheritdoc />
+        protected override Type PeekType(Type expectedType)
+        {
+            //TODO: PeekType in json
+            return null;
         }
 
         /// <summary>

@@ -22,8 +22,7 @@ namespace EasyToolkit.Serialization.Processors
         {
             if (formatter.FormatType == SerializationFormat.Binary)
             {
-                var type = typeof(T);
-                using var scope = formatter.EnterObject(ref type);
+                using var scope = formatter.EnterObject(typeof(T));
                 formatter.FormatGenericPrimitive(ref data);
             }
             else

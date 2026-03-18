@@ -30,5 +30,18 @@ namespace EasyToolkit.Serialization.Formatters
         /// </summary>
         /// <returns>The number of bytes remaining from the current position to the end of the buffer.</returns>
         int GetRemainingLength();
+
+        /// <summary>
+        /// Peeks at the type information of the next object without advancing the read position.
+        /// </summary>
+        /// <param name="expectedType">The expected type to validate against. If null, no type validation is performed.</param>
+        /// <returns>The type of the next object, or null if type information is not available.</returns>
+        /// <remarks>
+        /// This method allows previewing the type information before reading the object.
+        /// Unlike <see cref="IDataFormatter.BeginObject(System.Type)"/>, this method does not
+        /// consume any data or modify the internal position, making it useful for conditional
+        /// deserialization based on the actual type in the stream.
+        /// </remarks>
+        Type PeekType(Type expectedType = null);
     }
 }

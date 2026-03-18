@@ -68,7 +68,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         protected abstract void BeginMember(string name);
 
-        protected abstract void BeginObject(Type type);
+        protected abstract void BeginObject(Type typeToWrite);
 
         protected abstract void EndObject();
 
@@ -314,7 +314,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         }
 
         /// <inheritdoc />
-        void IDataFormatter.BeginObject(ref Type type)
+        void IDataFormatter.BeginObject(Type type)
         {
             ValidateDisposed();
             BeginObject(type);

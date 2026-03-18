@@ -75,6 +75,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void BeginObject(Type type)
         {
+            //TODO: Write type
             var newObject = new JSONObject();
             AddToCurrentNode((JSONNode)newObject);
             _nodeStack.Push(newObject);

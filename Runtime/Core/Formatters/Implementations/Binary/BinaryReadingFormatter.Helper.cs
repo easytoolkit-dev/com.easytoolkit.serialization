@@ -2,6 +2,7 @@
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
+using EasyToolkit.Core.Reflection;
 using EasyToolkit.Serialization.Utilities;
 
 namespace EasyToolkit.Serialization.Formatters.Implementations
@@ -386,6 +387,64 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
                 }
                 throw new DataFormatException(stringBuilder.ToString());
             }
+        }
+
+        private Type ReadAndValidateType(Type expectedType, bool enableValidate = true)
+        {
+            if ((_options & BinaryFormatterOptions.IncludeObjectType) != 0)
+            {
+                var typeTag = ReadTag();
+                Type foundType = null;
+                switch (typeTag)
+                {
+                    case BinaryFormatterTag.NullType:
+                        if (enableValidate && expectedType != null)
+                        {
+                            throw new DataFormatException(
+                                $"Type mismatch in binary data. Expected type '{expectedType}', found null.");
+                        }
+
+                        break;
+                    case BinaryFormatterTag.TypeId:
+                    {
+                        var typeId = (int)ReadUInt32Optimized();
+                        if (!_typeById.TryGetValue(typeId, out foundType))
+                        {
+                            throw new DataFormatException(
+                                $"Type ID {typeId} not found in type dictionary.");
+                        }
+
+                        if (enableValidate && !foundType.IsDerivedFrom(expectedType))
+                        {
+                            throw new DataFormatException(
+                                $"Type mismatch in binary data. Expected type '{expectedType}', found '{foundType}'.");
+                        }
+
+                        break;
+                    }
+                    case BinaryFormatterTag.TypeName:
+                    {
+                        var typeNameLength = ReadUInt32Optimized();
+                        var typeName = ReadString((int)typeNameLength);
+                        foundType = SerializedTypeUtility.NameToType(typeName);
+                        if (enableValidate && !foundType.IsDerivedFrom(expectedType))
+                        {
+                            throw new DataFormatException(
+                                $"Type mismatch in binary data. Expected type '{expectedType}', found '{foundType}'.");
+                        }
+
+                        _typeById[_typeById.Count] = foundType;
+                        break;
+                    }
+                    default:
+                        throw new DataFormatException(
+                            $"Invalid type tag: {typeTag}. Expected NullType, TypeId, or TypeName.");
+                }
+
+                return foundType;
+            }
+
+            return null;
         }
     }
 }
