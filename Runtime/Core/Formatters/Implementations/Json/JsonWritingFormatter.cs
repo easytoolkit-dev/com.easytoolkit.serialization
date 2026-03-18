@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using EasyToolkit.Serialization.Utilities;
 using UnityEngine.Assertions;
 
 namespace EasyToolkit.Serialization.Formatters.Implementations
@@ -77,6 +78,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         {
             //TODO: Write type
             var newObject = new JSONObject();
+
+            if (type != null)
+            {
+                newObject["__meta_type__"] = SerializedTypeUtility.TypeToName(type);
+            }
+
             AddToCurrentNode((JSONNode)newObject);
             _nodeStack.Push(newObject);
         }

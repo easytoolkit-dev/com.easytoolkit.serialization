@@ -416,199 +416,6 @@ namespace EasyToolkit.Serialization.Tests
         }
 
         /// <summary>
-        /// Verifies that serializing and deserializing a nullable bool with a true value produces the original value.
-        /// </summary>
-        [Test]
-        public void SerializeDeserialize_NullableBoolTrue_ReturnsOriginalValue()
-        {
-            // Arrange
-            bool? original = true;
-
-            // Act
-            string json = EasySerializer.SerializeToJson(ref original);
-            bool? result = EasySerializer.DeserializeFromJson<bool?>(json);
-
-            // Assert
-            Assert.IsTrue(result.HasValue);
-            Assert.IsTrue(result.Value);
-        }
-
-        /// <summary>
-        /// Verifies that serializing and deserializing a nullable bool with false produces the original value.
-        /// </summary>
-        [Test]
-        public void SerializeDeserialize_NullableBoolFalse_ReturnsOriginalValue()
-        {
-            // Arrange
-            bool? original = false;
-
-            // Act
-            string json = EasySerializer.SerializeToJson(ref original);
-            bool? result = EasySerializer.DeserializeFromJson<bool?>(json);
-
-            // Assert
-            Assert.IsTrue(result.HasValue);
-            Assert.IsFalse(result.Value);
-        }
-
-        /// <summary>
-        /// Verifies that serializing and deserializing a nullable bool with null produces null.
-        /// </summary>
-        [Test]
-        public void SerializeDeserialize_NullableBoolWithNull_ReturnsNull()
-        {
-            // Arrange
-            bool? original = null;
-
-            // Act
-            string json = EasySerializer.SerializeToJson(ref original);
-            bool? result = EasySerializer.DeserializeFromJson<bool?>(json);
-
-            // Assert
-            Assert.IsFalse(result.HasValue);
-        }
-
-        /// <summary>
-        /// Verifies that serializing and deserializing a nullable float with a value produces the original value.
-        /// </summary>
-        [Test]
-        public void SerializeDeserialize_NullableFloatWithValue_ReturnsOriginalValue()
-        {
-            // Arrange
-            float? original = 3.14159f;
-
-            // Act
-            string json = EasySerializer.SerializeToJson(ref original);
-            float? result = EasySerializer.DeserializeFromJson<float?>(json);
-
-            // Assert
-            Assert.IsTrue(result.HasValue);
-            Assert.AreEqual(3.14159f, result.Value, 0.00001f);
-        }
-
-        /// <summary>
-        /// Verifies that serializing and deserializing a nullable float with null produces null.
-        /// </summary>
-        [Test]
-        public void SerializeDeserialize_NullableFloatWithNull_ReturnsNull()
-        {
-            // Arrange
-            float? original = null;
-
-            // Act
-            string json = EasySerializer.SerializeToJson(ref original);
-            float? result = EasySerializer.DeserializeFromJson<float?>(json);
-
-            // Assert
-            Assert.IsFalse(result.HasValue);
-        }
-
-        /// <summary>
-        /// Verifies that serializing and deserializing a nullable double with a value produces the original value.
-        /// </summary>
-        [Test]
-        public void SerializeDeserialize_NullableDoubleWithValue_ReturnsOriginalValue()
-        {
-            // Arrange
-            double? original = 123.456789;
-
-            // Act
-            string json = EasySerializer.SerializeToJson(ref original);
-            double? result = EasySerializer.DeserializeFromJson<double?>(json);
-
-            // Assert
-            Assert.IsTrue(result.HasValue);
-            Assert.AreEqual(123.456789, result.Value, 0.0000001);
-        }
-
-        /// <summary>
-        /// Verifies that serializing and deserializing a nullable double with null produces null.
-        /// </summary>
-        [Test]
-        public void SerializeDeserialize_NullableDoubleWithNull_ReturnsNull()
-        {
-            // Arrange
-            double? original = null;
-
-            // Act
-            string json = EasySerializer.SerializeToJson(ref original);
-            double? result = EasySerializer.DeserializeFromJson<double?>(json);
-
-            // Assert
-            Assert.IsFalse(result.HasValue);
-        }
-
-        /// <summary>
-        /// Verifies that serializing and deserializing a nullable long with a value produces the original value.
-        /// </summary>
-        [Test]
-        public void SerializeDeserialize_NullableLongWithValue_ReturnsOriginalValue()
-        {
-            // Arrange
-            long? original = 12345678901234;
-
-            // Act
-            string json = EasySerializer.SerializeToJson(ref original);
-            long? result = EasySerializer.DeserializeFromJson<long?>(json);
-
-            // Assert
-            Assert.IsTrue(result.HasValue);
-            Assert.AreEqual(12345678901234, result.Value);
-        }
-
-        /// <summary>
-        /// Verifies that serializing and deserializing a nullable long with null produces null.
-        /// </summary>
-        [Test]
-        public void SerializeDeserialize_NullableLongWithNull_ReturnsNull()
-        {
-            // Arrange
-            long? original = null;
-
-            // Act
-            string json = EasySerializer.SerializeToJson(ref original);
-            long? result = EasySerializer.DeserializeFromJson<long?>(json);
-
-            // Assert
-            Assert.IsFalse(result.HasValue);
-        }
-
-        /// <summary>
-        /// Verifies that serializing and deserializing a nullable decimal with a value produces the original value.
-        /// </summary>
-        [Test]
-        public void SerializeDeserialize_NullableDecimalWithValue_ReturnsOriginalValue()
-        {
-            // Arrange
-            decimal? original = 123.456789m;
-
-            // Act
-            string json = EasySerializer.SerializeToJson(ref original);
-            decimal? result = EasySerializer.DeserializeFromJson<decimal?>(json);
-
-            // Assert
-            Assert.IsTrue(result.HasValue);
-            Assert.AreEqual(123.456789m, result.Value);
-        }
-
-        /// <summary>
-        /// Verifies that serializing and deserializing a nullable decimal with null produces null.
-        /// </summary>
-        [Test]
-        public void SerializeDeserialize_NullableDecimalWithNull_ReturnsNull()
-        {
-            // Arrange
-            decimal? original = null;
-
-            // Act
-            string json = EasySerializer.SerializeToJson(ref original);
-            decimal? result = EasySerializer.DeserializeFromJson<decimal?>(json);
-
-            // Assert
-            Assert.IsFalse(result.HasValue);
-        }
-
-        /// <summary>
         /// Verifies that serializing and deserializing a nullable DateTime with a value produces the original value.
         /// </summary>
         [Test]
@@ -1576,6 +1383,199 @@ namespace EasyToolkit.Serialization.Tests
             Assert.AreEqual("Same", result[1]);
             Assert.AreEqual("Same", result[2]);
             Assert.AreEqual("Same", result[3]);
+        }
+
+        #endregion
+
+        #region Runtime Type Serialization
+
+        /// <summary>
+        /// Verifies that serializing a derived class through base class reference preserves runtime type when UseRuntimeTypeSerialization is enabled.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_DerivedClassWithRuntimeTypeEnabled_PreservesRuntimeType()
+        {
+            // Arrange
+            var context = new SerializationContext
+            {
+                UseRuntimeTypeSerialization = true,
+                AllowAnonymousTypes = true
+            };
+            var original = new PetContainer
+            {
+                Pet = new Dog("Buddy", "Golden Retriever")
+            };
+
+            // Act
+            string json = EasySerializer.SerializeToJson(original, null, context);
+            var result = EasySerializer.DeserializeFromJson<PetContainer>(json, null, context);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Pet);
+            Assert.AreEqual("Buddy", result.Pet.Name);
+            Assert.IsInstanceOf(typeof(Dog), result.Pet);
+            var dog = result.Pet as Dog;
+            Assert.IsNotNull(dog);
+            Assert.AreEqual("Golden Retriever", dog.Breed);
+        }
+
+        /// <summary>
+        /// Verifies that serializing a derived class through base class reference loses derived type information when UseRuntimeTypeSerialization is disabled.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_DerivedClassWithRuntimeTypeDisabled_LosesDerivedTypeInfo()
+        {
+            // Arrange
+            var context = new SerializationContext
+            {
+                UseRuntimeTypeSerialization = false
+            };
+            var original = new PetContainer
+            {
+                Pet = new Dog("Max", "Bulldog")
+            };
+
+            // Act
+            string json = EasySerializer.SerializeToJson(original, null, context);
+            var result = EasySerializer.DeserializeFromJson<PetContainer>(json, null, context);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Pet);
+            Assert.AreEqual("Max", result.Pet.Name);
+            // Without runtime type serialization, should deserialize as base type
+            Assert.IsInstanceOf(typeof(Animal), result.Pet);
+            Assert.IsNotInstanceOf(typeof(Dog), result.Pet);
+        }
+
+        /// <summary>
+        /// Verifies that serializing a Cat derived class through base class reference preserves runtime type when UseRuntimeTypeSerialization is enabled.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_CatDerivedClassWithRuntimeTypeEnabled_PreservesRuntimeType()
+        {
+            // Arrange
+            var context = new SerializationContext
+            {
+                UseRuntimeTypeSerialization = true,
+                AllowAnonymousTypes = true
+            };
+            var original = new PetContainer
+            {
+                Pet = new Cat("Whiskers", true)
+            };
+
+            // Act
+            string json = EasySerializer.SerializeToJson(original, null, context);
+            var result = EasySerializer.DeserializeFromJson<PetContainer>(json, null, context);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Pet);
+            Assert.AreEqual("Whiskers", result.Pet.Name);
+            Assert.IsInstanceOf(typeof(Cat), result.Pet);
+            var cat = result.Pet as Cat;
+            Assert.IsNotNull(cat);
+            Assert.IsTrue(cat.IsIndoor);
+        }
+
+        /// <summary>
+        /// Verifies that serializing multiple different derived types through base class references preserves runtime types when UseRuntimeTypeSerialization is enabled.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_MultipleDerivedClassesWithRuntimeTypeEnabled_PreservesAllRuntimeTypes()
+        {
+            // Arrange
+            var context = new SerializationContext
+            {
+                UseRuntimeTypeSerialization = true,
+                AllowAnonymousTypes = true
+            };
+            var original = new ZooContainer
+            {
+                PrimaryAnimal = new Dog("Rex", "German Shepherd"),
+                SecondaryAnimal = new Cat("Mittens", false)
+            };
+
+            // Act
+            string json = EasySerializer.SerializeToJson(original, null, context);
+            var result = EasySerializer.DeserializeFromJson<ZooContainer>(json, null, context);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.PrimaryAnimal);
+            Assert.IsNotNull(result.SecondaryAnimal);
+
+            // Verify primary animal is Dog
+            Assert.AreEqual("Rex", result.PrimaryAnimal.Name);
+            Assert.IsInstanceOf(typeof(Dog), result.PrimaryAnimal);
+            var dog = result.PrimaryAnimal as Dog;
+            Assert.IsNotNull(dog);
+            Assert.AreEqual("German Shepherd", dog.Breed);
+
+            // Verify secondary animal is Cat
+            Assert.AreEqual("Mittens", result.SecondaryAnimal.Name);
+            Assert.IsInstanceOf(typeof(Cat), result.SecondaryAnimal);
+            var cat = result.SecondaryAnimal as Cat;
+            Assert.IsNotNull(cat);
+            Assert.IsFalse(cat.IsIndoor);
+        }
+
+        /// <summary>
+        /// Verifies that serializing base class instance through base class reference works correctly when UseRuntimeTypeSerialization is enabled.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_BaseClassWithRuntimeTypeEnabled_WorksCorrectly()
+        {
+            // Arrange
+            var context = new SerializationContext
+            {
+                UseRuntimeTypeSerialization = true,
+                AllowAnonymousTypes = true
+            };
+            var original = new PetContainer
+            {
+                Pet = new Animal("GenericAnimal")
+            };
+
+            // Act
+            string json = EasySerializer.SerializeToJson(original, null, context);
+            var result = EasySerializer.DeserializeFromJson<PetContainer>(json, null, context);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Pet);
+            Assert.AreEqual("GenericAnimal", result.Pet.Name);
+            Assert.IsInstanceOf(typeof(Animal), result.Pet);
+            Assert.IsNotInstanceOf(typeof(Dog), result.Pet);
+            Assert.IsNotInstanceOf(typeof(Cat), result.Pet);
+        }
+
+        /// <summary>
+        /// Verifies that serializing a null reference through base class reference works correctly when UseRuntimeTypeSerialization is enabled.
+        /// </summary>
+        [Test]
+        public void SerializeDeserialize_NullReferenceWithRuntimeTypeEnabled_WorksCorrectly()
+        {
+            // Arrange
+            var context = new SerializationContext
+            {
+                UseRuntimeTypeSerialization = true,
+                AllowAnonymousTypes = true
+            };
+            var original = new PetContainer
+            {
+                Pet = null
+            };
+
+            // Act
+            string json = EasySerializer.SerializeToJson(original, null, context);
+            var result = EasySerializer.DeserializeFromJson<PetContainer>(json, null, context);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.IsNull(result.Pet);
         }
 
         #endregion

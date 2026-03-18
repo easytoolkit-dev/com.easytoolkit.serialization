@@ -3,7 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using EasyToolkit.Core.Reflection;
 using EasyToolkit.Core.Textual;
+using EasyToolkit.Serialization.Utilities;
 using JetBrains.Annotations;
 using UnityEngine.Assertions;
 
@@ -83,6 +85,9 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
             {
                 _root = JSON.Parse(_jsonText);
             }
+
+            var enableValidate = expectedType != null;
+            ReadAndValidateType(expectedType, enableValidate);
 
             var node = GetCurrentNode();
             if (!node.IsObject && !node.IsNull)
@@ -264,8 +269,13 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override Type PeekType(Type expectedType)
         {
-            //TODO: PeekType in json
-            return null;
+            if (_root == null)
+            {
+                _root = JSON.Parse(_jsonText);
+            }
+
+            var enableValidate = expectedType != null;
+            return ReadAndValidateType(expectedType, enableValidate);
         }
 
         /// <summary>
@@ -454,6 +464,36 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
             AdvanceArrayIndex();
             return node.Value;
+        }
+
+        private Type ReadAndValidateType(Type expectedType, bool enableValidate = true)
+        {
+            var node = GetCurrentNode();
+            if (!node.IsObject && !node.IsNull)
+            {
+                throw new DataFormatException($"Expected JSON object at '{_currentMemberName}', found {node.Tag}.");
+            }
+
+            var metaTypeNode = node["__meta_type__"];
+            if (metaTypeNode != null)
+            {
+                if (!metaTypeNode.IsString || metaTypeNode.Value.IsNullOrWhiteSpace())
+                {
+                    throw new DataFormatException(
+                        $"The '__meta_type__' field must be a non-empty string containing a valid type name. " +
+                        $"Expected location: '{_currentMemberName}'. Ensure the JSON data includes a valid type name in the '__meta_type__' field.");
+                }
+                var metaType = SerializedTypeUtility.NameToType(metaTypeNode.Value);
+                if (enableValidate && !metaType.IsDerivedFrom(expectedType))
+                {
+                    throw new DataFormatException(
+                        $"Type mismatch in json data. Expected type '{expectedType}', found '{metaType}'.");
+                }
+
+                return metaType;
+            }
+
+            return null;
         }
     }
 }
