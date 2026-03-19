@@ -274,21 +274,19 @@ namespace EasyToolkit.Serialization.Tests
 
         /// <summary>
         /// Verifies that serializing and deserializing a ulong (uint64) produces the original value.
-        /// Note: Uses value within double's precise integer range (±2^53).
         /// </summary>
         [Test]
         public void SerializeDeserialize_ULong_ReturnsOriginalValue()
         {
             // Arrange
-            // Use 2^53-1 which is within double's precise integer range
-            ulong original = 9007199254740991;
+            ulong original = 90071992547409901;
 
             // Act
             string json = EasySerializer.SerializeToJson(ref original);
             ulong result = EasySerializer.DeserializeFromJson<ulong>(json);
 
             // Assert
-            Assert.AreEqual(9007199254740991ul, result);
+            Assert.AreEqual(90071992547409901ul, result);
         }
 
         /// <summary>
