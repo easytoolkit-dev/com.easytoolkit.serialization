@@ -466,14 +466,21 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
                 throw new DataFormatException($"Expected JSON object at '{_currentMemberName}', found {node.Tag}.");
             }
 
-            var metaTypeNode = node["__meta_type__"];
+            // Only read type field if IncludeObjectType option is enabled
+            if ((_jsonSettings?.Options & JsonFormatterOptions.IncludeObjectType) == 0)
+            {
+                return expectedType;
+            }
+
+            var typeNameField = _jsonSettings?.TypeNameField ?? "__meta_type__";
+            var metaTypeNode = node[typeNameField];
             if (metaTypeNode != null)
             {
                 if (!metaTypeNode.IsString || metaTypeNode.Value.IsNullOrWhiteSpace())
                 {
                     throw new DataFormatException(
-                        $"The '__meta_type__' field must be a non-empty string containing a valid type name. " +
-                        $"Expected location: '{_currentMemberName}'. Ensure the JSON data includes a valid type name in the '__meta_type__' field.");
+                        $"The '{typeNameField}' field must be a non-empty string containing a valid type name. " +
+                        $"Expected location: '{_currentMemberName}'. Ensure the JSON data includes a valid type name in the '{typeNameField}' field.");
                 }
                 var metaType = SerializedTypeUtility.NameToType(metaTypeNode.Value);
                 if (enableValidate && !metaType.IsDerivedFrom(expectedType))

@@ -78,9 +78,10 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         {
             var newObject = new JSONObject();
 
-            if (type != null)
+            if (type != null && (_jsonSettings?.Options & JsonFormatterOptions.IncludeObjectType) != 0)
             {
-                newObject["__meta_type__"] = SerializedTypeUtility.TypeToName(type);
+                var typeNameField = _jsonSettings?.TypeNameField ?? "__meta_type__";
+                newObject[typeNameField] = SerializedTypeUtility.TypeToName(type);
             }
 
             AddToCurrentNode((JSONNode)newObject);

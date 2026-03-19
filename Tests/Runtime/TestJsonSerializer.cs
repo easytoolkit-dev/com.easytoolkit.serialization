@@ -1579,5 +1579,120 @@ namespace EasyToolkit.Serialization.Tests
         }
 
         #endregion
+
+        #region JsonFormatterSettings Options
+
+        /// <summary>
+        /// Verifies that serializing with IncludeObjectType option includes type metadata in JSON.
+        /// </summary>
+        [Test]
+        public void SerializeWithOptions_IncludeObjectType_ContainsTypeField()
+        {
+            // Arrange
+            var settings = new SerializationSettings
+            {
+                JsonFormatterSettings = new Formatters.JsonFormatterSettings
+                {
+                    Options = Formatters.JsonFormatterOptions.IncludeObjectType
+                }
+            };
+            var context = new SerializationContext { AllowAnonymousTypes = true };
+            var original = new TestDataClass { Id = 42, Name = "Test" };
+
+            // Act
+            string json = EasySerializer.SerializeToJson(original, settings, context);
+
+            // Assert
+            Assert.IsTrue(json.Contains("\"__meta_type__\""));
+            Assert.IsTrue(json.Contains(typeof(TestDataClass).FullName));
+        }
+
+        /// <summary>
+        /// Verifies that serializing with None option excludes type metadata from JSON.
+        /// </summary>
+        [Test]
+        public void SerializeWithOptions_None_DoesNotContainTypeField()
+        {
+            // Arrange
+            var settings = new SerializationSettings
+            {
+                JsonFormatterSettings = new Formatters.JsonFormatterSettings
+                {
+                    Options = Formatters.JsonFormatterOptions.None
+                }
+            };
+            var context = new SerializationContext { AllowAnonymousTypes = true };
+            var original = new TestDataClass { Id = 42, Name = "Test" };
+
+            // Act
+            string json = EasySerializer.SerializeToJson(original, settings, context);
+
+            // Assert
+            Assert.IsFalse(json.Contains("\"__meta_type__\""));
+        }
+
+        #endregion
+
+        #region JsonFormatterSettings TypeNameField
+
+        /// <summary>
+        /// Verifies that custom TypeNameField is used in JSON output when IncludeObjectType is enabled.
+        /// </summary>
+        [Test]
+        public void SerializeWithCustomTypeNameField_UsesCustomFieldName()
+        {
+            // Arrange
+            var settings = new SerializationSettings
+            {
+                JsonFormatterSettings = new Formatters.JsonFormatterSettings
+                {
+                    Options = Formatters.JsonFormatterOptions.IncludeObjectType,
+                    TypeNameField = "$type$"
+                }
+            };
+            var context = new SerializationContext { AllowAnonymousTypes = true };
+            var original = new TestDataClass { Id = 42, Name = "Test" };
+
+            // Act
+            string json = EasySerializer.SerializeToJson(original, settings, context);
+
+            // Assert
+            Assert.IsTrue(json.Contains("\"$type$\""));
+            Assert.IsFalse(json.Contains("\"__meta_type__\""));
+        }
+
+        /// <summary>
+        /// Verifies that serialization and deserialization work correctly with custom TypeNameField.
+        /// </summary>
+        [Test]
+        public void SerializeDeserializeWithCustomTypeNameField_ReturnsOriginalValue()
+        {
+            // Arrange
+            var settings = new SerializationSettings
+            {
+                JsonFormatterSettings = new Formatters.JsonFormatterSettings
+                {
+                    Options = Formatters.JsonFormatterOptions.IncludeObjectType,
+                    TypeNameField = "@custom_type@"
+                }
+            };
+            var context = new SerializationContext { AllowAnonymousTypes = true, UseRuntimeTypeSerialization = true };
+            var original = new PetContainer { Pet = new Dog("Buddy", "Golden Retriever") };
+
+            // Act
+            string json = EasySerializer.SerializeToJson(original, settings, context);
+            var result = EasySerializer.DeserializeFromJson<PetContainer>(json, settings, context);
+
+            // Assert
+            Assert.IsTrue(json.Contains("\"@custom_type@\""));
+            Assert.IsNotNull(result);
+            Assert.IsNotNull(result.Pet);
+            Assert.AreEqual("Buddy", result.Pet.Name);
+            Assert.IsInstanceOf<Dog>(result.Pet);
+            var dog = result.Pet as Dog;
+            Assert.AreEqual("Golden Retriever", dog.Breed);
+        }
+
+        #endregion
     }
 }
