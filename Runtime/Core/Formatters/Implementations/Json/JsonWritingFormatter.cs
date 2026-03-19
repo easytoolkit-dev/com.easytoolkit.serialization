@@ -76,7 +76,6 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void BeginObject(Type type)
         {
-            //TODO: Write type
             var newObject = new JSONObject();
 
             if (type != null)

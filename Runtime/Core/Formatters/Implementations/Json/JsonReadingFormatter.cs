@@ -20,13 +20,6 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         public override SerializationFormat FormatType => SerializationFormat.Json;
 
-        /// <inheritdoc />
-        /// <remarks>
-        /// JSON is a tree-based format, not a stream-based format, so it does not require
-        /// stream validation before reading values.
-        /// </remarks>
-        protected override bool RequiresStreamValidation => false;
-
         private string _jsonText;
         private string _currentMemberName;
         private readonly Stack<int> _arrayIndexStack = new();
@@ -80,7 +73,6 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void BeginObject(Type expectedType)
         {
-            //TODO: Read expectedType
             if (_root == null)
             {
                 _root = JSON.Parse(_jsonText);

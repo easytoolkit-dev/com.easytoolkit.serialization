@@ -214,26 +214,6 @@ namespace EasyToolkit.Serialization.Tests
             });
         }
 
-        /// <summary>
-        /// Verifies that reading empty buffer throws EndOfStreamException.
-        /// </summary>
-        [Test]
-        public void BinaryReadingFormatter_ReadEmptyBuffer_ThrowsEndOfStreamException()
-        {
-            // Arrange
-            IReadingFormatter formatter = new BinaryReadingFormatter();
-            // Use settings without type tags to test empty buffer scenario
-            formatter.Settings = new BinaryFormatterSettings { Options = BinaryFormatterOptions.None, ReturnDefaultOnStreamEnd = false };
-            formatter.SetBuffer(Array.Empty<byte>());
-
-            // Act & Assert
-            Assert.Throws<EndOfStreamException>(() =>
-            {
-                int value = 0;
-                formatter.Format(ref value);
-            });
-        }
-
         #endregion
     }
 }

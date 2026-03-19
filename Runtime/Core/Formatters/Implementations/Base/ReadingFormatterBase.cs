@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using EasyToolkit.Core.Pooling;
+using EasyToolkit.Core.Reflection;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -25,12 +26,6 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         private int _anonymousMemberId;
         private DataFormatterSettings _settings;
         private bool _disposed;
-
-        /// <summary>
-        /// Gets whether this formatter requires stream-based validation before reading.
-        /// Stream-based formats (like binary) should return true, while tree-based formats (like JSON) should return false.
-        /// </summary>
-        protected virtual bool RequiresStreamValidation => true;
 
         /// <inheritdoc />
         public abstract SerializationFormat FormatType { get; }
@@ -374,250 +369,150 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         void IDataFormatter.Format(ref int value)
         {
             ValidateDisposed();
-            if (!ValidateStreamBeforeRead(ref value))
-            {
-                return;
-            }
             Format(ref value);
         }
 
         void IDataFormatter.Format(ref sbyte value)
         {
             ValidateDisposed();
-            if (!ValidateStreamBeforeRead(ref value))
-            {
-                return;
-            }
             Format(ref value);
         }
 
         void IDataFormatter.Format(ref short value)
         {
             ValidateDisposed();
-            if (!ValidateStreamBeforeRead(ref value))
-            {
-                return;
-            }
             Format(ref value);
         }
 
         void IDataFormatter.Format(ref long value)
         {
             ValidateDisposed();
-            if (!ValidateStreamBeforeRead(ref value))
-            {
-                return;
-            }
             Format(ref value);
         }
 
         void IDataFormatter.Format(ref byte value)
         {
             ValidateDisposed();
-            if (!ValidateStreamBeforeRead(ref value))
-            {
-                return;
-            }
             Format(ref value);
         }
 
         void IDataFormatter.Format(ref ushort value)
         {
             ValidateDisposed();
-            if (!ValidateStreamBeforeRead(ref value))
-            {
-                return;
-            }
             Format(ref value);
         }
 
         void IDataFormatter.Format(ref uint value)
         {
             ValidateDisposed();
-            if (!ValidateStreamBeforeRead(ref value))
-            {
-                return;
-            }
             Format(ref value);
         }
 
         void IDataFormatter.Format(ref ulong value)
         {
             ValidateDisposed();
-            if (!ValidateStreamBeforeRead(ref value))
-            {
-                return;
-            }
             Format(ref value);
         }
 
         void IDataFormatter.Format(ref bool value)
         {
             ValidateDisposed();
-            if (!ValidateStreamBeforeRead(ref value))
-            {
-                return;
-            }
             Format(ref value);
         }
 
         void IDataFormatter.Format(ref bool[] data)
         {
             ValidateDisposed();
-            if (!ValidateStreamBeforeRead(ref data))
-            {
-                return;
-            }
             Format(ref data);
         }
 
         void IDataFormatter.Format(ref float value)
         {
             ValidateDisposed();
-            if (!ValidateStreamBeforeRead(ref value))
-            {
-                return;
-            }
             Format(ref value);
         }
 
         void IDataFormatter.Format(ref double value)
         {
             ValidateDisposed();
-            if (!ValidateStreamBeforeRead(ref value))
-            {
-                return;
-            }
             Format(ref value);
         }
 
         void IDataFormatter.Format(ref decimal value)
         {
             ValidateDisposed();
-            if (!ValidateStreamBeforeRead(ref value))
-            {
-                return;
-            }
             Format(ref value);
         }
 
         void IDataFormatter.Format(ref string str)
         {
             ValidateDisposed();
-            if (!ValidateStreamBeforeRead(ref str))
-            {
-                return;
-            }
             Format(ref str);
         }
 
         void IDataFormatter.Format(ref byte[] data)
         {
             ValidateDisposed();
-            if (!ValidateStreamBeforeRead(ref data))
-            {
-                return;
-            }
             Format(ref data);
         }
 
         void IDataFormatter.Format(ref sbyte[] data)
         {
             ValidateDisposed();
-            if (!ValidateStreamBeforeRead(ref data))
-            {
-                return;
-            }
             Format(ref data);
         }
 
         void IDataFormatter.Format(ref short[] data)
         {
             ValidateDisposed();
-            if (!ValidateStreamBeforeRead(ref data))
-            {
-                return;
-            }
             Format(ref data);
         }
 
         void IDataFormatter.Format(ref int[] data)
         {
             ValidateDisposed();
-            if (!ValidateStreamBeforeRead(ref data))
-            {
-                return;
-            }
             Format(ref data);
         }
 
         void IDataFormatter.Format(ref long[] data)
         {
             ValidateDisposed();
-            if (!ValidateStreamBeforeRead(ref data))
-            {
-                return;
-            }
             Format(ref data);
         }
 
         void IDataFormatter.Format(ref ushort[] data)
         {
             ValidateDisposed();
-            if (!ValidateStreamBeforeRead(ref data))
-            {
-                return;
-            }
             Format(ref data);
         }
 
         void IDataFormatter.Format(ref uint[] data)
         {
             ValidateDisposed();
-            if (!ValidateStreamBeforeRead(ref data))
-            {
-                return;
-            }
             Format(ref data);
         }
 
         void IDataFormatter.Format(ref ulong[] data)
         {
             ValidateDisposed();
-            if (!ValidateStreamBeforeRead(ref data))
-            {
-                return;
-            }
             Format(ref data);
         }
 
         void IDataFormatter.Format(ref UnityEngine.Object unityObject)
         {
             ValidateDisposed();
-            if (!ValidateStreamBeforeRead(ref unityObject))
-            {
-                return;
-            }
             Format(ref unityObject);
         }
 
         void IDataFormatter.FormatGenericPrimitive<T>(ref T value)
         {
             ValidateDisposed();
-            if (!ValidateStreamBeforeRead(ref value))
-            {
-                return;
-            }
             FormatGenericPrimitive(ref value);
         }
 
         void IDataFormatter.FormatGenericPrimitive<T>(ref T[] data)
         {
             ValidateDisposed();
-            if (!ValidateStreamBeforeRead(ref data))
-            {
-                return;
-            }
             FormatGenericPrimitive(ref data);
         }
 
@@ -625,40 +520,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         void IDataFormatter.FormatNullable(ref bool isNull)
         {
             ValidateDisposed();
-            if (!ValidateStreamBeforeRead(ref isNull))
-            {
-                return;
-            }
             FormatNullable(ref isNull);
-        }
-
-        /// <summary>
-        /// Validates the stream state before reading a value.
-        /// Sets the value to default and returns false if the stream has ended and ReturnDefaultOnStreamEnd is enabled.
-        /// Throws an exception if the stream has ended and ReturnDefaultOnStreamEnd is disabled.
-        /// </summary>
-        /// <typeparam name="T">The type of value to read.</typeparam>
-        /// <param name="value">The value to be read (output parameter).</param>
-        /// <returns>True if the caller should proceed with reading; false if default value was set.</returns>
-        /// <exception cref="EndOfStreamException">Thrown when the stream has ended and ReturnDefaultOnStreamEnd is false.</exception>
-        private bool ValidateStreamBeforeRead<T>(ref T value)
-        {
-            // Skip stream validation for tree-based formats (like JSON)
-            if (!RequiresStreamValidation)
-            {
-                return true;
-            }
-
-            if (GetRemainingLength() == 0)
-            {
-                if (_settings.ReturnDefaultOnStreamEnd)
-                {
-                    value = default;
-                    return false;
-                }
-                throw new EndOfStreamException("Attempted to read past the end of the buffer.");
-            }
-            return true;
         }
 
         /// <summary>
@@ -706,7 +568,11 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         {
             if (_disposed)
             {
-                throw new ObjectDisposedException("");
+                throw new ObjectDisposedException(
+                    GetType().ToCodeString(),
+                    $"Cannot perform operation on disposed formatter. " +
+                    $"The formatter has been disposed and can no longer be used. " +
+                    $"Obtain a new formatter instance from the pool instead.");
             }
         }
 
