@@ -556,7 +556,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
             if (_operationStack.Count > 0)
             {
                 var operation = _operationStack.Peek();
-                Debug.LogError(
+                Debug.LogWarning(
                     $"Formatter disposed with unbalanced Begin/End operations. " +
                     $"Missing End{operation} call for the corresponding Begin{operation} operation.");
             }

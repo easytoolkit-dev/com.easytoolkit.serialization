@@ -687,4 +687,74 @@ namespace EasyToolkit.Serialization.Tests
     }
 
     #endregion
+
+    #region ReturnDefaultOnEmptyMember Test Types
+
+    /// <summary>Version 1 of player data for testing forward compatibility.</summary>
+    [EasySerializable]
+    public class PlayerDataV1
+    {
+        public int PlayerId;
+        public string PlayerName;
+        public float Health;
+
+        public PlayerDataV1()
+        {
+        }
+
+        public PlayerDataV1(int playerId, string playerName, float health)
+        {
+            PlayerId = playerId;
+            PlayerName = playerName;
+            Health = health;
+        }
+    }
+
+    /// <summary>Version 2 of player data with additional fields for testing forward compatibility.</summary>
+    [EasySerializable]
+    public class PlayerDataV2
+    {
+        public int PlayerId;
+        public string PlayerName;
+        public float Health;
+        public int Level;              // New field in V2
+        public float Experience;        // New field in V2
+        public bool IsPremium;          // New field in V2
+        public List<string> Items;      // New field in V2
+
+        public PlayerDataV2()
+        {
+        }
+
+        public PlayerDataV2(int playerId, string playerName, float health, int level, float experience, bool isPremium, List<string> items)
+        {
+            PlayerId = playerId;
+            PlayerName = playerName;
+            Health = health;
+            Level = level;
+            Experience = experience;
+            IsPremium = isPremium;
+            Items = items;
+        }
+    }
+
+    /// <summary>Empty test class for ReturnDefaultOnEmptyMember testing.</summary>
+    [EasySerializable]
+    public class EmptyTestClass
+    {
+        public int Value;
+        public string Name;
+
+        public EmptyTestClass()
+        {
+        }
+
+        public EmptyTestClass(int value, string name)
+        {
+            Value = value;
+            Name = name;
+        }
+    }
+
+    #endregion
 }

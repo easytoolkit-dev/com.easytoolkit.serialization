@@ -15,10 +15,10 @@ namespace EasyToolkit.Serialization.Formatters
         None = 0,
 
         /// <summary>
-        /// Enables writing type tag bytes before each value.
-        /// When disabled, the deserializer must rely on structure information to determine types.
+        /// Enables writing tag bytes before each value.
+        /// When disabled, the deserializer must rely on structure information to determine.
         /// </summary>
-        IncludeTypeTags = 1 << 0,
+        IncludeTags = 1 << 0,
 
         /// <summary>
         /// Enables writing member name strings.
@@ -51,7 +51,7 @@ namespace EasyToolkit.Serialization.Formatters
         /// Default configuration with type tags, member names, object type, and direct memory copy enabled.
         /// Provides a good balance between compatibility, functionality, and performance.
         /// </summary>
-        Default = IncludeTypeTags | IncludeMemberNames | IncludeObjectType | EnableDirectMemoryCopy,
+        Default = IncludeTags | IncludeMemberNames | IncludeObjectType | EnableDirectMemoryCopy,
 
         /// <summary>
         /// Maximum performance configuration with only direct memory copy enabled.

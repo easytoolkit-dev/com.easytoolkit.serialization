@@ -18,6 +18,10 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         private int _nodeDepth;
         private readonly Dictionary<int, Type> _typeById;
         private BinaryFormatterOptions _options;
+        private bool _returnDefaultOnEmptyMember;
+        private readonly Stack<bool> _missingMemberStack;
+        private bool _isInMissingMember;
+        private bool _isNextMemberMissing;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BinaryReadingFormatter"/> class
@@ -29,6 +33,9 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
             _nodeDepth = 0;
             _position = 0;
             _typeById = new Dictionary<int, Type>();
+            _missingMemberStack = new Stack<bool>();
+            _isInMissingMember = false;
+            _isNextMemberMissing = false;
         }
 
         /// <inheritdoc />
@@ -41,6 +48,9 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
             _position = 0;
             _nodeDepth = 0;
             _typeById.Clear();
+            _missingMemberStack.Clear();
+            _isInMissingMember = false;
+            _isNextMemberMissing = false;
         }
 
         /// <inheritdoc />
@@ -55,6 +65,22 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void BeginMember(string name)
         {
+            // Check if we should skip reading this member
+            if (ShouldSkipMemberReading())
+            {
+                // Mark this member as missing and skip reading
+                MarkNextMemberMissing();
+                return;
+            }
+
+            // If we're at the end of stream, throw an exception (data corruption)
+            if (IsEndOfStream())
+            {
+                throw new EndOfStreamException(
+                    "Attempted to read member but reached end of stream. " +
+                    "This may indicate corrupted serialization data.");
+            }
+
             ReadAndValidateOptionTag(BinaryFormatterTag.MemberBegin, "begin member");
             if ((_options & BinaryFormatterOptions.IncludeMemberNames) != 0)
             {
@@ -75,6 +101,22 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void BeginObject(Type expectedType)
         {
+            // Check if we're in a missing member scope
+            if (_returnDefaultOnEmptyMember && IsInMissingMemberScope())
+            {
+                // Push missing member state for nested scope
+                EnterMissingMemberScope();
+                return;
+            }
+
+            // Check if we've reached the end of stream or ObjectEnd (missing member scenario)
+            if (_returnDefaultOnEmptyMember && (IsEndOfStream() || PeekTag() == BinaryFormatterTag.ObjectEnd))
+            {
+                // Enter missing member scope
+                EnterMissingMemberScope();
+                return;
+            }
+
             ReadAndValidateOptionTag(BinaryFormatterTag.ObjectBegin, "begin object");
             ReadAndValidateType(expectedType);
             ReadAndValidateNodeDepth(nameof(BeginObject));
@@ -84,14 +126,40 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void EndObject()
         {
+            // Check if we're in a missing member scope
+            if (_returnDefaultOnEmptyMember && IsInMissingMemberScope())
+            {
+                // Exit missing member scope
+                ExitMissingMemberScope();
+                return;
+            }
+
             _nodeDepth--;
-            ReadAndValidateNodeDepth(nameof(EndObject));
             ReadAndValidateOptionTag(BinaryFormatterTag.ObjectEnd, "end object");
+            ReadAndValidateNodeDepth(nameof(EndObject));
         }
 
         /// <inheritdoc />
         protected override void BeginArray(ref int length)
         {
+            // Check if we're in a missing member scope
+            if (_returnDefaultOnEmptyMember && IsInMissingMemberScope())
+            {
+                // Push missing member state for nested scope
+                EnterMissingMemberScope();
+                length = 0;
+                return;
+            }
+
+            // Check if we've reached the end of stream or ObjectEnd (missing member scenario)
+            if (_returnDefaultOnEmptyMember && (IsEndOfStream() || PeekTag() == BinaryFormatterTag.ObjectEnd))
+            {
+                // Enter missing member scope
+                EnterMissingMemberScope();
+                length = 0;
+                return;
+            }
+
             ReadAndValidateOptionTag(BinaryFormatterTag.ArrayBegin, "begin array");
 
             length = (int)ReadUInt32Optimized();
@@ -103,14 +171,28 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void EndArray()
         {
+            // Check if we're in a missing member scope
+            if (_returnDefaultOnEmptyMember && IsInMissingMemberScope())
+            {
+                // Exit missing member scope
+                ExitMissingMemberScope();
+                return;
+            }
+
             _nodeDepth--;
-            ReadAndValidateNodeDepth(nameof(EndArray));
             ReadAndValidateOptionTag(BinaryFormatterTag.ArrayEnd, "end array");
+            ReadAndValidateNodeDepth(nameof(EndArray));
         }
 
         /// <inheritdoc />
         protected override void Format(ref int value)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                value = default;
+                return;
+            }
+
             ReadAndValidateOptionTag(BinaryFormatterTag.Int32, "int");
             // Decode zigzag encoding to recover signed integer
             uint encoded;
@@ -129,6 +211,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void Format(ref sbyte value)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                value = default;
+                return;
+            }
+
             ReadAndValidateOptionTag(BinaryFormatterTag.Int8, "sbyte");
             // Decode zigzag encoding to recover signed byte
             int encoded = ReadByte();
@@ -138,6 +226,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void Format(ref short value)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                value = default;
+                return;
+            }
+
             ReadAndValidateOptionTag(BinaryFormatterTag.Int16, "short");
             // Decode zigzag encoding to recover signed short
             uint encoded;
@@ -156,6 +250,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void Format(ref long value)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                value = default;
+                return;
+            }
+
             ReadAndValidateOptionTag(BinaryFormatterTag.Int64, "long");
             // Decode zigzag encoding to recover signed long
             ulong encoded;
@@ -177,6 +277,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void Format(ref byte value)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                value = default;
+                return;
+            }
+
             ReadAndValidateOptionTag(BinaryFormatterTag.UInt8, "byte");
             value = ReadByte();
         }
@@ -184,6 +290,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void Format(ref ushort value)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                value = default;
+                return;
+            }
+
             ReadAndValidateOptionTag(BinaryFormatterTag.UInt16, "ushort");
 
             if ((_options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
@@ -199,6 +311,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void Format(ref uint value)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                value = default;
+                return;
+            }
+
             ReadAndValidateOptionTag(BinaryFormatterTag.UInt32, "uint");
 
             if ((_options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
@@ -214,6 +332,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void Format(ref ulong value)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                value = default;
+                return;
+            }
+
             ReadAndValidateOptionTag(BinaryFormatterTag.UInt64, "ulong");
 
             if ((_options & BinaryFormatterOptions.EnableVarintEncoding) != 0)
@@ -229,6 +353,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void Format(ref bool value)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                value = default;
+                return;
+            }
+
             ReadAndValidateOptionTag(BinaryFormatterTag.Boolean, "bool");
             var byteValue = ReadByte();
             value = byteValue != 0;
@@ -237,6 +367,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void Format(ref bool[] data)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                data = Array.Empty<bool>();
+                return;
+            }
+
             ReadAndValidateOptionTag(BinaryFormatterTag.BooleanArray, "bool array");
             var length = ReadUInt32Optimized();
             if (length == 0)
@@ -269,6 +405,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void Format(ref float value)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                value = default;
+                return;
+            }
+
             ReadAndValidateOptionTag(BinaryFormatterTag.Single, "float");
             value = ReadSingle();
         }
@@ -276,6 +418,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void Format(ref double value)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                value = default;
+                return;
+            }
+
             ReadAndValidateOptionTag(BinaryFormatterTag.Double, "double");
             value = ReadDouble();
         }
@@ -283,6 +431,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void Format(ref decimal value)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                value = default;
+                return;
+            }
+
             ReadAndValidateOptionTag(BinaryFormatterTag.Decimal, "decimal");
             value = ReadDecimal();
         }
@@ -290,6 +444,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void Format(ref string str)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                str = default;
+                return;
+            }
+
             ReadAndValidateOptionTag(BinaryFormatterTag.String, "string");
             var length = ReadUInt32Optimized();
             if (length == 0)
@@ -314,6 +474,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void Format(ref byte[] data)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                data = Array.Empty<byte>();
+                return;
+            }
+
             ReadAndValidateOptionTag(BinaryFormatterTag.ByteArray, "byte array");
             var length = ReadUInt32Optimized();
             if (length == 0)
@@ -328,6 +494,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void Format(ref sbyte[] data)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                data = Array.Empty<sbyte>();
+                return;
+            }
+
             ReadAndValidateOptionTag(BinaryFormatterTag.SByteArray, "sbyte array");
             var length = ReadUInt32Optimized();
             if (length == 0)
@@ -342,6 +514,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void Format(ref short[] data)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                data = Array.Empty<short>();
+                return;
+            }
+
             ReadAndValidateOptionTag(BinaryFormatterTag.Int16Array, "short array");
             var length = ReadUInt32Optimized();
             if (length == 0)
@@ -356,6 +534,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void Format(ref int[] data)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                data = Array.Empty<int>();
+                return;
+            }
+
             ReadAndValidateOptionTag(BinaryFormatterTag.Int32Array, "int array");
             var length = ReadUInt32Optimized();
             if (length == 0)
@@ -370,6 +554,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void Format(ref long[] data)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                data = Array.Empty<long>();
+                return;
+            }
+
             ReadAndValidateOptionTag(BinaryFormatterTag.Int64Array, "long array");
             var length = ReadUInt32Optimized();
             if (length == 0)
@@ -384,6 +574,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void Format(ref ushort[] data)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                data = Array.Empty<ushort>();
+                return;
+            }
+
             ReadAndValidateOptionTag(BinaryFormatterTag.UInt16Array, "ushort array");
             var length = ReadUInt32Optimized();
             if (length == 0)
@@ -398,6 +594,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void Format(ref uint[] data)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                data = Array.Empty<uint>();
+                return;
+            }
+
             ReadAndValidateOptionTag(BinaryFormatterTag.UInt32Array, "uint array");
             var length = ReadUInt32Optimized();
             if (length == 0)
@@ -412,6 +614,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void Format(ref ulong[] data)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                data = Array.Empty<ulong>();
+                return;
+            }
+
             ReadAndValidateOptionTag(BinaryFormatterTag.UInt64Array, "ulong array");
             var length = ReadUInt32Optimized();
             if (length == 0)
@@ -426,6 +634,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void Format(ref UnityEngine.Object unityObject)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                unityObject = default;
+                return;
+            }
+
             ReadAndValidateOptionTag(BinaryFormatterTag.UnityObjectRef, "Unity object reference");
             var index = ReadUInt32Optimized();
             unityObject = ResolveReference((int)index);
@@ -434,6 +648,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void FormatNullable(ref bool isNull)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                isNull = true; // Treat as null
+                return;
+            }
+
             var byteValue = ReadByte();
             isNull = byteValue != 0;
         }
@@ -441,6 +661,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void FormatGenericPrimitive<T>(ref T value)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                value = default;
+                return;
+            }
+
             ReadAndValidateOptionTag(BinaryFormatterTag.UnmanagedValue, "unmanaged value");
             value = ReadPrimitiveValue<T>();
         }
@@ -448,6 +674,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void FormatGenericPrimitive<T>(ref T[] data)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                data = Array.Empty<T>();
+                return;
+            }
+
             ReadAndValidateOptionTag(BinaryFormatterTag.UnmanagedArray, "unmanaged array");
             var length = ReadUInt32Optimized();
             if (length == 0)
@@ -477,6 +709,9 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
             _nodeDepth = 0;
             _buffer = Array.Empty<byte>();
             _typeById.Clear();
+            _missingMemberStack.Clear();
+            _isInMissingMember = false;
+            _isNextMemberMissing = false;
             PoolUtility.ReleaseObject(this);
         }
 
@@ -492,6 +727,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
             }
 
             _options = binaryFormatterSettings.Options;
+            _returnDefaultOnEmptyMember = binaryFormatterSettings.ReturnDefaultOnEmptyMember;
         }
     }
 }

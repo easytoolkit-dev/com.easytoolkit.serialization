@@ -104,8 +104,8 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         protected override void EndObject()
         {
             _nodeDepth--;
-            WriteUInt32Optimized((uint)_nodeDepth);
             WriteOptionTag(BinaryFormatterTag.ObjectEnd);
+            WriteUInt32Optimized((uint)_nodeDepth);
         }
 
         /// <inheritdoc />
@@ -121,8 +121,8 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         protected override void EndArray()
         {
             _nodeDepth--;
-            WriteUInt32Optimized((uint)_nodeDepth);
             WriteOptionTag(BinaryFormatterTag.ArrayEnd);
+            WriteUInt32Optimized((uint)_nodeDepth);
         }
 
         /// <inheritdoc />

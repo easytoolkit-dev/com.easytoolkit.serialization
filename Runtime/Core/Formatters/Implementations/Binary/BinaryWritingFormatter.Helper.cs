@@ -348,7 +348,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void WriteOptionTag(BinaryFormatterTag tag)
         {
-            if ((_options & BinaryFormatterOptions.IncludeTypeTags) != 0)
+            if ((_options & BinaryFormatterOptions.IncludeTags) != 0)
             {
                 WriteTag(tag);
             }

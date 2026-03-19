@@ -2,6 +2,7 @@
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
+using EasyToolkit.Core.Collections;
 using EasyToolkit.Core.Reflection;
 using EasyToolkit.Serialization.Utilities;
 
@@ -351,7 +352,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <param name="context">Context description for error messages.</param>
         private void ReadAndValidateOptionTag(BinaryFormatterTag expectedTag, string context)
         {
-            if ((_options & BinaryFormatterOptions.IncludeTypeTags) != 0)
+            if ((_options & BinaryFormatterOptions.IncludeTags) != 0)
             {
                 var tag = ReadTag();
                 if (tag != expectedTag)
@@ -385,6 +386,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
                 {
                     stringBuilder.Append($"(possible tag: BinaryFormatterTag.{(BinaryFormatterTag)tag})");
                 }
+
                 throw new DataFormatException(stringBuilder.ToString());
             }
         }
@@ -445,6 +447,144 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Checks if the current position is at the end of the stream.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool IsEndOfStream()
+        {
+            return _position >= _buffer.Length;
+        }
+
+        /// <summary>
+        /// Peeks the next tag without consuming it.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private BinaryFormatterTag PeekTag()
+        {
+            if (IsEndOfStream())
+                throw new EndOfStreamException("Attempted to read past the end of the buffer.");
+            return (BinaryFormatterTag)_buffer[_position];
+        }
+
+        /// <summary>
+        /// Enters a missing member scope, pushing the current state to the stack.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void EnterMissingMemberScope()
+        {
+            _missingMemberStack.Push(_isInMissingMember);
+            _isInMissingMember = true;
+        }
+
+        /// <summary>
+        /// Exits the current missing member scope, restoring the previous state from the stack.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void ExitMissingMemberScope()
+        {
+            if (_missingMemberStack.Count > 0)
+            {
+                _isInMissingMember = _missingMemberStack.Pop();
+            }
+            else
+            {
+                _isInMissingMember = false;
+            }
+        }
+
+        /// <summary>
+        /// Checks if currently in a missing member scope.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool IsInMissingMemberScope()
+        {
+            return _isInMissingMember;
+        }
+
+        /// <summary>
+        /// Checks if the next member is marked as missing.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool IsNextMemberMissing()
+        {
+            return _isNextMemberMissing;
+        }
+
+        /// <summary>
+        /// Marks the next member as missing.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void MarkNextMemberMissing()
+        {
+            _isNextMemberMissing = true;
+        }
+
+        /// <summary>
+        /// Clears the missing member flag for the next member.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void ClearNextMemberMissing()
+        {
+            _isNextMemberMissing = false;
+        }
+
+        /// <summary>
+        /// Checks if we should assign default value instead of reading from stream.
+        /// Returns true if either:
+        /// 1. The next member is marked as missing (also clears the flag)
+        /// 2. We're currently in a missing member scope
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool ShouldAssignDefaultValue()
+        {
+            if (!_returnDefaultOnEmptyMember)
+                return false;
+
+            if (IsNextMemberMissing())
+            {
+                ClearNextMemberMissing();
+                return true;
+            }
+
+            if (IsInMissingMemberScope())
+            {
+                return true;
+            }
+
+            if (_buffer.IsNullOrEmpty() && !IsInObjectScope && !IsInArrayScope)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if we should skip reading the current member.
+        /// Returns true if either:
+        /// 1. We're in a missing member scope
+        /// 2. We're at ObjectEnd tag with default-on-empty-member enabled
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool ShouldSkipMemberReading()
+        {
+            if (!_returnDefaultOnEmptyMember)
+                return false;
+
+            if (IsInMissingMemberScope())
+            {
+                return true;
+            }
+
+            if (!IsEndOfStream() && PeekTag() is BinaryFormatterTag.ObjectEnd or BinaryFormatterTag.ArrayEnd)
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

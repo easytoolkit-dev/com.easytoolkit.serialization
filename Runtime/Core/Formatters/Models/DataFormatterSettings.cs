@@ -5,6 +5,8 @@ namespace EasyToolkit.Serialization.Formatters
     /// </summary>
     public abstract class DataFormatterSettings
     {
+        private string _anonymousMemberNameFormat = "${0}";
+
         /// <summary>
         /// Gets or sets the format string used for generating anonymous member names.
         /// The format must contain a single placeholder "{0}" that will be replaced with the member ID.
@@ -25,6 +27,13 @@ namespace EasyToolkit.Serialization.Formatters
             }
         }
 
-        private string _anonymousMemberNameFormat = "${0}";
+        /// <summary>
+        /// Gets or sets whether to return default values when reading missing members during deserialization.
+        /// When enabled, if a member is not present in the serialized data (e.g., data format version mismatch),
+        /// the formatter will return default values instead of throwing an exception.
+        /// This is useful for forward compatibility when deserializing older data formats.
+        /// Default value is false.
+        /// </summary>
+        public bool ReturnDefaultOnEmptyMember { get; set; }
     }
 }

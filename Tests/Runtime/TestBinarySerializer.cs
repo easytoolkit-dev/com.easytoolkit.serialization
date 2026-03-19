@@ -1,7 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using EasyToolkit.Serialization;
+using EasyToolkit.Serialization.Formatters;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace EasyToolkit.Serialization.Tests
 {
@@ -1570,6 +1575,245 @@ namespace EasyToolkit.Serialization.Tests
             // Assert
             Assert.IsNotNull(result);
             Assert.IsNull(result.Pet);
+        }
+
+        #endregion
+
+        #region ReturnDefaultOnEmptyMember
+
+        /// <summary>
+        /// Verifies that deserializing an empty buffer with ReturnDefaultOnEmptyMember enabled returns default value.
+        /// </summary>
+        [Test]
+        public void DeserializeFromBinary_EmptyBufferWithReturnDefaultOnEmptyMember_ReturnsDefault()
+        {
+            // Arrange
+            var settings = new SerializationSettings
+            {
+                BinaryFormatterSettings = new BinaryFormatterSettings
+                {
+                    ReturnDefaultOnEmptyMember = true
+                }
+            };
+            byte[] emptyBuffer = Array.Empty<byte>();
+
+            // Act
+            var result = EasySerializer.DeserializeFromBinary<EmptyTestClass>(emptyBuffer, settings);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual(0, result.Value);
+            Assert.IsNull(result.Name);
+        }
+
+        /// <summary>
+        /// Verifies that deserializing an empty buffer with ReturnDefaultOnEmptyMember disabled throws exception.
+        /// </summary>
+        [Test]
+        public void DeserializeFromBinary_EmptyBufferWithReturnDefaultOnEmptyMemberDisabled_ThrowsException()
+        {
+            // Arrange
+            var settings = new SerializationSettings
+            {
+                BinaryFormatterSettings = new BinaryFormatterSettings
+                {
+                    ReturnDefaultOnEmptyMember = false
+                }
+            };
+            byte[] emptyBuffer = Array.Empty<byte>();
+
+            // Act & Assert
+            Assert.Throws<EndOfStreamException>(() =>
+            {
+                EasySerializer.DeserializeFromBinary<EmptyTestClass>(emptyBuffer, settings);
+            });
+        }
+
+        /// <summary>
+        /// Verifies that deserializing V1 data into V2 class with ReturnDefaultOnEmptyMember enabled fills default values.
+        /// </summary>
+        [Test]
+        public void DeserializeFromBinary_V1DataToV2ClassWithReturnDefaultOnEmptyMember_FillsDefaultValues()
+        {
+            // Arrange
+            var settings = new SerializationSettings
+            {
+                BinaryFormatterSettings = new BinaryFormatterSettings
+                {
+                    ReturnDefaultOnEmptyMember = true,
+                    Options = BinaryFormatterOptions.IncludeTags | BinaryFormatterOptions.IncludeMemberNames | BinaryFormatterOptions.EnableDirectMemoryCopy
+                }
+            };
+
+            // Serialize V1 data
+            var v1Data = new PlayerDataV1(100, "TestPlayer", 75.5f);
+            byte[] v1Buffer = EasySerializer.SerializeToBinary(v1Data, settings);
+
+            // Act - Deserialize V1 data into V2 class
+            var v2Result = EasySerializer.DeserializeFromBinary<PlayerDataV2>(v1Buffer, settings);
+
+            // Assert - Original fields should be preserved
+            Assert.AreEqual(100, v2Result.PlayerId);
+            Assert.AreEqual("TestPlayer", v2Result.PlayerName);
+            Assert.AreEqual(75.5f, v2Result.Health, 0.0001f);
+
+            // New fields should have default values
+            Assert.AreEqual(0, v2Result.Level);
+            Assert.AreEqual(0f, v2Result.Experience, 0.0001f);
+            Assert.AreEqual(false, v2Result.IsPremium);
+            Assert.IsNull(v2Result.Items);
+        }
+
+        /// <summary>
+        /// Verifies that deserializing V1 data into V2 class with ReturnDefaultOnEmptyMember disabled throws exception.
+        /// </summary>
+        [Test]
+        public void DeserializeFromBinary_V1DataToV2ClassWithReturnDefaultOnEmptyMemberDisabled_ThrowsException()
+        {
+            // Arrange
+            var settings = new SerializationSettings
+            {
+                BinaryFormatterSettings = new BinaryFormatterSettings
+                {
+                    ReturnDefaultOnEmptyMember = false,
+                    Options = BinaryFormatterOptions.IncludeTags | BinaryFormatterOptions.IncludeMemberNames | BinaryFormatterOptions.EnableDirectMemoryCopy
+                }
+            };
+
+            // Serialize V1 data
+            var v1Data = new PlayerDataV1(100, "TestPlayer", 75.5f);
+            byte[] v1Buffer = EasySerializer.SerializeToBinary(v1Data, settings);
+
+            LogAssert.Expect(LogType.Exception, new Regex(".*"));
+
+            // Act & Assert
+            Assert.Throws<DataFormatException>(() =>
+            {
+                EasySerializer.DeserializeFromBinary<PlayerDataV2>(v1Buffer, settings);
+            });
+        }
+
+        /// <summary>
+        /// Verifies that deserializing V2 data into V2 class with ReturnDefaultOnEmptyMember works correctly.
+        /// </summary>
+        [Test]
+        public void DeserializeFromBinary_V2DataWithReturnDefaultOnEmptyMember_ReturnsOriginalValues()
+        {
+            // Arrange
+            var settings = new SerializationSettings
+            {
+                BinaryFormatterSettings = new BinaryFormatterSettings
+                {
+                    ReturnDefaultOnEmptyMember = true,
+                    Options = BinaryFormatterOptions.IncludeTags | BinaryFormatterOptions.IncludeMemberNames | BinaryFormatterOptions.EnableDirectMemoryCopy
+                }
+            };
+
+            var v2Data = new PlayerDataV2(
+                200,
+                "AdvancedPlayer",
+                100.0f,
+                50,
+                5000.5f,
+                true,
+                new List<string> { "Sword", "Shield", "Potion" }
+            );
+
+            // Act
+            byte[] v2Buffer = EasySerializer.SerializeToBinary(v2Data, settings);
+            var v2Result = EasySerializer.DeserializeFromBinary<PlayerDataV2>(v2Buffer, settings);
+
+            // Assert - All fields should match original values
+            Assert.AreEqual(200, v2Result.PlayerId);
+            Assert.AreEqual("AdvancedPlayer", v2Result.PlayerName);
+            Assert.AreEqual(100.0f, v2Result.Health, 0.0001f);
+            Assert.AreEqual(50, v2Result.Level);
+            Assert.AreEqual(5000.5f, v2Result.Experience, 0.0001f);
+            Assert.IsTrue(v2Result.IsPremium);
+            Assert.IsNotNull(v2Result.Items);
+            Assert.AreEqual(3, v2Result.Items.Count);
+            Assert.AreEqual("Sword", v2Result.Items[0]);
+            Assert.AreEqual("Shield", v2Result.Items[1]);
+            Assert.AreEqual("Potion", v2Result.Items[2]);
+        }
+
+        /// <summary>
+        /// Verifies that deserializing V1 primitive data with ReturnDefaultOnEmptyMember enabled returns default.
+        /// </summary>
+        [Test]
+        public void DeserializeFromBinary_EmptyIntBufferWithReturnDefaultOnEmptyMember_ReturnsDefaultInt()
+        {
+            // Arrange
+            var settings = new SerializationSettings
+            {
+                BinaryFormatterSettings = new BinaryFormatterSettings
+                {
+                    ReturnDefaultOnEmptyMember = true
+                }
+            };
+            byte[] emptyBuffer = Array.Empty<byte>();
+
+            // Act
+            var result = EasySerializer.DeserializeFromBinary<int>(emptyBuffer, settings);
+
+            // Assert
+            Assert.AreEqual(0, result);
+        }
+
+        /// <summary>
+        /// Verifies that deserializing V1 primitive string data with ReturnDefaultOnEmptyMember enabled returns null.
+        /// </summary>
+        [Test]
+        public void DeserializeFromBinary_EmptyStringBufferWithReturnDefaultOnEmptyMember_ReturnsNull()
+        {
+            // Arrange
+            var settings = new SerializationSettings
+            {
+                BinaryFormatterSettings = new BinaryFormatterSettings
+                {
+                    ReturnDefaultOnEmptyMember = true
+                }
+            };
+            byte[] emptyBuffer = Array.Empty<byte>();
+
+            // Act
+            var result = EasySerializer.DeserializeFromBinary<string>(emptyBuffer, settings);
+
+            // Assert
+            Assert.IsNull(result);
+        }
+
+        /// <summary>
+        /// Verifies that deserializing partially missing fields with ReturnDefaultOnEmptyMember enabled fills defaults.
+        /// </summary>
+        [Test]
+        public void DeserializeFromBinary_PartialDataWithReturnDefaultOnEmptyMember_FillsMissingFieldsWithDefaults()
+        {
+            // Arrange
+            var settings = new SerializationSettings
+            {
+                BinaryFormatterSettings = new BinaryFormatterSettings
+                {
+                    ReturnDefaultOnEmptyMember = true,
+                    Options = BinaryFormatterOptions.IncludeTags | BinaryFormatterOptions.IncludeMemberNames | BinaryFormatterOptions.EnableDirectMemoryCopy
+                }
+            };
+
+            // Create V1 data with minimal fields
+            var v1Data = new PlayerDataV1(1, "Partial", 50.0f);
+            byte[] v1Buffer = EasySerializer.SerializeToBinary(v1Data, settings);
+
+            // Act - Deserialize into V2 class
+            var v2Result = EasySerializer.DeserializeFromBinary<PlayerDataV2>(v1Buffer, settings);
+
+            // Assert
+            Assert.AreEqual(1, v2Result.PlayerId, "PlayerId should match");
+            Assert.AreEqual("Partial", v2Result.PlayerName, "PlayerName should match");
+            Assert.AreEqual(50.0f, v2Result.Health, 0.0001f, "Health should match");
+            Assert.AreEqual(0, v2Result.Level, "Level should be default");
+            Assert.AreEqual(0f, v2Result.Experience, 0.0001f, "Experience should be default");
+            Assert.AreEqual(false, v2Result.IsPremium, "IsPremium should be default");
+            Assert.IsNull(v2Result.Items, "Items should be default (null)");
         }
 
         #endregion
