@@ -26,6 +26,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         private int _anonymousMemberId;
         private DataFormatterSettings _settings;
         private bool _disposed;
+        private bool _isMemberPending;
 
         /// <inheritdoc />
         public abstract SerializationFormat FormatType { get; }
@@ -314,6 +315,8 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
                 return;
             }
 
+            ValidateMemberHasValue();
+
             if (string.IsNullOrEmpty(name))
             {
                 // Generate auto-generated name for anonymous members using configured format
@@ -322,12 +325,14 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
             }
 
             BeginMember(name);
+            _isMemberPending = true;
         }
 
         /// <inheritdoc />
         void IDataFormatter.BeginObject()
         {
             ValidateDisposed();
+            ConsumeMember();
             BeginObject(null);
             _operationStack.Push(OperationType.Object);
         }
@@ -336,6 +341,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         void IDataFormatter.BeginObject(Type type)
         {
             ValidateDisposed();
+            ConsumeMember();
             BeginObject(type);
             _operationStack.Push(OperationType.Object);
         }
@@ -344,6 +350,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         void IDataFormatter.EndObject()
         {
             ValidateDisposed();
+            ValidateMemberHasValue();
             ValidateEndOperationType(OperationType.Object);
             EndObject();
             _operationStack.Pop();
@@ -353,6 +360,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         void IDataFormatter.BeginArray(ref int length)
         {
             ValidateDisposed();
+            ConsumeMember();
             BeginArray(ref length);
             _operationStack.Push(OperationType.Array);
         }
@@ -369,150 +377,175 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         void IDataFormatter.Format(ref int value)
         {
             ValidateDisposed();
+            ConsumeMember();
             Format(ref value);
         }
 
         void IDataFormatter.Format(ref sbyte value)
         {
             ValidateDisposed();
+            ConsumeMember();
             Format(ref value);
         }
 
         void IDataFormatter.Format(ref short value)
         {
             ValidateDisposed();
+            ConsumeMember();
             Format(ref value);
         }
 
         void IDataFormatter.Format(ref long value)
         {
             ValidateDisposed();
+            ConsumeMember();
             Format(ref value);
         }
 
         void IDataFormatter.Format(ref byte value)
         {
             ValidateDisposed();
+            ConsumeMember();
             Format(ref value);
         }
 
         void IDataFormatter.Format(ref ushort value)
         {
             ValidateDisposed();
+            ConsumeMember();
             Format(ref value);
         }
 
         void IDataFormatter.Format(ref uint value)
         {
             ValidateDisposed();
+            ConsumeMember();
             Format(ref value);
         }
 
         void IDataFormatter.Format(ref ulong value)
         {
             ValidateDisposed();
+            ConsumeMember();
             Format(ref value);
         }
 
         void IDataFormatter.Format(ref bool value)
         {
             ValidateDisposed();
+            ConsumeMember();
             Format(ref value);
         }
 
         void IDataFormatter.Format(ref bool[] data)
         {
             ValidateDisposed();
+            ConsumeMember();
             Format(ref data);
         }
 
         void IDataFormatter.Format(ref float value)
         {
             ValidateDisposed();
+            ConsumeMember();
             Format(ref value);
         }
 
         void IDataFormatter.Format(ref double value)
         {
             ValidateDisposed();
+            ConsumeMember();
             Format(ref value);
         }
 
         void IDataFormatter.Format(ref decimal value)
         {
             ValidateDisposed();
+            ConsumeMember();
             Format(ref value);
         }
 
         void IDataFormatter.Format(ref string str)
         {
             ValidateDisposed();
+            ConsumeMember();
             Format(ref str);
         }
 
         void IDataFormatter.Format(ref byte[] data)
         {
             ValidateDisposed();
+            ConsumeMember();
             Format(ref data);
         }
 
         void IDataFormatter.Format(ref sbyte[] data)
         {
             ValidateDisposed();
+            ConsumeMember();
             Format(ref data);
         }
 
         void IDataFormatter.Format(ref short[] data)
         {
             ValidateDisposed();
+            ConsumeMember();
             Format(ref data);
         }
 
         void IDataFormatter.Format(ref int[] data)
         {
             ValidateDisposed();
+            ConsumeMember();
             Format(ref data);
         }
 
         void IDataFormatter.Format(ref long[] data)
         {
             ValidateDisposed();
+            ConsumeMember();
             Format(ref data);
         }
 
         void IDataFormatter.Format(ref ushort[] data)
         {
             ValidateDisposed();
+            ConsumeMember();
             Format(ref data);
         }
 
         void IDataFormatter.Format(ref uint[] data)
         {
             ValidateDisposed();
+            ConsumeMember();
             Format(ref data);
         }
 
         void IDataFormatter.Format(ref ulong[] data)
         {
             ValidateDisposed();
+            ConsumeMember();
             Format(ref data);
         }
 
         void IDataFormatter.Format(ref UnityEngine.Object unityObject)
         {
             ValidateDisposed();
+            ConsumeMember();
             Format(ref unityObject);
         }
 
         void IDataFormatter.FormatGenericPrimitive<T>(ref T value)
         {
             ValidateDisposed();
+            ConsumeMember();
             FormatGenericPrimitive(ref value);
         }
 
         void IDataFormatter.FormatGenericPrimitive<T>(ref T[] data)
         {
             ValidateDisposed();
+            ConsumeMember();
             FormatGenericPrimitive(ref data);
         }
 
@@ -520,6 +553,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         void IDataFormatter.FormatNullable(ref bool isNull)
         {
             ValidateDisposed();
+            ConsumeMember();
             FormatNullable(ref isNull);
         }
 
@@ -544,6 +578,28 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
             }
         }
 
+        /// <summary>
+        /// Validates that the previous member has a corresponding value read operation.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when BeginMember is called without a preceding value read operation.</exception>
+        private void ValidateMemberHasValue()
+        {
+            if (_isMemberPending)
+            {
+                throw new InvalidOperationException(
+                    "BeginMember must be followed by a value read operation (BeginObject, BeginArray, or Format). " +
+                    "Each member declaration must have exactly one corresponding value.");
+            }
+        }
+
+        /// <summary>
+        /// Clears the pending member state when a value is read.
+        /// </summary>
+        private void ConsumeMember()
+        {
+            _isMemberPending = false;
+        }
+
         protected virtual void Dispose()
         {
         }
@@ -553,6 +609,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         {
             Dispose();
             _anonymousMemberId = 0;
+            _isMemberPending = false;
             if (_operationStack.Count > 0)
             {
                 var operation = _operationStack.Peek();
@@ -632,6 +689,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         void IPoolObject.OnRent()
         {
             _disposed = false;
+            _isMemberPending = false;
         }
 
         void IPoolObject.OnRelease()
