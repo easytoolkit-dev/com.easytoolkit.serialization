@@ -450,10 +450,10 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         }
 
         /// <summary>
-        /// Checks if the current position is at the end of the stream.
+        /// Checks if the current position is at the end of the buffer.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool IsEndOfStream()
+        private bool IsEndOfBuffer()
         {
             return _position >= _buffer.Length;
         }
@@ -464,8 +464,8 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private BinaryFormatterTag PeekTag()
         {
-            if (IsEndOfStream())
-                throw new EndOfStreamException("Attempted to read past the end of the buffer.");
+            if (IsEndOfBuffer())
+                throw new DataFormatException("Attempted to read past the end of the buffer.");
             return (BinaryFormatterTag)_buffer[_position];
         }
 
@@ -554,7 +554,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
                 return true;
             }
 
-            if (_buffer.IsNullOrEmpty() && !IsInObjectScope && !IsInArrayScope)
+            if (_buffer.IsNullOrEmpty())
             {
                 return true;
             }
@@ -579,7 +579,12 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
                 return true;
             }
 
-            if (!IsEndOfStream() && PeekTag() is BinaryFormatterTag.ObjectEnd or BinaryFormatterTag.ArrayEnd)
+            if (_buffer.IsNullOrEmpty())
+            {
+                return true;
+            }
+
+            if (!IsEndOfBuffer() && PeekTag() is BinaryFormatterTag.ObjectEnd or BinaryFormatterTag.ArrayEnd)
             {
                 return true;
             }

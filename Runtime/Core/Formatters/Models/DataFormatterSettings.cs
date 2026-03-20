@@ -34,6 +34,6 @@ namespace EasyToolkit.Serialization.Formatters
         /// This is useful for forward compatibility when deserializing older data formats.
         /// Default value is false.
         /// </summary>
-        public bool ReturnDefaultOnEmptyMember { get; set; }
+        public bool ReturnDefaultOnEmptyMember { get; set; } = true;
     }
 }

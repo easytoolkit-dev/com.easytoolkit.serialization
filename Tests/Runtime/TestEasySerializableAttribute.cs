@@ -344,7 +344,6 @@ namespace EasyToolkit.Serialization.Tests
         {
             var context = new SerializationContext()
             {
-                UseRuntimeTypeSerialization = true,
                 AllowAnonymousTypes = true,
                 MemberFlags = SerializableMemberFlags.Default | SerializableMemberFlags.PublicProperties
             };

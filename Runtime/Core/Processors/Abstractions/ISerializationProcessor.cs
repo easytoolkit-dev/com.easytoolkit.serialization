@@ -4,7 +4,7 @@ using JetBrains.Annotations;
 
 namespace EasyToolkit.Serialization.Processors
 {
-    public interface ISerializationProcessor : ISerializationSettingsAccessor
+    public interface ISerializationProcessor
     {
         /// <summary>
         /// Gets the value type this serializer is designed for.

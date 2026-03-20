@@ -9,6 +9,7 @@ using EasyToolkit.Core.Collections;
 using EasyToolkit.Core.Mathematics;
 using EasyToolkit.Core.Reflection;
 using EasyToolkit.Core.Textual;
+using EasyToolkit.Serialization.Utilities;
 using JetBrains.Annotations;
 
 namespace EasyToolkit.Serialization.Processors
@@ -96,39 +97,10 @@ namespace EasyToolkit.Serialization.Processors
                 {
                     var filteredTypes = FilterProcessorTypes(candidateTypes, excludedTypes);
                     dependency = CreateProcessor(valueType, context, filteredTypes, processor.GetType(), processor);
-
-                    if (dependency == null)
-                    {
-                        var stringBuilder = new StringBuilder();
-                        stringBuilder.Append($"No suitable processor found for type '{valueType}' ");
-                        if (candidateTypes.IsNotNullOrEmpty() || excludedTypes.IsNotNullOrEmpty())
-                        {
-                            stringBuilder.Append("from ");
-
-                            if (candidateTypes.IsNotNullOrEmpty())
-                            {
-                                stringBuilder.Append($"candidateTypes [{string.Join(", ", candidateTypes!.Select(t => t.ToString()))}]");
-                            }
-                            else
-                            {
-                                stringBuilder.Append($"excludedTypes [{string.Join(", ", excludedTypes!.Select(t => t.ToString()))}]");
-                            }
-                        }
-                        stringBuilder.Append($"for member '{memberInfo.Name}'.");
-
-                        throw new InvalidOperationException(stringBuilder.ToString());
-                    }
                 }
                 else
                 {
                     dependency = CreateProcessor(valueType, context, null, processor.GetType(), processor);
-
-                    if (dependency == null)
-                    {
-                        throw new InvalidOperationException(
-                            $"No suitable processor found for type '{valueType}' " +
-                            $"for member '{memberInfo.Name}'.");
-                    }
                 }
 
                 // Set the dependency value
@@ -157,7 +129,13 @@ namespace EasyToolkit.Serialization.Processors
         {
             var processor = PureCreateProcessor(valueType, context, candidateTypes);
             if (processor == null)
-                return null;
+            {
+                throw new SerializationException(
+                    $"Failed to resolve serialization processor for '{valueType.ToCodeString()}'. "
+                    + $"Ensure the type is marked with [Serializable] or [EasySerializable] attribute. "
+                    + $"Alternatively, create a custom processor by inheriting from SerializationProcessor<{valueType.ToCodeString()}>, "
+                    + $"or mark with [EasySerializable(Ignore = true)] to ignore.");
+            }
 
             if (processor.GetType() == owningProcessorType)
             {
@@ -166,7 +144,7 @@ namespace EasyToolkit.Serialization.Processors
                     $"cannot be injected into itself. To fix this, add ExcludedTypes to the " +
                     $"[DependencyProcessor] attribute to exclude the owning processor type. " +
                     $"Example: [DependencyProcessor(ExcludedTypesGetter = nameof(ExcludedTypes))] " +
-                    $"with private static readonly Type[] ExcludedTypes = {{ typeof({owningProcessorType}) }};");
+                    $"with private static readonly Type[] ExcludedTypes = {{ typeof({owningProcessorType.ToCodeString()}) }};");
             }
 
             processor.Context = context;

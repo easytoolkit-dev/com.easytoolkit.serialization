@@ -14,6 +14,24 @@ namespace EasyToolkit.Serialization.Tests
         OptionC = 2
     }
 
+    public interface IInventorySlot
+    {
+    }
+
+    [Serializable]
+    public class InventorySlot : IInventorySlot
+    {
+        public int Id;
+        public string Name;
+    }
+
+    [EasySerializable(Ignore = true)]
+    public class InventoryIgnoreSerializeSlot : IInventorySlot
+    {
+        public int Id;
+        public string Name;
+    }
+
     /// <summary>Test data class for serialization testing.</summary>
     [Serializable]
     public class TestDataClass
@@ -30,6 +48,8 @@ namespace EasyToolkit.Serialization.Tests
         public bool? OptionalIsActive;
         public DateTime? OptionalTimestamp;
         public Guid? OptionalGuid;
+        public IInventorySlot InventorySlot;
+        public IInventorySlot IgnoreSerializeInventorySlot;
     }
 
 

@@ -47,13 +47,9 @@ namespace EasyToolkit.Serialization.Resolvers.Implementations
                 ? easySerializableAttribute.AllowUnmarkedStructs
                 : context.AllowUnmarkedStructs;
 
-            var useRuntimeTypeSerialization = easySerializableAttribute is { IsDefinedUseRuntimeTypeSerialization: true }
-                ? easySerializableAttribute.UseRuntimeTypeSerialization
-                : context.UseRuntimeTypeSerialization;
-
             var members = new List<SerializationMemberDefinition>();
 
-            var memberInfos = valueType.GetMembers(MemberAccessFlags.AllInstance)
+            var memberInfos = valueType.GetAllMembers(MemberAccessFlags.AllInstance)
                 .Where(memberInfo => (memberInfo is FieldInfo fieldInfo && !fieldInfo.IsBackingField()) || memberInfo is PropertyInfo)
                 .Where(memberInfo => ShouldIncludeMember(memberInfo, serializableMemberFlags, requireSerializeField, excludeNonSerialized, allowAnonymousTypes, allowUnmarkedStructs))
                 .ToList();
@@ -72,14 +68,13 @@ namespace EasyToolkit.Serialization.Resolvers.Implementations
                     serializedName = memberInfo.Name;
                 }
 
-                var processor = SerializationProcessorFactory.CreateProcessor(memberType, context, parent);
-                if (processor == null)
+                ISerializationProcessor processor = null;
+                try
                 {
-                    Debug.LogError(
-                        $"Failed to resolve serialization processor for member '{memberInfo}' of type {valueType}. " +
-                        $"Member type '{memberType}' is not supported. " +
-                        $"Create a custom processor by inheriting from SerializationProcessor<{memberType.Name}> or use a supported type.");
-                    continue;
+                    processor = SerializationProcessorFactory.CreateProcessor(memberType, context, parent);
+                }
+                catch (SerializationException)
+                {
                 }
 
                 var memberDefinition = new SerializationMemberDefinition
@@ -92,7 +87,7 @@ namespace EasyToolkit.Serialization.Resolvers.Implementations
                     ValueGetter = CreateValueGetter(memberInfo),
                     ValueSetter = CreateValueSetter(memberInfo),
                     Processor = processor,
-                    UseRuntimeType = useRuntimeTypeSerialization && memberType.IsClass && memberType != typeof(string),
+                    UseRuntimeType = !memberType.IsValueType && !memberType.IsSealed && memberType != typeof(string),
                     AllowAnonymousTypes = allowAnonymousTypes,
                     AllowUnmarkedStructs = allowUnmarkedStructs
                 };
@@ -109,7 +104,12 @@ namespace EasyToolkit.Serialization.Resolvers.Implementations
         private static bool ShouldIncludeMember(MemberInfo memberInfo, SerializableMemberFlags flags,
             bool requireSerializeFieldOnNonPublic, bool excludeNonSerialized, bool allowAnonymousTypes, bool allowUnmarkedStructs)
         {
-            if (memberInfo.TryGetMemberType(out var memberValueType) && memberValueType.IsAnonymousType())
+            if (!memberInfo.TryGetMemberType(out var memberType))
+            {
+                return false;
+            }
+
+            if (memberType.IsAnonymousType())
             {
                 if (!allowAnonymousTypes)
                 {
@@ -117,31 +117,37 @@ namespace EasyToolkit.Serialization.Resolvers.Implementations
                 }
             }
 
-            // Check if struct types require serialization attributes
-            if (!allowUnmarkedStructs && memberValueType != null)
             {
-                if (memberValueType.IsStructType())
-                {
-                    var hasSerializableAttribute = memberValueType.IsDefined(typeof(SerializableAttribute), inherit: false);
-                    var easySerializableAttribute = SerializedTypeUtility.GetDefinedEasySerializableAttribute(memberValueType);
+                var hasSerializableAttribute = memberType.IsDefined(typeof(SerializableAttribute), inherit: false);
+                var easySerializableAttribute = SerializedTypeUtility.GetDefinedEasySerializableAttribute(memberType);
 
-                    if (!hasSerializableAttribute && easySerializableAttribute == null)
+                if (memberType.IsStructType())
+                {
+                    // Check if struct types require serialization attributes
+                    if (!allowUnmarkedStructs)
                     {
-                        return false;
+
+                        if (!hasSerializableAttribute && easySerializableAttribute == null)
+                        {
+                            return false;
+                        }
                     }
                 }
             }
 
             // Check for EasySerializeFieldAttribute with Ignore flag
             var serializeFieldAttribute = memberInfo.GetCustomAttribute<EasySerializeFieldAttribute>(inherit: true);
-            if (serializeFieldAttribute != null && serializeFieldAttribute.Ignore)
+            if (serializeFieldAttribute is { Ignore: true })
             {
                 return false;
             }
 
+            var hasAnySerializeFieldAttribute = serializeFieldAttribute != null ||
+                                             memberInfo.IsDefined(typeof(SerializeField), inherit: true);
+
             // Check member type (Field vs Property)
-            bool isField = memberInfo is FieldInfo;
-            bool isProperty = memberInfo is PropertyInfo;
+            var isField = memberInfo is FieldInfo;
+            var isProperty = memberInfo is PropertyInfo;
 
             // Check for NonSerializedAttribute on fields
             if (excludeNonSerialized && isField)
@@ -164,9 +170,9 @@ namespace EasyToolkit.Serialization.Resolvers.Implementations
             }
 
             // Check visibility (Public vs NonPublic)
-            bool isPublic = IsPublicMember(memberInfo);
-            bool includePublic = flags.HasFlag(SerializableMemberFlags.Public);
-            bool includeNonPublic = flags.HasFlag(SerializableMemberFlags.NonPublic);
+            var isPublic = IsPublicMember(memberInfo);
+            var includePublic = flags.HasFlag(SerializableMemberFlags.Public);
+            var includeNonPublic = flags.HasFlag(SerializableMemberFlags.NonPublic);
 
             if (isPublic && !includePublic)
             {
@@ -181,10 +187,7 @@ namespace EasyToolkit.Serialization.Resolvers.Implementations
             // Check if non-public field requires SerializeField attribute
             if (!isPublic && isField && requireSerializeFieldOnNonPublic)
             {
-                var fieldInfo = (FieldInfo)memberInfo;
-                var serializeFieldAttributes =
-                    fieldInfo.GetCustomAttributes(typeof(UnityEngine.SerializeField), inherit: true);
-                if (serializeFieldAttributes.Length == 0)
+                if (!hasAnySerializeFieldAttribute)
                 {
                     return false;
                 }

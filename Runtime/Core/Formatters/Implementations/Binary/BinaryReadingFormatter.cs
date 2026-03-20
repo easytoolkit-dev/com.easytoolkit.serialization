@@ -65,16 +65,14 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void BeginMember(string name)
         {
-            // Check if we should skip reading this member
             if (ShouldSkipMemberReading())
             {
-                // Mark this member as missing and skip reading
                 MarkNextMemberMissing();
                 return;
             }
 
             // If we're at the end of stream, throw an exception (data corruption)
-            if (IsEndOfStream())
+            if (IsEndOfBuffer())
             {
                 throw new EndOfStreamException(
                     "Attempted to read member but reached end of stream. " +
@@ -101,18 +99,8 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void BeginObject(Type expectedType)
         {
-            // Check if we're in a missing member scope
-            if (_returnDefaultOnEmptyMember && IsInMissingMemberScope())
+            if (ShouldSkipMemberReading())
             {
-                // Push missing member state for nested scope
-                EnterMissingMemberScope();
-                return;
-            }
-
-            // Check if we've reached the end of stream or ObjectEnd (missing member scenario)
-            if (_returnDefaultOnEmptyMember && (IsEndOfStream() || PeekTag() == BinaryFormatterTag.ObjectEnd))
-            {
-                // Enter missing member scope
                 EnterMissingMemberScope();
                 return;
             }
@@ -142,21 +130,10 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void BeginArray(ref int length)
         {
-            // Check if we're in a missing member scope
-            if (_returnDefaultOnEmptyMember && IsInMissingMemberScope())
+            if (ShouldSkipMemberReading())
             {
-                // Push missing member state for nested scope
-                EnterMissingMemberScope();
                 length = 0;
-                return;
-            }
-
-            // Check if we've reached the end of stream or ObjectEnd (missing member scenario)
-            if (_returnDefaultOnEmptyMember && (IsEndOfStream() || PeekTag() == BinaryFormatterTag.ObjectEnd))
-            {
-                // Enter missing member scope
                 EnterMissingMemberScope();
-                length = 0;
                 return;
             }
 
@@ -694,6 +671,11 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override Type PeekType(Type expectedType)
         {
+            if (ShouldSkipMemberReading())
+            {
+                return null;
+            }
+
             var originalPosition = _position;
             ReadAndValidateOptionTag(BinaryFormatterTag.ObjectBegin, "begin object");
             var enableValidate = expectedType != null;

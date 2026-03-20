@@ -40,7 +40,7 @@ namespace EasyToolkit.Serialization.Resolvers
         [CanBeNull] public InstanceGetter ValueGetter { get; set; }
         [CanBeNull] public InstanceSetter ValueSetter { get; set; }
 
-        public ISerializationProcessor Processor { get; set; }
+        [CanBeNull] public ISerializationProcessor Processor { get; set; }
 
         /// <summary>
         /// Gets or sets whether to use runtime type for processor lookup during serialization.

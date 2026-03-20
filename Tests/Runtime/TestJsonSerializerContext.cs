@@ -505,7 +505,6 @@ namespace EasyToolkit.Serialization.Tests
             // Arrange
             var context = new SerializationContext
             {
-                UseRuntimeTypeSerialization = true,
                 AllowAnonymousTypes = true,
                 MemberFlags = SerializableMemberFlags.AllPublic
             };

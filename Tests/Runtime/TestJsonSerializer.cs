@@ -954,7 +954,17 @@ namespace EasyToolkit.Serialization.Tests
                 IsActive = true,
                 Position = new UnityEngine.Vector3(1, 2, 3),
                 Scores = new List<int> { 100, 200, 300 },
-                Data = new byte[] { 11, 22, 33, 44, 55 }
+                Data = new byte[] { 11, 22, 33, 44, 55 },
+                InventorySlot = new InventorySlot()
+                {
+                    Id = 1,
+                    Name = "Slot"
+                },
+                IgnoreSerializeInventorySlot = new InventoryIgnoreSerializeSlot()
+                {
+                    Id = 2,
+                    Name = "IgnoreSlot"
+                }
             };
 
             // Act
@@ -978,6 +988,10 @@ namespace EasyToolkit.Serialization.Tests
             Assert.AreEqual(33, result.Data[2]);
             Assert.AreEqual(44, result.Data[3]);
             Assert.AreEqual(55, result.Data[4]);
+            Assert.IsInstanceOf<InventorySlot>(result.InventorySlot);
+            Assert.AreEqual(1, ((InventorySlot)result.InventorySlot).Id);
+            Assert.AreEqual("Slot", ((InventorySlot)result.InventorySlot).Name);
+            Assert.IsNull(result.IgnoreSerializeInventorySlot);
         }
 
         /// <summary>
@@ -1385,199 +1399,6 @@ namespace EasyToolkit.Serialization.Tests
 
         #endregion
 
-        #region Runtime Type Serialization
-
-        /// <summary>
-        /// Verifies that serializing a derived class through base class reference preserves runtime type when UseRuntimeTypeSerialization is enabled.
-        /// </summary>
-        [Test]
-        public void SerializeDeserialize_DerivedClassWithRuntimeTypeEnabled_PreservesRuntimeType()
-        {
-            // Arrange
-            var context = new SerializationContext
-            {
-                UseRuntimeTypeSerialization = true,
-                AllowAnonymousTypes = true
-            };
-            var original = new PetContainer
-            {
-                Pet = new Dog("Buddy", "Golden Retriever")
-            };
-
-            // Act
-            string json = EasySerializer.SerializeToJson(original, null, context);
-            var result = EasySerializer.DeserializeFromJson<PetContainer>(json, null, context);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Pet);
-            Assert.AreEqual("Buddy", result.Pet.Name);
-            Assert.IsInstanceOf(typeof(Dog), result.Pet);
-            var dog = result.Pet as Dog;
-            Assert.IsNotNull(dog);
-            Assert.AreEqual("Golden Retriever", dog.Breed);
-        }
-
-        /// <summary>
-        /// Verifies that serializing a derived class through base class reference loses derived type information when UseRuntimeTypeSerialization is disabled.
-        /// </summary>
-        [Test]
-        public void SerializeDeserialize_DerivedClassWithRuntimeTypeDisabled_LosesDerivedTypeInfo()
-        {
-            // Arrange
-            var context = new SerializationContext
-            {
-                UseRuntimeTypeSerialization = false
-            };
-            var original = new PetContainer
-            {
-                Pet = new Dog("Max", "Bulldog")
-            };
-
-            // Act
-            string json = EasySerializer.SerializeToJson(original, null, context);
-            var result = EasySerializer.DeserializeFromJson<PetContainer>(json, null, context);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Pet);
-            Assert.AreEqual("Max", result.Pet.Name);
-            // Without runtime type serialization, should deserialize as base type
-            Assert.IsInstanceOf(typeof(Animal), result.Pet);
-            Assert.IsNotInstanceOf(typeof(Dog), result.Pet);
-        }
-
-        /// <summary>
-        /// Verifies that serializing a Cat derived class through base class reference preserves runtime type when UseRuntimeTypeSerialization is enabled.
-        /// </summary>
-        [Test]
-        public void SerializeDeserialize_CatDerivedClassWithRuntimeTypeEnabled_PreservesRuntimeType()
-        {
-            // Arrange
-            var context = new SerializationContext
-            {
-                UseRuntimeTypeSerialization = true,
-                AllowAnonymousTypes = true
-            };
-            var original = new PetContainer
-            {
-                Pet = new Cat("Whiskers", true)
-            };
-
-            // Act
-            string json = EasySerializer.SerializeToJson(original, null, context);
-            var result = EasySerializer.DeserializeFromJson<PetContainer>(json, null, context);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Pet);
-            Assert.AreEqual("Whiskers", result.Pet.Name);
-            Assert.IsInstanceOf(typeof(Cat), result.Pet);
-            var cat = result.Pet as Cat;
-            Assert.IsNotNull(cat);
-            Assert.IsTrue(cat.IsIndoor);
-        }
-
-        /// <summary>
-        /// Verifies that serializing multiple different derived types through base class references preserves runtime types when UseRuntimeTypeSerialization is enabled.
-        /// </summary>
-        [Test]
-        public void SerializeDeserialize_MultipleDerivedClassesWithRuntimeTypeEnabled_PreservesAllRuntimeTypes()
-        {
-            // Arrange
-            var context = new SerializationContext
-            {
-                UseRuntimeTypeSerialization = true,
-                AllowAnonymousTypes = true
-            };
-            var original = new ZooContainer
-            {
-                PrimaryAnimal = new Dog("Rex", "German Shepherd"),
-                SecondaryAnimal = new Cat("Mittens", false)
-            };
-
-            // Act
-            string json = EasySerializer.SerializeToJson(original, null, context);
-            var result = EasySerializer.DeserializeFromJson<ZooContainer>(json, null, context);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsNotNull(result.PrimaryAnimal);
-            Assert.IsNotNull(result.SecondaryAnimal);
-
-            // Verify primary animal is Dog
-            Assert.AreEqual("Rex", result.PrimaryAnimal.Name);
-            Assert.IsInstanceOf(typeof(Dog), result.PrimaryAnimal);
-            var dog = result.PrimaryAnimal as Dog;
-            Assert.IsNotNull(dog);
-            Assert.AreEqual("German Shepherd", dog.Breed);
-
-            // Verify secondary animal is Cat
-            Assert.AreEqual("Mittens", result.SecondaryAnimal.Name);
-            Assert.IsInstanceOf(typeof(Cat), result.SecondaryAnimal);
-            var cat = result.SecondaryAnimal as Cat;
-            Assert.IsNotNull(cat);
-            Assert.IsFalse(cat.IsIndoor);
-        }
-
-        /// <summary>
-        /// Verifies that serializing base class instance through base class reference works correctly when UseRuntimeTypeSerialization is enabled.
-        /// </summary>
-        [Test]
-        public void SerializeDeserialize_BaseClassWithRuntimeTypeEnabled_WorksCorrectly()
-        {
-            // Arrange
-            var context = new SerializationContext
-            {
-                UseRuntimeTypeSerialization = true,
-                AllowAnonymousTypes = true
-            };
-            var original = new PetContainer
-            {
-                Pet = new Animal("GenericAnimal")
-            };
-
-            // Act
-            string json = EasySerializer.SerializeToJson(original, null, context);
-            var result = EasySerializer.DeserializeFromJson<PetContainer>(json, null, context);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Pet);
-            Assert.AreEqual("GenericAnimal", result.Pet.Name);
-            Assert.IsInstanceOf(typeof(Animal), result.Pet);
-            Assert.IsNotInstanceOf(typeof(Dog), result.Pet);
-            Assert.IsNotInstanceOf(typeof(Cat), result.Pet);
-        }
-
-        /// <summary>
-        /// Verifies that serializing a null reference through base class reference works correctly when UseRuntimeTypeSerialization is enabled.
-        /// </summary>
-        [Test]
-        public void SerializeDeserialize_NullReferenceWithRuntimeTypeEnabled_WorksCorrectly()
-        {
-            // Arrange
-            var context = new SerializationContext
-            {
-                UseRuntimeTypeSerialization = true,
-                AllowAnonymousTypes = true
-            };
-            var original = new PetContainer
-            {
-                Pet = null
-            };
-
-            // Act
-            string json = EasySerializer.SerializeToJson(original, null, context);
-            var result = EasySerializer.DeserializeFromJson<PetContainer>(json, null, context);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsNull(result.Pet);
-        }
-
-        #endregion
-
         #region JsonFormatterSettings Options
 
         /// <summary>
@@ -1674,7 +1495,7 @@ namespace EasyToolkit.Serialization.Tests
                     TypeNameField = "@custom_type@"
                 }
             };
-            var context = new SerializationContext { AllowAnonymousTypes = true, UseRuntimeTypeSerialization = true };
+            var context = new SerializationContext { AllowAnonymousTypes = true };
             var original = new PetContainer { Pet = new Dog("Buddy", "Golden Retriever") };
 
             // Act

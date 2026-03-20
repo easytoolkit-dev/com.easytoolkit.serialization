@@ -18,7 +18,6 @@ namespace EasyToolkit.Serialization
         private bool _allowAnonymousTypes = false;
         private bool _excludeNonSerialized = true;
         private bool _requireSerializeFieldOnNonPublic = true;
-        private bool _useRuntimeTypeSerialization = false;
         private SerializableMemberFlags _memberFlags = SerializableMemberFlags.Default;
 
         /// <summary>
@@ -104,13 +103,16 @@ namespace EasyToolkit.Serialization
         /// are excluded from serialization. Default is <c>false</c> to prevent accidental
         /// serialization of temporary data structures.
         /// </para>
+        /// <para>Setting this property clears the processor cache to ensure new settings take effect.</para>
         /// <para>
-        /// Important: When enabling this setting, ensure that
+        /// <b>Important:</b>
+        /// </para>
+        /// <para>
+        /// When enabling this setting, ensure that
         /// <see cref="MemberFlags"/> includes <see cref="SerializableMemberFlags.PublicProperties"/>.
         /// Anonymous types only expose read-only properties with no fields,
         /// so serialization will fail without property support.
         /// </para>
-        /// <para>Setting this property clears the processor cache to ensure new settings take effect.</para>
         /// </remarks>
         public bool AllowAnonymousTypes
         {
@@ -133,11 +135,16 @@ namespace EasyToolkit.Serialization
         /// <see cref="SerializableAttribute"/> or <see cref="EasySerializableAttribute"/> to be serialized.
         /// Default is <c>true</c> for convenience with common struct types like <c>Vector3</c>.
         /// </para>
-        /// <para><strong>Important:</strong> When enabling this setting, ensure that
+        /// <para>Setting this property clears the processor cache to ensure new settings take effect.</para>
+        /// <para>
+        /// <b>Important:</b>
+        /// </para>
+        /// <para>
+        /// When enabling this setting, ensure that
         /// <see cref="MemberFlags"/> includes <see cref="SerializableMemberFlags.Property"/> (e.g.,
         /// <see cref="SerializableMemberFlags.PublicProperties"/>). Anonymous types only expose
-        /// read-only properties with no fields, so serialization will fail without property support.</para>
-        /// <para>Setting this property clears the processor cache to ensure new settings take effect.</para>
+        /// read-only properties with no fields, so serialization will fail without property support.
+        /// </para>
         /// </remarks>
         public bool AllowUnmarkedStructs
         {
@@ -145,31 +152,6 @@ namespace EasyToolkit.Serialization
             set
             {
                 _allowUnmarkedStructs = value;
-                _processorCache.Clear();
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets whether to use runtime type instead of declared type for reference type serialization.
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// When <c>true</c>, reference type members are serialized using their runtime type rather than
-        /// their declared type. This enables polymorphic serialization where derived types are serialized
-        /// with their specific type information. When <c>false</c>, members are serialized based on their
-        /// declared type for better performance.
-        /// </para>
-        /// <para>This setting only affects reference types (classes). Value types (structs) are always
-        /// serialized based on their declared type since they cannot participate in inheritance.</para>
-        /// <para>Default is <c>false</c> to prioritize performance and avoid the overhead of runtime type checking.
-        /// Setting this property clears the processor cache to ensure new settings take effect.</para>
-        /// </remarks>
-        public bool UseRuntimeTypeSerialization
-        {
-            get => _useRuntimeTypeSerialization;
-            set
-            {
-                _useRuntimeTypeSerialization = value;
                 _processorCache.Clear();
             }
         }

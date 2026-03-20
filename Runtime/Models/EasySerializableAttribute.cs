@@ -12,7 +12,6 @@ namespace EasyToolkit.Serialization
         private bool? _allowAnonymousTypes;
         private bool? _allowUnmarkedStructs;
         private bool? _requireSerializeFieldOnNonPublic;
-        private bool? _useRuntimeTypeSerialization;
         private SerializableMemberFlags? _memberFlags;
 
         /// <summary>
@@ -27,17 +26,23 @@ namespace EasyToolkit.Serialization
         public bool AllocInherit { get; set; }
 
         /// <summary>
+        /// Gets or sets whether this type should be ignored during serialization.
+        /// </summary>
+        /// <remarks>
+        /// When <c>true</c>, this type is excluded from serialization processing. Any fields
+        /// or properties of this type will be skipped during serialization structure resolution.
+        /// This provides a way to prevent specific types from being serialized, useful for
+        /// types that should not participate in the serialization system.
+        /// </remarks>
+        public bool Ignore { get; set; }
+
+        /// <summary>
         /// Gets or sets the flags that control which members are filtered for serialization.
         /// </summary>
         /// <exception cref="InvalidOperationException">
         /// Thrown when getting this property without first setting a value.
         /// Check <see cref="IsDefinedMemberFlags"/> before accessing.
         /// </exception>
-        /// <remarks>
-        /// When this property is explicitly set, it takes precedence over the
-        /// <see cref="SerializationContext.MemberFlags"/> setting.
-        /// When not set, the context's value is used instead.
-        /// </remarks>
         public SerializableMemberFlags MemberFlags
         {
             get => _memberFlags ?? throw new InvalidOperationException(
@@ -65,10 +70,8 @@ namespace EasyToolkit.Serialization
         /// </exception>
         /// <remarks>
         /// When <c>true</c>, non-public fields are only serialized if they are explicitly marked
-        /// with <c>UnityEngine.SerializeField</c>. This mimics Unity's serialization behavior.
-        /// When <c>false</c>, non-public fields are serialized based on <c>MemberFlags</c> alone.
-        /// When this property is explicitly set, it takes precedence over the
-        /// <see cref="SerializationContext.RequireSerializeFieldOnNonPublic"/> setting.
+        /// with <see cref="UnityEngine.SerializeField"/>. This mimics Unity's serialization behavior.
+        /// When <c>false</c>, non-public fields are serialized based on <see cref="MemberFlags"/> alone.
         /// </remarks>
         public bool RequireSerializeFieldOnNonPublic
         {
@@ -88,7 +91,7 @@ namespace EasyToolkit.Serialization
         public bool IsDefinedRequireSerializeFieldOnNonPublic => _requireSerializeFieldOnNonPublic.HasValue;
 
         /// <summary>
-        /// Gets or sets whether to exclude members marked with <c>NonSerializedAttribute</c>
+        /// Gets or sets whether to exclude members marked with <see cref="NonSerializedAttribute"/>
         /// from serialization.
         /// </summary>
         /// <exception cref="InvalidOperationException">
@@ -96,11 +99,9 @@ namespace EasyToolkit.Serialization
         /// Check <see cref="IsDefinedExcludeNonSerialized"/> before accessing.
         /// </exception>
         /// <remarks>
-        /// When <c>true</c>, fields marked with <c>System.NonSerializedAttribute</c> are excluded
-        /// from serialization regardless of other settings. When <c>false</c>, the <c>NonSerialized</c>
-        /// attribute is ignored and members are serialized based on other flags.
-        /// When this property is explicitly set, it takes precedence over the
-        /// <see cref="SerializationContext.ExcludeNonSerialized"/> setting.
+        /// When <c>true</c>, fields marked with <see cref="NonSerializedAttribute"/> are excluded
+        /// from serialization regardless of other settings. When <c>false</c>, the <see cref="NonSerializedAttribute"/>
+        /// is ignored and members are serialized based on other flags.
         /// </remarks>
         public bool ExcludeNonSerialized
         {
@@ -135,14 +136,13 @@ namespace EasyToolkit.Serialization
         /// <see cref="SerializationContext.AllowAnonymousTypes"/> setting.
         /// </para>
         /// <para>
-        /// Important: When enabling this setting, ensure that
+        /// <b>Important:</b>
+        /// </para>
+        /// <para>
+        /// When enabling this setting, ensure that
         /// <see cref="MemberFlags"/> includes <see cref="SerializableMemberFlags.PublicProperties"/>.
         /// Anonymous types only expose read-only properties with no fields,
         /// so serialization will fail without property support.
-        /// </para>
-        /// <para>
-        /// This setting only performs static member type checking based on declared types.
-        /// Runtime member types are not checked for anonymous type compatibility to avoid performance overhead.
         /// </para>
         /// </remarks>
         public bool AllowAnonymousTypes
@@ -175,8 +175,6 @@ namespace EasyToolkit.Serialization
         /// When <c>true</c>, struct types can be serialized even without explicit serialization
         /// attributes. When <c>false</c>, structs must be marked with either
         /// <see cref="SerializableAttribute"/> or <see cref="EasySerializableAttribute"/> to be serialized.
-        /// When this property is explicitly set, it takes precedence over the
-        /// <see cref="SerializationContext.AllowUnmarkedStructs"/> setting.
         /// </para>
         /// <para>
         /// This setting only performs static member type checking based on declared types.
@@ -199,45 +197,5 @@ namespace EasyToolkit.Serialization
         /// When <c>false</c>, the <see cref="SerializationContext.AllowUnmarkedStructs"/> value is used instead.
         /// </remarks>
         public bool IsDefinedAllowUnmarkedStructs => _allowUnmarkedStructs.HasValue;
-
-        /// <summary>
-        /// Gets or sets whether to use runtime type instead of declared type for reference type serialization.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">
-        /// Thrown when getting this property without first setting a value.
-        /// Check <see cref="IsDefinedUseRuntimeTypeSerialization"/> before accessing.
-        /// </exception>
-        /// <remarks>
-        /// <para>
-        /// When <c>true</c>, reference type members are serialized using their runtime type rather than
-        /// their declared type. This enables polymorphic serialization where derived types are serialized
-        /// with their specific type information. When <c>false</c>, members are serialized based on their
-        /// declared type for better performance.
-        /// </para>
-        /// <para>
-        /// This setting only affects reference types (classes). Value types (structs) are always
-        /// serialized based on their declared type since they cannot participate in inheritance.
-        /// </para>
-        /// <para>
-        /// When this property is explicitly set, it takes precedence over the
-        /// <see cref="SerializationContext.UseRuntimeTypeSerialization"/> setting.
-        /// </para>
-        /// </remarks>
-        public bool UseRuntimeTypeSerialization
-        {
-            get => _useRuntimeTypeSerialization ?? throw new InvalidOperationException(
-                "Cannot access UseRuntimeTypeSerialization property because it has not been set.");
-            set => _useRuntimeTypeSerialization = value;
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether the <see cref="UseRuntimeTypeSerialization"/> property
-        /// has been explicitly defined.
-        /// </summary>
-        /// <remarks>
-        /// When <c>true</c>, the attribute's <see cref="UseRuntimeTypeSerialization"/> value is used.
-        /// When <c>false</c>, the <see cref="SerializationContext.UseRuntimeTypeSerialization"/> value is used instead.
-        /// </remarks>
-        public bool IsDefinedUseRuntimeTypeSerialization => _useRuntimeTypeSerialization.HasValue;
     }
 }
