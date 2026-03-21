@@ -533,9 +533,6 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         /// <summary>
         /// Checks if we should assign default value instead of reading from stream.
-        /// Returns true if either:
-        /// 1. The next member is marked as missing (also clears the flag)
-        /// 2. We're currently in a missing member scope
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool ShouldAssignDefaultValue()
@@ -564,9 +561,6 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
         /// <summary>
         /// Checks if we should skip reading the current member.
-        /// Returns true if either:
-        /// 1. We're in a missing member scope
-        /// 2. We're at ObjectEnd tag with default-on-empty-member enabled
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool ShouldSkipMemberReading()

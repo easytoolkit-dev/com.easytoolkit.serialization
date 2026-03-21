@@ -1,8 +1,8 @@
 ﻿using System;
-using EasyToolkit.Core.Diagnostics;
 using EasyToolkit.Core.Reflection;
 using EasyToolkit.Serialization.Formatters;
 using EasyToolkit.Serialization.Resolvers;
+using UnityEngine.Assertions;
 
 namespace EasyToolkit.Serialization.Processors
 {
@@ -32,7 +32,7 @@ namespace EasyToolkit.Serialization.Processors
                             + $"Ensure that '{formatter.FormatType}FormatterOptions.{formatter.FormatType}FormatterOptions.IncludeObjectType' is enabled in the formatter options to include type metadata in the serialized data.");
                     }
 
-                    Assert.IsTrue(valueType != memberDefinition.MemberType);
+                    Assert.AreNotEqual(valueType, memberDefinition.MemberType);
                     var processor = _processorByType.GetOrAdd(valueType, CreateProcessor);
                     processor.ProcessUntyped(ref memberValue, formatter);
                 }

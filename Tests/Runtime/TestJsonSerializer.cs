@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using EasyToolkit.Serialization;
+using EasyToolkit.Serialization.Formatters;
 
 namespace EasyToolkit.Serialization.Tests
 {
@@ -1510,6 +1511,270 @@ namespace EasyToolkit.Serialization.Tests
             Assert.IsInstanceOf<Dog>(result.Pet);
             var dog = result.Pet as Dog;
             Assert.AreEqual("Golden Retriever", dog.Breed);
+        }
+
+        #endregion
+
+        #region ReturnDefaultOnEmptyMember
+
+        /// <summary>
+        /// Verifies that deserializing an empty JSON with ReturnDefaultOnEmptyMember enabled returns default value.
+        /// </summary>
+        [Test]
+        public void DeserializeFromJson_EmptyJsonWithReturnDefaultOnEmptyMember_ReturnsDefault()
+        {
+            // Arrange
+            var settings = new SerializationSettings
+            {
+                JsonFormatterSettings = new Formatters.JsonFormatterSettings
+                {
+                    ReturnDefaultOnEmptyMember = true
+                }
+            };
+            string emptyJson = string.Empty;
+
+            // Act
+            var result = EasySerializer.DeserializeFromJson<EmptyTestClass>(emptyJson, settings);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual(0, result.Value);
+            Assert.IsNull(result.Name);
+        }
+
+        /// <summary>
+        /// Verifies that deserializing V1 data into V2 class with ReturnDefaultOnEmptyMember enabled fills default values.
+        /// </summary>
+        [Test]
+        public void DeserializeFromJson_V1DataToV2ClassWithReturnDefaultOnEmptyMember_FillsDefaultValues()
+        {
+            // Arrange
+            var settings = new SerializationSettings
+            {
+                JsonFormatterSettings = new Formatters.JsonFormatterSettings
+                {
+                    ReturnDefaultOnEmptyMember = true,
+                    Options = JsonFormatterOptions.None
+                }
+            };
+
+            // Create V1 JSON manually (only contains V1 fields)
+            string v1Json = @"{
+                ""PlayerId"": 100,
+                ""PlayerName"": ""TestPlayer"",
+                ""Health"": 75.5
+            }";
+
+            // Act - Deserialize V1 data into V2 class
+            var v2Result = EasySerializer.DeserializeFromJson<PlayerDataV2>(v1Json, settings);
+
+            // Assert - Original fields should be preserved
+            Assert.AreEqual(100, v2Result.PlayerId);
+            Assert.AreEqual("TestPlayer", v2Result.PlayerName);
+            Assert.AreEqual(75.5f, v2Result.Health, 0.0001f);
+
+            // New fields should have default values
+            Assert.AreEqual(0, v2Result.Level);
+            Assert.AreEqual(0f, v2Result.Experience, 0.0001f);
+            Assert.AreEqual(false, v2Result.IsPremium);
+            Assert.IsNull(v2Result.Items);
+        }
+
+        /// <summary>
+        /// Verifies that deserializing V1 data into V2 class with ReturnDefaultOnEmptyMember disabled throws exception for missing fields.
+        /// </summary>
+        [Test]
+        public void DeserializeFromJson_V1DataToV2ClassWithReturnDefaultOnEmptyMemberDisabled_ThrowsException()
+        {
+            // Arrange
+            var settings = new SerializationSettings
+            {
+                JsonFormatterSettings = new Formatters.JsonFormatterSettings
+                {
+                    ReturnDefaultOnEmptyMember = false,
+                    Options = JsonFormatterOptions.None
+                }
+            };
+
+            // Create V1 JSON manually (only contains V1 fields)
+            string v1Json = @"{
+                ""PlayerId"": 100,
+                ""PlayerName"": ""TestPlayer"",
+                ""Health"": 75.5
+            }";
+
+            // Act & Assert - Deserialize V1 data into V2 class should throw exception
+            var ex = Assert.Throws<DataFormatException>(
+                () => EasySerializer.DeserializeFromJson<PlayerDataV2>(v1Json, settings));
+
+            // Verify the exception message indicates the missing field
+            Assert.IsTrue(ex.Message.Contains("Level"));
+        }
+
+        /// <summary>
+        /// Verifies that deserializing V2 data with ReturnDefaultOnEmptyMember works correctly.
+        /// </summary>
+        [Test]
+        public void DeserializeFromJson_V2DataWithReturnDefaultOnEmptyMember_ReturnsOriginalValues()
+        {
+            // Arrange
+            var settings = new SerializationSettings
+            {
+                JsonFormatterSettings = new Formatters.JsonFormatterSettings
+                {
+                    ReturnDefaultOnEmptyMember = true
+                }
+            };
+
+            var v2Data = new PlayerDataV2(
+                200,
+                "AdvancedPlayer",
+                100.0f,
+                50,
+                5000.5f,
+                true,
+                new List<string> { "Sword", "Shield", "Potion" }
+            );
+
+            // Act
+            string v2Json = EasySerializer.SerializeToJson(v2Data, settings);
+            var v2Result = EasySerializer.DeserializeFromJson<PlayerDataV2>(v2Json, settings);
+
+            // Assert - All fields should match original values
+            Assert.AreEqual(200, v2Result.PlayerId);
+            Assert.AreEqual("AdvancedPlayer", v2Result.PlayerName);
+            Assert.AreEqual(100.0f, v2Result.Health, 0.0001f);
+            Assert.AreEqual(50, v2Result.Level);
+            Assert.AreEqual(5000.5f, v2Result.Experience, 0.0001f);
+            Assert.IsTrue(v2Result.IsPremium);
+            Assert.IsNotNull(v2Result.Items);
+            Assert.AreEqual(3, v2Result.Items.Count);
+            Assert.AreEqual("Sword", v2Result.Items[0]);
+            Assert.AreEqual("Shield", v2Result.Items[1]);
+            Assert.AreEqual("Potion", v2Result.Items[2]);
+        }
+
+        /// <summary>
+        /// Verifies that deserializing empty primitive JSON with ReturnDefaultOnEmptyMember enabled returns default.
+        /// </summary>
+        [Test]
+        public void DeserializeFromJson_EmptyIntJsonWithReturnDefaultOnEmptyMember_ReturnsDefaultInt()
+        {
+            // Arrange
+            var settings = new SerializationSettings
+            {
+                JsonFormatterSettings = new Formatters.JsonFormatterSettings
+                {
+                    ReturnDefaultOnEmptyMember = true,
+                    AutoWrapAtomicValueInArray = true
+                }
+            };
+            string emptyJson = string.Empty;
+
+            // Act
+            var result = EasySerializer.DeserializeFromJson<int>(emptyJson, settings);
+
+            // Assert
+            Assert.AreEqual(0, result);
+        }
+
+        /// <summary>
+        /// Verifies that deserializing empty string JSON with ReturnDefaultOnEmptyMember enabled returns null.
+        /// </summary>
+        [Test]
+        public void DeserializeFromJson_EmptyStringJsonWithReturnDefaultOnEmptyMember_ReturnsNull()
+        {
+            // Arrange
+            var settings = new SerializationSettings
+            {
+                JsonFormatterSettings = new Formatters.JsonFormatterSettings
+                {
+                    ReturnDefaultOnEmptyMember = true,
+                    AutoWrapAtomicValueInArray = true
+                }
+            };
+            string emptyJson = string.Empty;
+
+            // Act
+            var result = EasySerializer.DeserializeFromJson<string>(emptyJson, settings);
+
+            // Assert
+            Assert.IsNull(result);
+        }
+
+        /// <summary>
+        /// Verifies that deserializing partial JSON with ReturnDefaultOnEmptyMember enabled fills defaults.
+        /// </summary>
+        [Test]
+        public void DeserializeFromJson_PartialDataWithReturnDefaultOnEmptyMember_FillsMissingFieldsWithDefaults()
+        {
+            // Arrange
+            var settings = new SerializationSettings
+            {
+                JsonFormatterSettings = new Formatters.JsonFormatterSettings
+                {
+                    ReturnDefaultOnEmptyMember = true,
+                    Options = JsonFormatterOptions.None
+                }
+            };
+
+            // Create partial JSON with only some fields
+            string partialJson = @"{
+                ""PlayerId"": 1,
+                ""PlayerName"": ""Partial""
+            }";
+
+            // Act - Deserialize into V2 class
+            var v2Result = EasySerializer.DeserializeFromJson<PlayerDataV2>(partialJson, settings);
+
+            // Assert
+            Assert.AreEqual(1, v2Result.PlayerId, "PlayerId should match");
+            Assert.AreEqual("Partial", v2Result.PlayerName, "PlayerName should match");
+            Assert.AreEqual(0f, v2Result.Health, 0.0001f, "Health should be default");
+            Assert.AreEqual(0, v2Result.Level, "Level should be default");
+            Assert.AreEqual(0f, v2Result.Experience, 0.0001f, "Experience should be default");
+            Assert.AreEqual(false, v2Result.IsPremium, "IsPremium should be default");
+            Assert.IsNull(v2Result.Items, "Items should be default (null)");
+        }
+
+        /// <summary>
+        /// Verifies that deserializing JSON with all null values returns object with default values.
+        /// </summary>
+        [Test]
+        public void DeserializeFromJson_AllNullValuesWithReturnDefaultOnEmptyMember_ReturnsObjectWithDefaults()
+        {
+            // Arrange
+            var settings = new SerializationSettings
+            {
+                JsonFormatterSettings = new Formatters.JsonFormatterSettings
+                {
+                    ReturnDefaultOnEmptyMember = true,
+                    Options = JsonFormatterOptions.None
+                }
+            };
+
+            // Create JSON with all fields explicitly set to null
+            string allNullJson = @"{
+                ""PlayerId"": null,
+                ""PlayerName"": null,
+                ""Health"": null,
+                ""Level"": null,
+                ""Experience"": null,
+                ""IsPremium"": null,
+                ""Items"": null
+            }";
+
+            // Act
+            var result = EasySerializer.DeserializeFromJson<PlayerDataV2>(allNullJson, settings);
+
+            // Assert - All reference types should be null, value types should be default
+            Assert.AreEqual(0, result.PlayerId);
+            Assert.IsNull(result.PlayerName);
+            Assert.AreEqual(0f, result.Health, 0.0001f);
+            Assert.AreEqual(0, result.Level);
+            Assert.AreEqual(0f, result.Experience, 0.0001f);
+            Assert.AreEqual(false, result.IsPremium);
+            Assert.IsNull(result.Items);
         }
 
         #endregion

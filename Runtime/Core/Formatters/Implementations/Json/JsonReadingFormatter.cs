@@ -1,12 +1,9 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using EasyToolkit.Core.Reflection;
 using EasyToolkit.Core.Textual;
 using EasyToolkit.Serialization.Utilities;
-using JetBrains.Annotations;
 using UnityEngine.Assertions;
 
 namespace EasyToolkit.Serialization.Formatters.Implementations
@@ -15,7 +12,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
     /// JSON reading formatter implementation. Deserializes data from JSON format
     /// using a node-based traversal approach.
     /// </summary>
-    public class JsonReadingFormatter : ReadingFormatterBase
+    public partial class JsonReadingFormatter : ReadingFormatterBase
     {
         /// <inheritdoc />
         public override SerializationFormat FormatType => SerializationFormat.Json;
@@ -27,6 +24,10 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         private readonly Stack<JSONNode> _nodeStack = new();
         private bool _isNullScope;
         private JsonFormatterSettings _jsonSettings;
+        private bool _returnDefaultOnEmptyMember;
+        private readonly Stack<bool> _missingMemberStack = new();
+        private bool _isInMissingMember;
+        private bool _isNextMemberMissing;
 
         /// <inheritdoc />
         protected override void SetBuffer(ReadOnlySpan<byte> buffer)
@@ -35,6 +36,9 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
             _nodeStack.Clear();
             _currentMemberName = null;
             _arrayIndexStack.Clear();
+            _missingMemberStack.Clear();
+            _isInMissingMember = false;
+            _isNextMemberMissing = false;
         }
 
         /// <inheritdoc />
@@ -47,6 +51,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         protected override void OnSettingsChanged(DataFormatterSettings settings)
         {
             _jsonSettings = settings as JsonFormatterSettings;
+            _returnDefaultOnEmptyMember = settings.ReturnDefaultOnEmptyMember;
             base.OnSettingsChanged(settings);
         }
 
@@ -68,11 +73,23 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         protected override void BeginMember(string name)
         {
             _currentMemberName = name;
+
+            // For JSON, check if the member exists in the current parent object
+            if (ShouldSkipMemberReading())
+            {
+                MarkNextMemberMissing();
+            }
         }
 
         /// <inheritdoc />
         protected override void BeginObject(Type expectedType)
         {
+            if (ShouldSkipMemberReading())
+            {
+                EnterMissingMemberScope();
+                return;
+            }
+
             if (_root == null)
             {
                 _root = JSON.Parse(_jsonText);
@@ -100,6 +117,13 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void EndObject()
         {
+            // Check if we're in a missing member scope
+            if (_returnDefaultOnEmptyMember && IsInMissingMemberScope())
+            {
+                ExitMissingMemberScope();
+                return;
+            }
+
             // If we're in a null scope, we didn't add to hierarchy, so just reset the flag
             if (_isNullScope)
             {
@@ -119,6 +143,13 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void BeginArray(ref int length)
         {
+            if (ShouldSkipMemberReading())
+            {
+                length = 0;
+                EnterMissingMemberScope();
+                return;
+            }
+
             if (_root == null)
             {
                 _root = JSON.Parse(_jsonText);
@@ -142,6 +173,13 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void EndArray()
         {
+            // Check if we're in a missing member scope
+            if (_returnDefaultOnEmptyMember && IsInMissingMemberScope())
+            {
+                ExitMissingMemberScope();
+                return;
+            }
+
             var endNode = _nodeStack.Peek();
             if (!endNode.IsArray)
             {
@@ -155,66 +193,132 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void Format(ref UnityEngine.Object unityObject)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                unityObject = default;
+                return;
+            }
+
             unityObject = ResolveReference(ReadAndValidateInt());
         }
 
         /// <inheritdoc />
         protected override void Format(ref int value)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                value = default;
+                return;
+            }
+
             value = ReadAndValidateInt();
         }
 
         /// <inheritdoc />
         protected override void Format(ref sbyte value)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                value = default;
+                return;
+            }
+
             value = (sbyte)ReadAndValidateInt();
         }
 
         /// <inheritdoc />
         protected override void Format(ref short value)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                value = default;
+                return;
+            }
+
             value = (short)ReadAndValidateInt();
         }
 
         /// <inheritdoc />
         protected override void Format(ref long value)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                value = default;
+                return;
+            }
+
             value = ReadAndValidateLong();
         }
 
         /// <inheritdoc />
         protected override void Format(ref byte value)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                value = default;
+                return;
+            }
+
             value = (byte)ReadAndValidateInt();
         }
 
         /// <inheritdoc />
         protected override void Format(ref ushort value)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                value = default;
+                return;
+            }
+
             value = (ushort)ReadAndValidateInt();
         }
 
         /// <inheritdoc />
         protected override void Format(ref uint value)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                value = default;
+                return;
+            }
+
             value = (uint)ReadAndValidateULong();
         }
 
         /// <inheritdoc />
         protected override void Format(ref ulong value)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                value = default;
+                return;
+            }
+
             value = ReadAndValidateULong();
         }
 
         /// <inheritdoc />
         protected override void Format(ref bool value)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                value = default;
+                return;
+            }
+
             value = ReadAndValidateBool();
         }
 
         /// <inheritdoc />
         protected override void FormatNullable(ref bool isNull)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                isNull = true; // Treat as null
+                return;
+            }
+
             var node = GetCurrentNode();
             isNull = node.IsNull;
             if (node.IsNull)
@@ -226,24 +330,48 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         /// <inheritdoc />
         protected override void Format(ref float value)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                value = default;
+                return;
+            }
+
             value = ReadAndValidateFloat();
         }
 
         /// <inheritdoc />
         protected override void Format(ref double value)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                value = default;
+                return;
+            }
+
             value = ReadAndValidateDouble();
         }
 
         /// <inheritdoc />
         protected override void Format(ref decimal value)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                value = default;
+                return;
+            }
+
             value = ReadAndValidateDecimal();
         }
 
         /// <inheritdoc />
         protected override void Format(ref string str)
         {
+            if (ShouldAssignDefaultValue())
+            {
+                str = default;
+                return;
+            }
+
             str = ReadAndValidateString();
         }
 
@@ -256,11 +384,19 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
             _root = null;
             _nodeStack.Clear();
             _jsonSettings = null;
+            _missingMemberStack.Clear();
+            _isInMissingMember = false;
+            _isNextMemberMissing = false;
         }
 
         /// <inheritdoc />
         protected override Type PeekType(Type expectedType)
         {
+            if (ShouldSkipMemberReading())
+            {
+                return null;
+            }
+
             if (_root == null)
             {
                 _root = JSON.Parse(_jsonText);
@@ -268,231 +404,6 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
 
             var enableValidate = expectedType != null;
             return ReadAndValidateType(expectedType, enableValidate);
-        }
-
-        /// <summary>
-        /// Gets the current JSON node based on whether we're in an array or object context.
-        /// Validates scope consistency using <see cref="ReadingFormatterBase.IsInArrayScope"/> and <see cref="ReadingFormatterBase.IsInObjectScope"/>.
-        /// </summary>
-        private JSONNode GetCurrentNode()
-        {
-            if (_nodeStack.Count == 0)
-            {
-                // Auto-parse atomic values when enabled and no root exists
-                if (_root == null)
-                {
-                    if (_jsonSettings?.AutoWrapAtomicValueInArray == true)
-                    {
-                        var root = JSON.Parse(_jsonText);
-                        if (!root.IsArray)
-                        {
-                            throw new DataFormatException(
-                            "JSON data format mismatch: expected array root when AutoWrapAtomicValueInArray is enabled. " +
-                            "The data was likely serialized with different settings or has been modified externally. " +
-                            "Ensure the reading configuration matches the writing configuration, or disable AutoWrapAtomicValueInArray.");
-                        }
-
-                        _root = root;
-                        return _root[0];
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException(
-                            "Cannot read value without a root node. Call BeginArray() or BeginObject() first to create the root element.");
-                    }
-                }
-
-                return _root;
-            }
-
-            var parent = _nodeStack.Peek();
-
-            // If parent is an array, access by index
-            if (parent.IsArray)
-            {
-                Assert.IsTrue(IsInArrayScope,
-                    "Attempting to read array element but not in array scope. Check BeginArray/EndArray pairing.");
-                Assert.IsTrue(_arrayIndexStack.Count > 0, "Array index stack is empty when in array scope.");
-                var arrayNode = parent.AsArray;
-                var index = _arrayIndexStack.Peek();
-                if (index >= arrayNode.Count)
-                {
-                    throw new DataFormatException(
-                        $"Array index {index} is out of bounds. Array has {arrayNode.Count} elements. " +
-                        "This may indicate corrupted data or a mismatch between the serialized format and the expected structure.");
-                }
-                return arrayNode[_arrayIndexStack.Peek()];
-            }
-
-            // At root level, we can access members without being in object scope
-            // (the root JSON object is implicitly in object context)
-            bool isAtRootLevel = _nodeStack.Count == 1;
-
-            Assert.IsTrue(IsInObjectScope || isAtRootLevel,
-                "Attempting to read object member but not in object scope. Check BeginObject/EndObject pairing.");
-
-            if (_currentMemberName.IsNullOrEmpty())
-            {
-                throw new InvalidOperationException(
-                    "Cannot read field member without a member name. " +
-                    "BeginMember() must be called before reading field members to set the member name.");
-            }
-            return parent[_currentMemberName];
-        }
-
-        /// <summary>
-        /// Advances the array index after reading an element.
-        /// Only advances when currently in array scope.
-        /// </summary>
-        private void AdvanceArrayIndex()
-        {
-            if (_nodeStack.Count == 0)
-            {
-                return;
-            }
-
-            var parent = _nodeStack.Peek();
-            if (parent.IsArray)
-            {
-                Assert.IsTrue(IsInArrayScope,
-                    "Attempting to advance array index but not in array scope. Check BeginArray/EndArray pairing.");
-                Assert.IsTrue(_arrayIndexStack.Count > 0, "Array index stack is empty when in array scope.");
-                var currentIndex = _arrayIndexStack.Pop();
-                _arrayIndexStack.Push(currentIndex + 1);
-            }
-        }
-
-        private double ReadAndValidateDouble()
-        {
-            var node = GetCurrentNode();
-            if (node == null || !node.IsNumber)
-            {
-                throw new DataFormatException($"Expected number at '{_currentMemberName}', found {node?.Tag ?? JSONNodeType.NullValue}.");
-            }
-
-            AdvanceArrayIndex();
-            return node.AsDouble;
-        }
-
-        private decimal ReadAndValidateDecimal()
-        {
-            var stringValue = ReadAndValidateString();
-            // Parse from string to preserve decimal precision
-            return decimal.Parse(stringValue, System.Globalization.CultureInfo.InvariantCulture);
-        }
-
-        private float ReadAndValidateFloat()
-        {
-            var node = GetCurrentNode();
-            if (node == null || !node.IsNumber)
-            {
-                throw new DataFormatException($"Expected number at '{_currentMemberName}', found {node?.Tag ?? JSONNodeType.NullValue}.");
-            }
-
-            AdvanceArrayIndex();
-            return node.AsFloat;
-        }
-
-        private long ReadAndValidateLong()
-        {
-            var node = GetCurrentNode();
-            if (node == null || !node.IsNumber)
-            {
-                throw new DataFormatException($"Expected number at '{_currentMemberName}', found {node?.Tag ?? JSONNodeType.NullValue}.");
-            }
-
-            AdvanceArrayIndex();
-            return node.AsLong;
-        }
-
-        private ulong ReadAndValidateULong()
-        {
-            var node = GetCurrentNode();
-            if (node == null || !node.IsNumber)
-            {
-                throw new DataFormatException($"Expected number at '{_currentMemberName}', found {node?.Tag ?? JSONNodeType.NullValue}.");
-            }
-
-            AdvanceArrayIndex();
-            return node.AsULong;
-        }
-
-        private int ReadAndValidateInt()
-        {
-            var node = GetCurrentNode();
-            if (node == null || !node.IsNumber)
-            {
-                throw new DataFormatException($"Expected number at '{_currentMemberName}', found {node?.Tag ?? JSONNodeType.NullValue}.");
-            }
-
-            AdvanceArrayIndex();
-            return node.AsInt;
-        }
-
-        private bool ReadAndValidateBool()
-        {
-            var node = GetCurrentNode();
-            if (node == null || !node.IsBoolean)
-            {
-                throw new DataFormatException($"Expected boolean at '{_currentMemberName}', found {node?.Tag ?? JSONNodeType.NullValue}.");
-            }
-
-            AdvanceArrayIndex();
-            return node.AsBool;
-        }
-
-        private string ReadAndValidateString()
-        {
-            var node = GetCurrentNode();
-            if (node == null)
-            {
-                return null;
-            }
-
-            if (!node.IsString)
-            {
-                throw new DataFormatException($"Expected string at '{_currentMemberName}', found {node.Tag}.");
-            }
-
-            AdvanceArrayIndex();
-            return node.Value;
-        }
-
-        private Type ReadAndValidateType(Type expectedType, bool enableValidate = true)
-        {
-            var node = GetCurrentNode();
-            if (!node.IsObject && !node.IsNull)
-            {
-                throw new DataFormatException($"Expected JSON object at '{_currentMemberName}', found {node.Tag}.");
-            }
-
-            // Only read type field if IncludeObjectType option is enabled
-            if ((_jsonSettings?.Options & JsonFormatterOptions.IncludeObjectType) == 0)
-            {
-                return expectedType;
-            }
-
-            var typeNameField = _jsonSettings?.TypeNameField ?? "__meta_type__";
-            var metaTypeNode = node[typeNameField];
-            if (metaTypeNode != null)
-            {
-                if (!metaTypeNode.IsString || metaTypeNode.Value.IsNullOrWhiteSpace())
-                {
-                    throw new DataFormatException(
-                        $"The '{typeNameField}' field must be a non-empty string containing a valid type name. " +
-                        $"Expected location: '{_currentMemberName}'. Ensure the JSON data includes a valid type name in the '{typeNameField}' field.");
-                }
-                var metaType = SerializedTypeUtility.NameToType(metaTypeNode.Value);
-                if (enableValidate && !metaType.IsDerivedFrom(expectedType))
-                {
-                    throw new DataFormatException(
-                        $"Type mismatch in json data. Expected type '{expectedType}', found '{metaType}'.");
-                }
-
-                return metaType;
-            }
-
-            return null;
         }
     }
 }
