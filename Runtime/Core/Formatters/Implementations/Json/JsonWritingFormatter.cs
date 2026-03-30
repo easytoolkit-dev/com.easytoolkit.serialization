@@ -78,7 +78,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
         {
             var newObject = new JSONObject();
 
-            if (type != null && (_jsonSettings?.Options & JsonFormatterOptions.IncludeObjectType) != 0)
+            if (type != null && _jsonSettings?.Options.HasFlag(JsonFormatterOptions.IncludeObjectType) == true)
             {
                 var typeNameField = _jsonSettings?.TypeNameField ?? "__meta_type__";
                 newObject[typeNameField] = SerializedTypeUtility.TypeToName(type);

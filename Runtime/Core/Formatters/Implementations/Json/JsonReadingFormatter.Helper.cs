@@ -215,7 +215,7 @@ namespace EasyToolkit.Serialization.Formatters.Implementations
             }
 
             // Only read type field if IncludeObjectType option is enabled
-            if ((_jsonSettings?.Options & JsonFormatterOptions.IncludeObjectType) == 0)
+            if (_jsonSettings?.Options.HasFlag(JsonFormatterOptions.IncludeObjectType) != true)
             {
                 return expectedType;
             }
