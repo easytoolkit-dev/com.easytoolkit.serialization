@@ -1,4 +1,4 @@
-﻿namespace EasyToolkit.Serialization.Formatters.Implementations
+namespace EasyToolkit.Serialization.Formatters.Implementations
 {
     internal enum JSONNodeType
     {

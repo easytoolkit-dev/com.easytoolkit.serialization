@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using EasyToolkit.Serialization.Formatters;
 
 namespace EasyToolkit.Serialization.Processors

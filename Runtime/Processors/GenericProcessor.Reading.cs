@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using EasyToolkit.Core.Reflection;
 using EasyToolkit.Serialization.Formatters;
 using EasyToolkit.Serialization.Resolvers;

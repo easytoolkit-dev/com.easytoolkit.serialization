@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using EasyToolkit.Serialization.Formatters;
 
 namespace EasyToolkit.Serialization.Processors

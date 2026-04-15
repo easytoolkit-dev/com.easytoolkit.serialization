@@ -1,4 +1,4 @@
-﻿using EasyToolkit.Serialization.Formatters;
+using EasyToolkit.Serialization.Formatters;
 using UnityEngine;
 
 namespace EasyToolkit.Serialization.Processors
