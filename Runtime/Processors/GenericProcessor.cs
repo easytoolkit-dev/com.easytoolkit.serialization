@@ -57,10 +57,16 @@ namespace EasyToolkit.Serialization.Processors
                 return true;
             }
 
-            if (!valueType.IsDefined<SerializableAttribute>()
-                && SerializedTypeUtility.GetDefinedEasySerializableAttribute(valueType) == null)
+            var hasSerializableAttribute = valueType.IsDefined<SerializableAttribute>();
+            var easySerializableAttribute = SerializedTypeUtility.GetDefinedEasySerializableAttribute(valueType);
+            if (!hasSerializableAttribute && easySerializableAttribute == null)
             {
                 if (context.AllowUnmarkedStructs && valueType.IsStructType())
+                {
+                    return true;
+                }
+
+                if (context.AllowNonSerializableTypes && !valueType.IsValueType)
                 {
                     return true;
                 }
@@ -86,7 +92,7 @@ namespace EasyToolkit.Serialization.Processors
                 {
                     _isNoSerializableType = false;
                 }
-                else if (attribute == null)
+                else if (attribute == null && !AllowNonSerializableTypes)
                 {
                     _isNoSerializableType = true;
                 }

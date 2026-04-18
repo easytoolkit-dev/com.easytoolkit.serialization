@@ -3,6 +3,7 @@ using EasyToolkit.Core.Reflection;
 using EasyToolkit.Serialization.Formatters;
 using EasyToolkit.Serialization.Resolvers;
 using EasyToolkit.Serialization.Utilities;
+using UnityEngine.Assertions;
 
 namespace EasyToolkit.Serialization.Processors
 {
@@ -70,6 +71,15 @@ namespace EasyToolkit.Serialization.Processors
                                     + $"Structs must be marked with [Serializable] or [EasySerializable]. "
                                     + $"Enable AllowUnmarkedStructs in EasySerializableAttribute or SerializationContext.");
                             }
+
+                            if (!runtimeType.IsValueType && !memberDefinition.AllowNonSerializableTypes
+                                                         && !runtimeType.IsAnonymousType())
+                            {
+                                throw new SerializationException(
+                                    $"Cannot serialize member '{memberDefinition.Name}' with runtime type '{runtimeType}'. "
+                                    + $"Reference types without serialization attributes are not allowed for this member. "
+                                    + $"Enable AllowNonSerializableTypes in EasySerializableAttribute or SerializationContext.");
+                            }
                         }
 
                         var runtimeProcessor = _processorByType.GetOrAdd(runtimeType, CreateProcessor);
@@ -79,6 +89,7 @@ namespace EasyToolkit.Serialization.Processors
                                 $"Cannot serialize member '{memberDefinition.Name}' with runtime type '{runtimeType}'. "
                                 + $"No suitable processor was found for this type. "
                                 + $"Ensure the runtime type is marked with [Serializable] or [EasySerializable], "
+                                + $"enable AllowNonSerializableTypes in SerializationContext or EasySerializableAttribute, "
                                 + $"or disable UseRuntimeType in SerializationContext or EasySerializableAttribute.");
                         }
 
@@ -86,11 +97,21 @@ namespace EasyToolkit.Serialization.Processors
                     }
                     else
                     {
+                        if (memberDefinition.Processor == null)
+                        {
+                            Assert.IsNotNull(memberDefinition.SerializationException);
+                            throw memberDefinition.SerializationException;
+                        }
                         memberDefinition.Processor.ProcessUntyped(ref memberValue, formatter);
                     }
                 }
                 else
                 {
+                    if (memberDefinition.Processor == null)
+                    {
+                        Assert.IsNotNull(memberDefinition.SerializationException);
+                        throw memberDefinition.SerializationException;
+                    }
                     memberDefinition.Processor.ProcessUntyped(ref memberValue, formatter);
                 }
             }

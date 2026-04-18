@@ -8,8 +8,9 @@ namespace EasyToolkit.Serialization
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Struct, Inherited = false, AllowMultiple = false)]
     public class EasySerializableAttribute : Attribute
     {
-        private bool? _excludeNonSerialized;
+        private bool? _excludeNonSerializedMembers;
         private bool? _allowAnonymousTypes;
+        private bool? _allowNonSerializableTypes;
         private bool? _allowUnmarkedStructs;
         private bool? _requireSerializeFieldOnNonPublic;
         private SerializableMemberFlags? _memberFlags;
@@ -96,29 +97,29 @@ namespace EasyToolkit.Serialization
         /// </summary>
         /// <exception cref="InvalidOperationException">
         /// Thrown when getting this property without first setting a value.
-        /// Check <see cref="IsDefinedExcludeNonSerialized"/> before accessing.
+        /// Check <see cref="IsDefinedExcludeNonSerializedMembers"/> before accessing.
         /// </exception>
         /// <remarks>
         /// When <c>true</c>, fields marked with <see cref="NonSerializedAttribute"/> are excluded
         /// from serialization regardless of other settings. When <c>false</c>, the <see cref="NonSerializedAttribute"/>
         /// is ignored and members are serialized based on other flags.
         /// </remarks>
-        public bool ExcludeNonSerialized
+        public bool ExcludeNonSerializedMembers
         {
-            get => _excludeNonSerialized ?? throw new InvalidOperationException(
+            get => _excludeNonSerializedMembers ?? throw new InvalidOperationException(
                 "Cannot access ExcludeNonSerialized property because it has not been set.");
-            set => _excludeNonSerialized = value;
+            set => _excludeNonSerializedMembers = value;
         }
 
         /// <summary>
-        /// Gets a value indicating whether the <see cref="ExcludeNonSerialized"/> property
+        /// Gets a value indicating whether the <see cref="ExcludeNonSerializedMembers"/> property
         /// has been explicitly defined.
         /// </summary>
         /// <remarks>
-        /// When <c>true</c>, the attribute's <see cref="ExcludeNonSerialized"/> value is used.
-        /// When <c>false</c>, the <see cref="SerializationContext.ExcludeNonSerialized"/> value is used instead.
+        /// When <c>true</c>, the attribute's <see cref="ExcludeNonSerializedMembers"/> value is used.
+        /// When <c>false</c>, the <see cref="SerializationContext.ExcludeNonSerializedMembers"/> value is used instead.
         /// </remarks>
-        public bool IsDefinedExcludeNonSerialized => _excludeNonSerialized.HasValue;
+        public bool IsDefinedExcludeNonSerializedMembers => _excludeNonSerializedMembers.HasValue;
 
         /// <summary>
         /// Gets or sets whether to allow anonymous types to be serialized.
@@ -161,6 +162,42 @@ namespace EasyToolkit.Serialization
         /// When <c>false</c>, the <see cref="SerializationContext.AllowAnonymousTypes"/> value is used instead.
         /// </remarks>
         public bool IsDefinedAllowAnonymousTypes => _allowAnonymousTypes.HasValue;
+
+        /// <summary>
+        /// Gets or sets whether to allow reference types without <see cref="SerializableAttribute"/>
+        /// or <see cref="EasySerializableAttribute"/> to be serialized.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when getting this property without first setting a value.
+        /// Check <see cref="IsDefinedAllowNonSerializableTypes"/> before accessing.
+        /// </exception>
+        /// <remarks>
+        /// <para>
+        /// When <c>true</c>, class and interface types can be serialized even when they do not
+        /// declare any serialization attribute. When <c>false</c>, reference types must be marked with
+        /// either <see cref="SerializableAttribute"/> or <see cref="EasySerializableAttribute"/>.
+        /// </para>
+        /// <para>
+        /// When this property is explicitly set, it takes precedence over the
+        /// <see cref="SerializationContext.AllowNonSerializableTypes"/> setting.
+        /// </para>
+        /// </remarks>
+        public bool AllowNonSerializableTypes
+        {
+            get => _allowNonSerializableTypes ?? throw new InvalidOperationException(
+                "Cannot access AllowNonSerializableTypes property because it has not been set.");
+            set => _allowNonSerializableTypes = value;
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether the <see cref="AllowNonSerializableTypes"/> property
+        /// has been explicitly defined.
+        /// </summary>
+        /// <remarks>
+        /// When <c>true</c>, the attribute's <see cref="AllowNonSerializableTypes"/> value is used.
+        /// When <c>false</c>, the <see cref="SerializationContext.AllowNonSerializableTypes"/> value is used instead.
+        /// </remarks>
+        public bool IsDefinedAllowNonSerializableTypes => _allowNonSerializableTypes.HasValue;
 
         /// <summary>
         /// Gets or sets whether to allow struct types without <see cref="SerializableAttribute"/>

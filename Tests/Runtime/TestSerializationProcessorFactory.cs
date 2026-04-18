@@ -383,6 +383,26 @@ namespace EasyToolkit.Serialization.Tests
             Assert.AreEqual(typeof(GenericProcessor<AllMembersClass>), processor.GetType());
         }
 
+        /// <summary>
+        /// Verifies that unmarked reference types can use GenericProcessor when AllowNonSerializableTypes is enabled.
+        /// </summary>
+        [Test]
+        public void GetProcessor_UnmarkedReferenceTypeWithContextFlag_ReturnsGenericProcessor()
+        {
+            // Arrange
+            var context = new SerializationContext
+            {
+                AllowNonSerializableTypes = true
+            };
+
+            // Act
+            var processor = SerializationProcessorFactory.CreateProcessor(typeof(UnmarkedReferenceType), context, null);
+
+            // Assert
+            Assert.IsNotNull(processor);
+            Assert.AreEqual(typeof(GenericProcessor<UnmarkedReferenceType>), processor.GetType());
+        }
+
         #endregion
 
         #region Edge Cases - Critical Tests

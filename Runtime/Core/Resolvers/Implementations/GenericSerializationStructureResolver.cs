@@ -35,13 +35,17 @@ namespace EasyToolkit.Serialization.Resolvers.Implementations
                 ? easySerializableAttribute.RequireSerializeFieldOnNonPublic
                 : context.RequireSerializeFieldOnNonPublic;
 
-            var excludeNonSerialized = easySerializableAttribute is { IsDefinedExcludeNonSerialized: true }
-                ? easySerializableAttribute.ExcludeNonSerialized
-                : context.ExcludeNonSerialized;
+            var excludeNonSerializedMembers = easySerializableAttribute is { IsDefinedExcludeNonSerializedMembers: true }
+                ? easySerializableAttribute.ExcludeNonSerializedMembers
+                : context.ExcludeNonSerializedMembers;
 
             var allowAnonymousTypes = easySerializableAttribute is { IsDefinedAllowAnonymousTypes: true }
                 ? easySerializableAttribute.AllowAnonymousTypes
                 : context.AllowAnonymousTypes;
+
+            var allowNonSerializableTypes = easySerializableAttribute is { IsDefinedAllowNonSerializableTypes: true }
+                ? easySerializableAttribute.AllowNonSerializableTypes
+                : context.AllowNonSerializableTypes;
 
             var allowUnmarkedStructs = easySerializableAttribute is { IsDefinedAllowUnmarkedStructs: true }
                 ? easySerializableAttribute.AllowUnmarkedStructs
@@ -51,7 +55,7 @@ namespace EasyToolkit.Serialization.Resolvers.Implementations
 
             var memberInfos = valueType.GetAllMembers(MemberAccessFlags.AllInstance)
                 .Where(memberInfo => (memberInfo is FieldInfo fieldInfo && !fieldInfo.IsBackingField()) || memberInfo is PropertyInfo)
-                .Where(memberInfo => ShouldIncludeMember(memberInfo, serializableMemberFlags, requireSerializeField, excludeNonSerialized, allowAnonymousTypes, allowUnmarkedStructs))
+                .Where(memberInfo => ShouldIncludeMember(memberInfo, serializableMemberFlags, requireSerializeField, excludeNonSerializedMembers, allowAnonymousTypes, allowUnmarkedStructs))
                 .ToList();
 
             for (int i = 0; i < memberInfos.Count; i++)
@@ -69,12 +73,14 @@ namespace EasyToolkit.Serialization.Resolvers.Implementations
                 }
 
                 ISerializationProcessor processor = null;
+                SerializationException serializationException = null;
                 try
                 {
                     processor = SerializationProcessorFactory.CreateProcessor(memberType, context, parent);
                 }
-                catch (SerializationException)
+                catch (SerializationException exception)
                 {
+                    serializationException = exception;
                 }
 
                 var memberDefinition = new SerializationMemberDefinition
@@ -87,7 +93,9 @@ namespace EasyToolkit.Serialization.Resolvers.Implementations
                     ValueGetter = CreateValueGetter(memberInfo),
                     ValueSetter = CreateValueSetter(memberInfo),
                     Processor = processor,
+                    SerializationException = serializationException,
                     UseRuntimeType = !memberType.IsValueType && !memberType.IsSealed && memberType != typeof(string),
+                    AllowNonSerializableTypes = allowNonSerializableTypes,
                     AllowAnonymousTypes = allowAnonymousTypes,
                     AllowUnmarkedStructs = allowUnmarkedStructs
                 };
@@ -102,7 +110,7 @@ namespace EasyToolkit.Serialization.Resolvers.Implementations
         /// Determines whether a member should be included based on the specified flags.
         /// </summary>
         private static bool ShouldIncludeMember(MemberInfo memberInfo, SerializableMemberFlags flags,
-            bool requireSerializeFieldOnNonPublic, bool excludeNonSerialized, bool allowAnonymousTypes, bool allowUnmarkedStructs)
+            bool requireSerializeFieldOnNonPublic, bool excludeNonSerializedMembers, bool allowAnonymousTypes, bool allowUnmarkedStructs)
         {
             if (!memberInfo.TryGetMemberType(out var memberType))
             {
@@ -150,7 +158,7 @@ namespace EasyToolkit.Serialization.Resolvers.Implementations
             var isProperty = memberInfo is PropertyInfo;
 
             // Check for NonSerializedAttribute on fields
-            if (excludeNonSerialized && isField)
+            if (excludeNonSerializedMembers && isField)
             {
                 var nonSerializedAttributes = memberInfo.GetCustomAttributes(typeof(NonSerializedAttribute), inherit: true);
                 if (nonSerializedAttributes.Length > 0)

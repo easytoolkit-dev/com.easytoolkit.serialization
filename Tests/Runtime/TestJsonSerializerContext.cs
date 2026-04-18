@@ -256,7 +256,7 @@ namespace EasyToolkit.Serialization.Tests
             var context = new SerializationContext
             {
                 MemberFlags = SerializableMemberFlags.AllFields,
-                ExcludeNonSerialized = true
+                ExcludeNonSerializedMembers = true
             };
             var original = new ContextTestClass(1, 2, 3, 4, 5, 6);
 
@@ -279,7 +279,7 @@ namespace EasyToolkit.Serialization.Tests
             var context = new SerializationContext
             {
                 MemberFlags = SerializableMemberFlags.AllFields,
-                ExcludeNonSerialized = false
+                ExcludeNonSerializedMembers = false
             };
             var original = new ContextTestClass(1, 2, 3, 4, 5, 6);
 
@@ -290,6 +290,80 @@ namespace EasyToolkit.Serialization.Tests
             // Assert
             Assert.AreEqual(1, result.publicField, "Public field should be serialized");
             Assert.AreEqual(6, result.publicFieldWithNonSerialized, "Public field with NonSerialized should be serialized");
+        }
+
+        #endregion
+
+        #region AllowNonSerializableTypes
+
+        /// <summary>
+        /// Verifies that AllowNonSerializableTypes=true allows serialization of unmarked reference types.
+        /// </summary>
+        [Test]
+        public void SerializeWithContext_AllowNonSerializableTypesTrue_SerializesUnmarkedReferenceTypes()
+        {
+            // Arrange
+            var context = new SerializationContext
+            {
+                AllowNonSerializableTypes = true
+            };
+            var original = new UnmarkedReferenceType(42, "plain");
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original, context: context);
+            var result = EasySerializer.DeserializeFromJson<UnmarkedReferenceType>(json, context: context);
+
+            // Assert
+            Assert.AreEqual(42, result.Value, "Unmarked reference type field should be serialized");
+            Assert.AreEqual("plain", result.Name, "Unmarked reference type string should be serialized");
+        }
+
+        /// <summary>
+        /// Verifies that AllowNonSerializableTypes=false rejects unmarked reference types.
+        /// </summary>
+        [Test]
+        public void SerializeWithContext_AllowNonSerializableTypesFalse_ThrowsForUnmarkedReferenceTypes()
+        {
+            // Arrange
+            var context = new SerializationContext
+            {
+                AllowNonSerializableTypes = false
+            };
+            var original = new UnmarkedReferenceType(42, "plain");
+
+            // Act & Assert
+            var ex = Assert.Throws<SerializationException>(() =>
+                EasySerializer.SerializeToJson(ref original, context: context));
+
+            Assert.That(ex.Message, Does.Contain("AllowNonSerializableTypes"));
+        }
+
+        /// <summary>
+        /// Verifies that modifying AllowNonSerializableTypes clears the processor cache.
+        /// </summary>
+        [Test]
+        public void SerializeWithContext_ModifyAllowNonSerializableTypes_ClearsProcessorCache()
+        {
+            // Arrange
+            var context = new SerializationContext
+            {
+                AllowNonSerializableTypes = true
+            };
+            var original = new UnmarkedReferenceType(42, "plain");
+
+            // Act
+            string json = EasySerializer.SerializeToJson(ref original, context: context);
+            var result = EasySerializer.DeserializeFromJson<UnmarkedReferenceType>(json, context: context);
+
+            context.AllowNonSerializableTypes = false;
+
+            // Assert
+            Assert.AreEqual(42, result.Value, "First serialization should succeed with unmarked reference type");
+
+            var ex = Assert.Throws<SerializationException>(() =>
+                EasySerializer.SerializeToJson(ref original, context: context));
+
+            Assert.That(ex.Message, Does.Contain("AllowNonSerializableTypes"));
         }
 
         #endregion

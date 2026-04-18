@@ -133,6 +133,7 @@ namespace EasyToolkit.Serialization.Processors
                 throw new SerializationException(
                     $"Failed to resolve serialization processor for '{valueType.ToCodeString()}'. "
                     + $"Ensure the type is marked with [Serializable] or [EasySerializable] attribute. "
+                    + $"For plain reference types used in diagnostics or logging, enable AllowNonSerializableTypes. "
                     + $"Alternatively, create a custom processor by inheriting from SerializationProcessor<{valueType.ToCodeString()}>, "
                     + $"or mark with [EasySerializable(Ignore = true)] to ignore.");
             }

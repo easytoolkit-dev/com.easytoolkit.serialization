@@ -245,6 +245,50 @@ namespace EasyToolkit.Serialization.Tests
 
         #endregion
 
+        #region AllowNonSerializableTypes
+
+        /// <summary>
+        /// Verifies that AllowNonSerializableTypes=false in EasySerializableAttribute rejects unmarked reference members.
+        /// </summary>
+        [Test]
+        public void AllowNonSerializableTypesFalse_InAttribute_ThrowsForUnmarkedReferenceMember()
+        {
+            // Arrange
+            var original = new UnmarkedReferenceContainerClass(new UnmarkedReferenceType(7, "blocked"));
+
+            // Act & Assert
+            var ex = Assert.Throws<SerializationException>(() =>
+                EasySerializer.SerializeToBinary(ref original));
+
+            Assert.That(ex.Message, Does.Contain("AllowNonSerializableTypes"));
+        }
+
+        /// <summary>
+        /// Verifies that AllowNonSerializableTypes=true in EasySerializableAttribute allows serialization of unmarked reference members.
+        /// </summary>
+        [Test]
+        public void AllowNonSerializableTypesTrue_InAttribute_SerializesUnmarkedReferenceMember()
+        {
+            var context = new SerializationContext()
+            {
+                AllowNonSerializableTypes = true
+            };
+
+            // Arrange
+            var original = new AllowNonSerializableReferenceContainerClass(new UnmarkedReferenceType(7, "allowed"));
+
+            // Act
+            byte[] data = EasySerializer.SerializeToBinary(ref original, context:context);
+            var result = EasySerializer.DeserializeFromBinary<AllowNonSerializableReferenceContainerClass>(data, context:context);
+
+            // Assert
+            Assert.IsNotNull(result.Data, "Unmarked reference member should be deserialized");
+            Assert.AreEqual(7, result.Data.Value, "Unmarked reference type field should be serialized");
+            Assert.AreEqual("allowed", result.Data.Name, "Unmarked reference type string should be serialized");
+        }
+
+        #endregion
+
         #region AllocInherit
 
         /// <summary>

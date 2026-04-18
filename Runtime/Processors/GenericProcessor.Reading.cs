@@ -38,6 +38,11 @@ namespace EasyToolkit.Serialization.Processors
                 }
                 else
                 {
+                    if (memberDefinition.Processor == null)
+                    {
+                        Assert.IsNotNull(memberDefinition.SerializationException);
+                        throw memberDefinition.SerializationException;
+                    }
                     memberDefinition.Processor.ProcessUntyped(ref memberValue, formatter);
                 }
             }

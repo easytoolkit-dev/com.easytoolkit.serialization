@@ -14,9 +14,10 @@ namespace EasyToolkit.Serialization
     /// </remarks>
     public sealed class SerializationContext
     {
+        private bool _allowNonSerializableTypes = false;
         private bool _allowUnmarkedStructs = true;
         private bool _allowAnonymousTypes = false;
-        private bool _excludeNonSerialized = true;
+        private bool _excludeNonSerializedMembers = true;
         private bool _requireSerializeFieldOnNonPublic = true;
         private SerializableMemberFlags _memberFlags = SerializableMemberFlags.Default;
 
@@ -83,12 +84,12 @@ namespace EasyToolkit.Serialization
         /// </para>
         /// <para>Setting this property clears the processor cache to ensure new settings take effect.</para>
         /// </remarks>
-        public bool ExcludeNonSerialized
+        public bool ExcludeNonSerializedMembers
         {
-            get => _excludeNonSerialized;
+            get => _excludeNonSerializedMembers;
             set
             {
-                _excludeNonSerialized = value;
+                _excludeNonSerializedMembers = value;
                 _processorCache.Clear();
             }
         }
@@ -120,6 +121,31 @@ namespace EasyToolkit.Serialization
             set
             {
                 _allowAnonymousTypes = value;
+                _processorCache.Clear();
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether to allow class and interface types without
+        /// <see cref="SerializableAttribute"/> or <see cref="EasySerializableAttribute"/>
+        /// to be serialized.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// When <c>true</c>, reference types can be serialized even when they do not declare
+        /// any serialization attribute. When <c>false</c>, reference types must be marked with
+        /// either <see cref="SerializableAttribute"/> or <see cref="EasySerializableAttribute"/>
+        /// unless another processor handles them.
+        /// Default is <c>false</c> to avoid accidentally serializing arbitrary object graphs.
+        /// </para>
+        /// <para>Setting this property clears the processor cache to ensure new settings take effect.</para>
+        /// </remarks>
+        public bool AllowNonSerializableTypes
+        {
+            get => _allowNonSerializableTypes;
+            set
+            {
+                _allowNonSerializableTypes = value;
                 _processorCache.Clear();
             }
         }

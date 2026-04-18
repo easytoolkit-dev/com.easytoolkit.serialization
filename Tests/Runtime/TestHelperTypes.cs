@@ -552,6 +552,59 @@ namespace EasyToolkit.Serialization.Tests
 
     #endregion
 
+    #region Non-Serializable Type Test Classes
+
+    /// <summary>Test reference type without Serializable or EasySerializable attributes.</summary>
+    public class UnmarkedReferenceType
+    {
+        public int Value;
+        public string Name;
+
+        public UnmarkedReferenceType()
+        {
+        }
+
+        public UnmarkedReferenceType(int value, string name)
+        {
+            Value = value;
+            Name = name;
+        }
+    }
+
+    /// <summary>Test container with an unmarked reference type member.</summary>
+    [EasySerializable]
+    public class UnmarkedReferenceContainerClass
+    {
+        public UnmarkedReferenceType Data;
+
+        public UnmarkedReferenceContainerClass()
+        {
+        }
+
+        public UnmarkedReferenceContainerClass(UnmarkedReferenceType data)
+        {
+            Data = data;
+        }
+    }
+
+    /// <summary>Test container that explicitly allows unmarked reference types.</summary>
+    [EasySerializable(AllowNonSerializableTypes = true)]
+    public class AllowNonSerializableReferenceContainerClass
+    {
+        public UnmarkedReferenceType Data;
+
+        public AllowNonSerializableReferenceContainerClass()
+        {
+        }
+
+        public AllowNonSerializableReferenceContainerClass(UnmarkedReferenceType data)
+        {
+            Data = data;
+        }
+    }
+
+    #endregion
+
     #region Circular Dependency Test Types
 
     /// <summary>

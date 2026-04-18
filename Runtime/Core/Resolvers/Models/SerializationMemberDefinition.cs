@@ -42,6 +42,8 @@ namespace EasyToolkit.Serialization.Resolvers
 
         [CanBeNull] public ISerializationProcessor Processor { get; set; }
 
+        [CanBeNull] public SerializationException SerializationException { get; set; }
+
         /// <summary>
         /// Gets or sets whether to use runtime type for processor lookup during serialization.
         /// </summary>
@@ -51,6 +53,16 @@ namespace EasyToolkit.Serialization.Resolvers
         /// polymorphic serialization for reference types. Only applicable to reference types.
         /// </remarks>
         public bool UseRuntimeType { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether to allow reference types without serialization attributes during serialization.
+        /// </summary>
+        /// <remarks>
+        /// When <c>true</c>, class and interface runtime types that are not marked with
+        /// <see cref="SerializableAttribute"/> or <see cref="EasySerializableAttribute"/> can still
+        /// be serialized. This is useful for logging or diagnostics scenarios that work with plain POCO objects.
+        /// </remarks>
+        public bool AllowNonSerializableTypes { get; set; }
 
         /// <summary>
         /// Gets or sets whether to allow unmarked struct types during serialization.
