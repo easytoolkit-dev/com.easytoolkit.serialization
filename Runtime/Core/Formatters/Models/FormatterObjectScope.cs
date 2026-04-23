@@ -13,7 +13,7 @@ namespace EasyToolkit.Serialization.Formatters
     /// when the scope is exited, either through explicit disposal or the using statement.
     /// Instances are pooled and should be created using the static Create method.
     /// </remarks>
-    public sealed class FormatterObjectScope : IPoolObject, IDisposable
+    public sealed class FormatterObjectScope : IDisposable
     {
         private IDataFormatter _formatter;
         private bool _disposed;
@@ -53,7 +53,7 @@ namespace EasyToolkit.Serialization.Formatters
         /// <summary>
         /// Ends the current object scope and releases the instance back to the object pool.
         /// </summary>
-        public void Dispose()
+        void IDisposable.Dispose()
         {
             if (_disposed)
             {
@@ -68,18 +68,9 @@ namespace EasyToolkit.Serialization.Formatters
             {
                 Debug.LogException(e);
             }
+            _formatter = null;
             _disposed = true;
             PoolUtility.ReleaseObject(this);
-        }
-
-        void IPoolObject.OnRent()
-        {
-        }
-
-        void IPoolObject.OnRelease()
-        {
-            _formatter = null;
-            _disposed = false;
         }
     }
 }
