@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
-using EasyToolkit.Core.Collections;
+using EasyToolkit.Core.Foundation;
 using EasyToolkit.Core.Reflection;
 using EasyToolkit.Serialization.Utilities;
 

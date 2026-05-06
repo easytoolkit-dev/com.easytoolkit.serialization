@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using EasyToolkit.Core.Reflection;
-using EasyToolkit.Core.Textual;
+using EasyToolkit.Core.Foundation;
 using EasyToolkit.Serialization.Utilities;
 using UnityEngine.Assertions;
 

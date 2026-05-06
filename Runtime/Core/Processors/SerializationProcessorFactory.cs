@@ -5,10 +5,8 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
-using EasyToolkit.Core.Collections;
-using EasyToolkit.Core.Mathematics;
+using EasyToolkit.Core.Foundation;
 using EasyToolkit.Core.Reflection;
-using EasyToolkit.Core.Textual;
 using EasyToolkit.Serialization.Utilities;
 using JetBrains.Annotations;
 

@@ -1,5 +1,5 @@
 using System;
-using EasyToolkit.Core.Mathematics;
+using EasyToolkit.Core.Foundation;
 
 namespace EasyToolkit.Serialization.Processors
 {
